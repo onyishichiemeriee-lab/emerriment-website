@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EMerriment | Clear Skin Blueprint</title>
+
+  <link rel="stylesheet" href="landing.css"/>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+</head>
+
+<body>
+
+ <main >
+    <!-- ALL WEBSITE CONTENT HERE -->
+ </main>  
+
+<!-- HERO -->
+
+<section class="hero">
+
+  <div class="overlay"></div>
+
+  <nav>
+
+    <h2>EMerriment</h2>
+
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">Guide</a>
+      <a href="#">Testimonials</a>
+      <a href="#">Contact</a>
+    </div>
+
+  </nav>
+
+  <div class="hero-content">
+
+    <div class="hero-text">
+
+      <h1>
+        Stop Apologizing <br>
+        For Your Skin.
+      </h1>
+
+      <p>
+        Heal your skin from within using science-backed
+        skincare education, glow routines, and emotional healing.
+      </p>
+
+      <div class="buttons">
+
+        <a href="https://selar.com/m/emerriment" target="_blank" class="btn">
+          Get The Blueprint
+        </a>
+
+        <a href="#testimonials" class="btn secondary">
+          Success Stories
+        </a>
+
+      </div>
+
+    </div>
+
+    <div class="hero-image">
+
+      <img
+        src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=1200"
+        alt="Skincare"
+      />
+
+    </div>
+
+  </div>
+
+</section>
+
+<section class="quiz-section hidden">
+
+  <h2>AI Skin Analysis Quiz</h2>
+
+    <div id="loading" class="loading-screen" style="display:none;">
+      
+  <div class="loader"></div>
+
+  <h2 id="loadingText">
+    Analyzing your skin...
+  </h2>
+</div>
+
+    <div class="quiz-form">
+
+      <input type="text" id="name" placeholder="Your Name">
+
+    <input type="email" id="email" placeholder="Your Email">
+
+    <select id="skinType">
+      <option value="">Select Skin Type</option>
+      <option>Oily</option>
+      <option>Dry</option>
+      <option>Combination</option>
+      <option>Sensitive</option>
+    </select>
+
+    <select id="concern">
+      <option value="">Main Skin Concern</option>
+      <option>Acne</option>
+      <option>Hyperpigmentation</option>
+      <option>Rosacea</option>
+      <option>Eczema</option>
+      <option>Dark Spots</option>
+    </select>
+
+    <select id="oilLevel">
+      <option value="">Oil Level</option>
+      <option>Low</option>
+      <option>Medium</option>
+      <option>High</option>
+    </select>
+
+    <select id="sensitivity">
+      <option value="">Sensitivity</option>
+      <option>Low</option>
+      <option>Medium</option>
+      <option>High</option>
+    </select>
+
+    <button onclick="submitQuiz()">
+      Get My Skin Plan
+    </button>
+
+    <div id="results"></div>
+
+    <div id="analysisText"></div>
+      
+  </div>
+
+</section>
+
+<!-- BENEFITS -->
+
+<section class="benefits reveal">
+
+  <h2>Why EMerriment Works</h2>
+
+  <div class="benefit-grid">
+
+    <div class="card">
+      <i class="fa-solid fa-heart"></i>
+      <h3>Barrier Healing</h3>
+      <p>
+        Stop damaging your skin barrier with harsh skincare habits.
+      </p>
+    </div>
+
+    <div class="card">
+      <i class="fa-solid fa-leaf"></i>
+      <h3>Natural Glow</h3>
+      <p>
+        Learn how to glow naturally without hiding behind filters.
+      </p>
+    </div>
+
+    <div class="card">
+      <i class="fa-solid fa-sparkles"></i>
+      <h3>Confidence</h3>
+      <p>
+        EMerriment helps you rebuild confidence through skin education.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- BEFORE AFTER -->
+
+<section class="before-after reveal">
+
+  <h2>Transformation Journey</h2>
+
+  <div class="before-grid">
+
+    <div class="before-box">
+
+      <img
+        src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200"
+      />
+
+      <h3>Before</h3>
+
+      <p>
+        Confused routines, damaged barrier, painful breakouts.
+      </p>
+
+    </div>
+
+    <div class="before-box">
+
+      <img
+        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1200"
+      />
+
+      <h3>After</h3>
+
+      <p>
+        Healthy glow, simplified skincare, restored confidence.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- TESTIMONIALS -->
+
+<section id="testimonials" class="testimonials reveal">
+
+  <h2>What People Are Saying</h2>
+
+  <div class="testimonial-grid">
+
+    <div class="testimonial">
+      <p>
+        “EMerriment completely changed the way I see skincare.
+        I stopped hiding behind makeup.”
+      </p>
+
+      <h4>- Sarah</h4>
+    </div>
+
+    <div class="testimonial">
+      <p>
+        “My skin barrier finally healed after years of trying random products.”
+      </p>
+
+      <h4>- Amanda</h4>
+    </div>
+
+    <div class="testimonial">
+      <p>
+        “Simple. Emotional. Powerful skincare education.”
+      </p>
+
+      <h4>- Jessica</h4>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- EMAIL CAPTURE -->
+
+<section class="email-section reveal">
+
+  <div class="email-box">
+
+    <h2>Join The Glow Community</h2>
+
+    <p>
+      Get skincare education, healing tips,
+      and exclusive EMerriment updates.
+    </p>
+
+    <form>
+
+      <input
+        type="email"
+        placeholder="Enter your email"
+        required
+      />
+
+      <button type="submit">
+        Subscribe
+      </button>
+
+    </form>
+
+  </div>
+
+</section>
+
+<!-- CTA -->
+
+<section class="final-cta reveal">
+
+  <h2>
+    Your Skin Is Waiting To Heal.
+  </h2>
+
+  <a href="https://selar.com/m/emerriment" target="_blank">
+    Download The Blueprint
+  </a>
+
+</section>
+
+<!-- FOOTER -->
+
+<footer>
+
+  <h2>EMerriment</h2>
+
+  <p>
+    Skin • Science • Self-Love
+  </p>
+
+  <div class="socials">
+
+    <i class="fa-brands fa-instagram"></i>
+    <i class="fa-brands fa-tiktok"></i>
+    <i class="fa-brands fa-youtube"></i>
+
+  </div>
+
+</footer>
+
+<script>
+  function submitQuiz() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const skinType = document.getElementById("skinType").value;
+    const concern = document.getElementById("concern").value;
+    const oilLevel = document.getElementById("oilLevel")?.value || "";
+    const sensitivity = document.getElementById("sensitivity")?.value || "";
+
+    if (!name || !email || !skinType || !concern) {
+      alert("Please fill out all fields.");
+      return;
+    }
+
+     // Show loading screen
+     document.getElementById("loading").style.display = "flex";
+     document.getElementById("analysisText").textContent = "Analyzing your skin...";
+
+     // Simulate API call delay
+     setTimeout(() => {
+       document.getElementById("loading").style.display = "none";
+       showResults(name, skinType, concern);
+     }, 2000);
+   }
+
+   function showResults(name, skinType, concern) {
+     const resultsDiv = document.getElementById("results");
+     resultsDiv.innerHTML = `
+       <h3>Hi ${name}!</h3>
+       <p>Your skin type: ${skinType}</p>
+       <p>Your main concern: ${concern}</p>
+       <p>Based on your answers, we recommend the following skincare routine:</p>
+       <ul>
+         <li><strong>Cleanser:</strong> Gentle, hydrating cleanser</li>
+         <li><strong>Moisturizer:</strong> Barrier-repairing moisturizer</li>
+         <li><strong>Treatment:</strong> Targeted serum for ${concern.toLowerCase()}</li>
+         <li><strong>Sunscreen:</strong> Broad-spectrum SPF 30+</li>
+       </ul>
+     `;
+   }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="script.js"></script>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+  AOS.init();
+</script>
+
+</body>
+</html>
