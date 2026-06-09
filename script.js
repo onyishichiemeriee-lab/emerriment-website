@@ -117,13 +117,13 @@ console.log(error);
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      name,
-      email,
-      skinType,
-      concern,
-      score,
-      recommendation
-    })
+  email: email,
+  attributes: {
+    FIRSTNAME: name
+  },
+  listIds: [3],
+  updateEnabled: true
+})
   });
 
   alert("Skin plan generated!");
