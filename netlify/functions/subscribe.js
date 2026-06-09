@@ -29,6 +29,9 @@ exports.handler = async (event) => {
 
   const data = await response.json();
 
+console.log("Brevo status:", response.status);
+console.log("Brevo response:", data);
+
   return {
     statusCode: 200,
     body: JSON.stringify(data)
