@@ -27,6 +27,9 @@ exports.handler = async (event) => {
     }
   );
 
+  console.log("Status:", response.status);
+console.log("Headers:", [...response.headers.entries()]);
+
   const data = await response.json();
 
 console.log("Brevo status:", response.status);

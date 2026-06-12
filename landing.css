@@ -635,3 +635,77 @@ padding:15px;
 border-radius:12px;
 border:none;
 }
+
+.dashboard{
+  margin-top:40px;
+  background:#0f172a;
+  padding:25px;
+  border-radius:20px;
+  color:white;
+}
+
+.score-card{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+.score-card span{
+  font-size:60px;
+  font-weight:bold;
+  color:#22c55e;
+}
+
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+.dashboard-box{
+  background:#1e293b;
+  padding:15px;
+  border-radius:15px;
+}
+
+.analysis-card,
+.routine-card{
+  background:#1e293b;
+  margin-top:20px;
+  padding:20px;
+  border-radius:15px;
+}
+
+.hidden{
+  display:none;
+}
+
+.hidden {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all .8s ease;
+}
+
+.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media(max-width:768px){
+
+.quiz-form{
+  width:95%;
+}
+
+.dashboard{
+  width:95%;
+}
+
+.dashboard-grid{
+  grid-template-columns:1fr;
+}
+
+h1,h2{
+  font-size:2rem;
+}
+
+}

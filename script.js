@@ -52,11 +52,13 @@ document.getElementById("loading").style.display="none";
       <div class="product-card">
         <h3>Clear Skin Blueprint</h3>
         <p>Hydration + Acne Recovery</p>
+        <a href="https://selar.com/m/emerriment" target="_blank">Shop Now</a>
       </div>
 
       <div class="product-card">
         <h3>Glow Guide</h3>
         <p>Restore your skin barrier</p>
+        <a href="https://selar.com/m/emerriment" target="_blank">Shop Now</a>
       </div>
     `;
   }
@@ -198,3 +200,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   }
 });
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add("show");
+    }
+  });
+});
+
+document.querySelectorAll(".hidden")
+.forEach(el => observer.observe(el));
