@@ -27,6 +27,8 @@
   gtag('config', 'G-L3EYHZMXX4');
 </script>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
 
 <body>
@@ -151,9 +153,21 @@
 
     <div id="results"></div>
 
+    <div id="productRecommendations" style="display:none;">
+
+  <h2>🌿 Recommended For You</h2>
+
+  <div id="recommendedProducts"></div>
+
+</div>
+
     <div id="analysisText"></div>
       
   </div>
+
+</section>
+
+  <div id="aiResponse" class="ai-response"></div>
 
 </section>
 
@@ -233,6 +247,59 @@
 
 </section>
 
+<section class="resource-center">
+
+<h2>📚 EMerriment Resource Center</h2>
+
+<p class="resource-intro">
+Explore trusted skincare education designed to help you understand your skin and make informed decisions.
+</p>
+
+<div class="resource-grid">
+
+<a href="skin-conditions.html" class="resource-card">
+<h3>🦠 Skin Conditions</h3>
+<p>
+Learn about acne, eczema, psoriasis, rosacea, vitiligo, boils, scabies, melasma, and many other skin conditions.
+</p>
+</div>
+
+</a>
+
+<div class="resource-card">
+<h3>🧪 Skincare Ingredients</h3>
+<p>
+Understand ingredients like niacinamide, vitamin C, retinol, hyaluronic acid, ceramides, salicylic acid, and more.
+</p>
+<a href="#skincare-ingredients">
+View Topics →
+</a>
+</div>
+
+<div class="resource-card">
+<h3>🌿 Skincare Routines</h3>
+<p>
+Discover morning routines, night routines, oily skin routines, dry skin routines, and beginner skincare guides.
+</p>
+<a href="#skincare-routines">
+  view Topics →
+</a>
+</div>
+
+<div class="resource-card">
+<h3>❌ Skincare Myths</h3>
+<p>
+Separate fact from fiction and learn the truth behind common skincare misconceptions.
+</p>
+<a href="#skincare-myths">
+  view Topics →
+</a>
+</div>
+
+</div>
+
+</section>
+
 <!-- TESTIMONIALS -->
 
 <section id="testimonials" class="testimonials reveal">
@@ -270,32 +337,82 @@
 
 </section>
 
+<section class="recommended-products">
+
+<h2>🌿 EMerriment Favorites</h2>
+
+<p class="favorites-intro">
+
+At EMerriment, we believe skincare is more than products—it's education, consistency, and self-care. These resources were created to help you better understand your skin and make informed decisions on your skincare journey.
+
+</p>
+
+<div class="product-card">
+
+<h3>Acne Care Course</h3>
+
+<p>
+Acne can affect more than just your skin—it can impact confidence, social interactions, and how you feel about yourself. This course was created to help you understand why acne happens, what actually works, and how to build a routine that supports healthier skin.
+</p>
+
+<a href="https://selar.com/jsr426">
+Get Access
+</a>
+
+</div>
+
+<div class="product-card">
+
+<h3>21 Days To Glow Challenge</h3>
+
+<p>
+Healthy skin isn't built overnight. Small daily habits often create the biggest transformations. This 21-day challenge is designed to guide you step-by-step toward a more consistent skincare routine and a healthier relationship with your skin.
+</p>
+
+<a href="https://selar.com/4h1454">
+Join Challenge
+</a>
+
+</div>
+
+<div class="product-card">
+
+<h3>Fade & Glow Bundle</h3>
+
+<p>
+Dark spots and uneven skin tone can take time to improve, and many people feel frustrated after trying countless products. This bundle focuses on education, realistic expectations, and practical steps that can help you work toward brighter, more even-looking skin.
+</p>
+
+<a href="https://selar.com/y31448">
+View Bundle
+</a>
+
+</div>
+
+</section>
+
 <!-- EMAIL CAPTURE -->
 
 <section class="email-section reveal">
 
   <div class="email-box">
 
-    <h2>Join The Glow Community</h2>
+    <h2>🌿 Join The EMerriment Glow Community</h2>
 
     <p>
-      Get skincare education, healing tips,
-      and exclusive EMerriment updates.
+      Connect with people on the same skincare journey.
+Get daily skincare education, healing tips,
+exclusive challenges and EMerriment updates.
     </p>
 
-    <form>
-
-      <input
-        type="email"
-        placeholder="Enter your email"
-        required
-      />
-
-      <button type="submit">
-        Subscribe
-      </button>
-
-    </form>
+ <a
+href="https://chat.whatsapp.com/LgsOUR96RwkGNrsYrSGGxQ
+"
+target="_blank"
+class="whatsapp-btn"
+>
+Join WhatsApp Community
+</a>
 
   </div>
 
@@ -384,6 +501,38 @@
 <script>
   AOS.init();
 </script>
+
+<!-- EMerriment AI Assistant -->
+
+<div class="ai-chat-button" onclick="toggleAI()">
+  🌿
+</div>
+
+<div id="aiChatBox" class="ai-chat-box">
+
+  <div class="ai-header">
+    🤖 EMerriment AI
+  </div>
+
+  <div id="aiMessages" class="ai-messages">
+
+    <div class="ai-message">
+      Hi 👋 I'm EMerriment AI.
+      Ask me any skincare question.
+    </div>
+
+  </div>
+
+  <textarea
+    id="userQuestion"
+    placeholder="Ask about acne, eczema, dark spots..."
+  ></textarea>
+
+  <button onclick="askAI()">
+    Send
+  </button>
+
+</div>
 
 </body>
 </html>
