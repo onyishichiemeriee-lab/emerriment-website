@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+EMerriment Admin Dashboard
+</title>
+
+<link rel="stylesheet"
+href="dashboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const SUPABASE_URL = "https://ioeulnjrozkbetaongbv.supabase.co";
+
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc";
+
+</script>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>🌿 EMerriment</h2>
+
+<ul>
+
+<li class="active">Dashboard</li>
+
+<li>Subscribers</li>
+
+<li>Email Sequence</li>
+
+<li>Products</li>
+
+<li>Analytics</li>
+
+<li>Settings</li>
+
+</ul>
+
+</div>
+
+<div class="main">
+
+<h1>Dashboard</h1>
+
+<div class="cards">
+
+<div class="card">
+
+<h3>Total Subscribers</h3>
+
+<p id="totalSubscribers">0</p>
+
+</div>
+
+<div class="card">
+
+<h3>Pending Emails</h3>
+
+<p id="pendingEmails">0</p>
+
+</div>
+
+<div class="card">
+
+<h3>Completed Journey</h3>
+
+<p id="completedJourney">0</p>
+
+</div>
+
+<div class="card">
+
+<h3>Most Common Concern</h3>
+
+<p id="topConcern">-</p>
+
+</div>
+
+</div>
+
+<div class="charts">
+
+  <div class="chart-card">
+    <h3>Subscribers by Skin Concern</h3>
+    <canvas id="concernChart"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <h3>Email Journey Progress</h3>
+    <canvas id="journeyChart"></canvas>
+  </div>
+
+</div>
+
+<div class="charts">
+
+  <div class="chart-card">
+    <h3>Subscriber Growth</h3>
+    <canvas id="growthChart"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <h3>Email Status</h3>
+    <canvas id="emailChart"></canvas>
+  </div>
+
+</div>
+
+<div class="stats-panel">
+
+<div>
+
+<h3>Journey Completion</h3>
+
+<div class="progress">
+
+<div
+id="completionBar"
+class="progress-fill">
+
+</div>
+
+</div>
+
+<p id="completionText">0%</p>
+
+</div>
+
+<button id="exportCSV">
+
+⬇ Export Subscribers
+
+</button>
+
+<button id="toggleTheme">
+
+🌙 Dark Mode
+
+</button>
+
+</div>
+
+<div class="toolbar">
+
+<input
+type="text"
+id="search"
+placeholder="🔍 Search by name, email or concern...">
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Email</th>
+
+<th>Skin Type</th>
+
+<th>Concern</th>
+
+<th>Day</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="subscriberTable">
+
+</tbody>
+
+</table>
+
+<div id="subscriberModal" class="modal">
+
+<div class="modal-content">
+
+<span id="closeModal">&times;</span>
+
+<h2>Subscriber Details</h2>
+
+<div id="subscriberDetails"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="dashboard.js"></script>
+
+</body>
+
+</html>

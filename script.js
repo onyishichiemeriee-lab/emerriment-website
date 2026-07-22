@@ -5535,12 +5535,3966 @@ solution:"Focus on long-term consistency instead of quick fixes.",
 prevention:"Build sustainable skincare and wellness habits every day."
 };
 
-function openAI() {
+skincareKnowledge.lichenNitidus = {
+title:"Lichen Nitidus",
+explanation:"Lichen nitidus is a rare inflammatory skin condition that causes tiny, shiny, flesh-colored bumps on the skin.",
+causes:"Unknown immune system reaction.",
+solution:"Usually resolves on its own. Topical corticosteroids may help if symptoms persist.",
+prevention:"There is no known prevention, but maintaining healthy skin may reduce irritation."
+};
 
-  document.getElementById("aiChatContainer")
-  .style.display = "block";
+skincareKnowledge.pityriasisRubraPilaris = {
+title:"Pityriasis Rubra Pilaris",
+explanation:"A rare skin disorder that causes reddish-orange scaly patches and thickened skin on the palms and soles.",
+causes:"Unknown, sometimes linked to genetic mutations.",
+solution:"Treatment includes retinoids, moisturizers and immunosuppressive medications.",
+prevention:"No specific prevention is known."
+};
 
-}
+skincareKnowledge.elastosisPerforansSerpiginosa = {
+title:"Elastosis Perforans Serpiginosa",
+explanation:"A rare disorder where abnormal elastic fibers are pushed through the skin, creating ring-shaped bumps.",
+causes:"Inherited disorders or certain medications.",
+solution:"Dermatological treatments include cryotherapy or laser therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.keratosisPilarisRubra = {
+title:"Keratosis Pilaris Rubra",
+explanation:"A form of keratosis pilaris that causes rough bumps accompanied by persistent redness.",
+causes:"Excess keratin buildup around hair follicles.",
+solution:"Use moisturizers, exfoliants and gentle skincare.",
+prevention:"Maintain regular skin hydration."
+};
+
+skincareKnowledge.papularMucinosis = {
+title:"Papular Mucinosis",
+explanation:"A rare disorder characterized by waxy papules caused by excess mucin deposits in the skin.",
+causes:"Abnormal mucin production.",
+solution:"Treatment depends on severity and underlying conditions.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.porokeratosis = {
+title:"Porokeratosis",
+explanation:"A group of skin disorders that produce ring-shaped lesions with raised borders.",
+causes:"Genetic factors, sun exposure and immune suppression.",
+solution:"Cryotherapy, topical medications or laser treatment.",
+prevention:"Use sunscreen and avoid excessive sun exposure."
+};
+
+skincareKnowledge.nevusSebaceus = {
+title:"Nevus Sebaceus",
+explanation:"A congenital birthmark composed of overgrown sebaceous glands, usually found on the scalp or face.",
+causes:"Developmental skin abnormality before birth.",
+solution:"Surgical removal may be recommended if changes occur.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.cutaneousAmyloidosis = {
+title:"Cutaneous Amyloidosis",
+explanation:"A skin disorder caused by abnormal protein deposits that result in itchy or pigmented patches.",
+causes:"Protein accumulation within the skin.",
+solution:"Topical steroids, antihistamines and laser therapy.",
+prevention:"Reduce chronic scratching when possible."
+};
+
+skincareKnowledge.calcinosisCutis = {
+title:"Calcinosis Cutis",
+explanation:"A condition where calcium deposits develop within the skin and underlying tissues.",
+causes:"Autoimmune disease, injury or metabolic disorders.",
+solution:"Treat the underlying cause; surgery may remove deposits.",
+prevention:"Manage underlying medical conditions."
+};
+
+skincareKnowledge.subcornealPustularDermatosis = {
+title:"Subcorneal Pustular Dermatosis",
+explanation:"A rare chronic skin disease marked by recurring pus-filled blisters.",
+causes:"Immune system dysfunction.",
+solution:"Usually treated with dapsone under medical supervision.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.acrodermatitisChronicaAtrophicans = {
+title:"Acrodermatitis Chronica Atrophicans",
+explanation:"A late skin manifestation of Lyme disease causing bluish discoloration and thinning of the skin.",
+causes:"Untreated Borrelia infection.",
+solution:"Long-term antibiotics prescribed by a physician.",
+prevention:"Prevent tick bites and treat Lyme disease early."
+};
+
+skincareKnowledge.pyodermaGangrenosum = {
+title:"Pyoderma Gangrenosum",
+explanation:"A rare inflammatory condition that causes painful skin ulcers.",
+causes:"Immune system abnormalities often linked to systemic disease.",
+solution:"Immunosuppressive medications and wound care.",
+prevention:"Control underlying inflammatory diseases."
+};
+
+skincareKnowledge.necrobiosisLipoidica = {
+title:"Necrobiosis Lipoidica",
+explanation:"A chronic skin disorder causing yellow-brown patches, commonly on the shins.",
+causes:"Often associated with diabetes.",
+solution:"Topical steroids and careful wound management.",
+prevention:"Good diabetes management may reduce risk."
+};
+
+skincareKnowledge.linearIgADermatosis = {
+title:"Linear IgA Dermatosis",
+explanation:"An autoimmune blistering disease characterized by tense blisters arranged in rings.",
+causes:"Abnormal IgA antibody deposits.",
+solution:"Usually treated with dapsone and corticosteroids.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.eosinophilicFolliculitis = {
+title:"Eosinophilic Folliculitis",
+explanation:"An itchy inflammatory condition affecting hair follicles.",
+causes:"Immune dysfunction, especially in immunocompromised individuals.",
+solution:"Topical steroids and antihistamines.",
+prevention:"Manage underlying immune conditions."
+};
+
+skincareKnowledge.granulomaFaciale = {
+title:"Granuloma Faciale",
+explanation:"A rare chronic skin disorder causing reddish-brown plaques on the face.",
+causes:"Unknown inflammatory process.",
+solution:"Laser therapy, corticosteroids or surgery.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.reactivePerforatingCollagenosis = {
+title:"Reactive Perforating Collagenosis",
+explanation:"A disorder in which damaged collagen is expelled through the skin.",
+causes:"Genetic factors or chronic diseases such as diabetes.",
+solution:"Topical retinoids and treatment of underlying disease.",
+prevention:"Control chronic health conditions."
+};
+
+skincareKnowledge.erythromelalgia = {
+title:"Erythromelalgia",
+explanation:"A condition causing episodes of burning pain, redness and warmth in the hands or feet.",
+causes:"Nerve dysfunction or blood vessel abnormalities.",
+solution:"Cooling measures and medications prescribed by a physician.",
+prevention:"Avoid overheating and known triggers."
+};
+
+skincareKnowledge.trichodysplasiaSpinulosa = {
+title:"Trichodysplasia Spinulosa",
+explanation:"A rare viral skin disease seen mainly in immunosuppressed individuals, causing tiny facial spines.",
+causes:"Trichodysplasia spinulosa-associated polyomavirus.",
+solution:"Reduce immunosuppression if possible and use antiviral therapy.",
+prevention:"Careful monitoring in immunocompromised patients."
+};
+
+skincareKnowledge.angiokeratoma = {
+title:"Angiokeratoma",
+explanation:"A benign skin lesion made up of enlarged blood vessels covered by thickened skin.",
+causes:"Dilated superficial blood vessels.",
+solution:"Laser treatment or surgical removal if necessary.",
+prevention:"There is no known prevention."
+};
+
+skincareKnowledge.dermatofibrosarcomaProtuberans = {
+title:"Dermatofibrosarcoma Protuberans",
+explanation:"A rare, slow-growing skin cancer that begins in the deeper layers of the skin and surrounding tissues.",
+causes:"Genetic mutations involving skin cells.",
+solution:"Wide surgical excision or Mohs surgery is the preferred treatment.",
+prevention:"No known prevention, but early detection improves outcomes."
+},
+
+skincareKnowledge.epidermolysisBullosa = {
+title:"Epidermolysis Bullosa",
+explanation:"A group of inherited disorders that cause extremely fragile skin and frequent blistering.",
+causes:"Inherited gene mutations affecting skin structure.",
+solution:"Protect the skin, prevent infections and receive specialized wound care.",
+prevention:"Cannot be prevented because it is genetic."
+},
+
+skincareKnowledge.harlequinIchthyosis = {
+title:"Harlequin Ichthyosis",
+explanation:"A rare, severe genetic disorder causing thick, hard skin plates covering the body at birth.",
+causes:"Mutations in the ABCA12 gene.",
+solution:"Requires intensive neonatal care and lifelong dermatologic management.",
+prevention:"Genetic counseling for affected families."
+},
+
+skincareKnowledge.incontinentiaPigmenti = {
+title:"Incontinentia Pigmenti",
+explanation:"A rare inherited disorder affecting the skin, hair, teeth and nervous system.",
+causes:"Mutation in the IKBKG gene.",
+solution:"Manage symptoms with regular medical follow-up.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.kindlerSyndrome = {
+title:"Kindler Syndrome",
+explanation:"A rare inherited disorder characterized by skin blistering, photosensitivity and premature aging.",
+causes:"Genetic mutation affecting skin integrity.",
+solution:"Sun protection and wound care are essential.",
+prevention:"Genetic counseling is recommended."
+},
+
+skincareKnowledge.mastocytosis = {
+title:"Mastocytosis",
+explanation:"A condition involving excessive mast cells in the skin, causing itching, flushing and lesions.",
+causes:"Abnormal mast cell accumulation.",
+solution:"Antihistamines and medications to stabilize mast cells.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.nevusComedonicus = {
+title:"Nevus Comedonicus",
+explanation:"A rare birthmark made up of groups of enlarged hair follicles filled with keratin.",
+causes:"Developmental abnormality of hair follicles.",
+solution:"Topical retinoids or surgical removal if necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.pachyonychiaCongenita = {
+title:"Pachyonychia Congenita",
+explanation:"A rare inherited condition affecting nails, skin and the soles of the feet.",
+causes:"Mutations in keratin genes.",
+solution:"Reduce pressure on the feet and manage thickened nails.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.peelingSkinSyndrome = {
+title:"Peeling Skin Syndrome",
+explanation:"A rare genetic disorder in which the outer skin layers peel continuously.",
+causes:"Inherited mutations affecting skin adhesion.",
+solution:"Moisturizers and gentle skin care.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.pigmentedPurpuricDermatosis = {
+title:"Pigmented Purpuric Dermatosis",
+explanation:"A chronic skin condition causing tiny reddish-brown spots on the lower legs.",
+causes:"Leakage of small blood vessels.",
+solution:"Compression stockings and topical corticosteroids may help.",
+prevention:"Avoid prolonged standing if possible."
+};
+
+skincareKnowledge.porphyriaCutaneaTarda = {
+title:"Porphyria Cutanea Tarda",
+explanation:"A metabolic disorder causing fragile skin and blistering after sun exposure.",
+causes:"Enzyme deficiency affecting porphyrin metabolism.",
+solution:"Phlebotomy, medication and strict sun protection.",
+prevention:"Avoid alcohol and excessive sun exposure."
+};
+
+skincareKnowledge.prurigoPigmentosa = {
+title:"Prurigo Pigmentosa",
+explanation:"A rare inflammatory rash that leaves net-like pigmentation after healing.",
+causes:"May be associated with ketosis and metabolic changes.",
+solution:"Antibiotics such as doxycycline are often effective.",
+prevention:"Maintain balanced nutrition."
+};
+
+skincareKnowledge.reticularErythematousMucinosis = {
+title:"Reticular Erythematous Mucinosis",
+explanation:"A rare skin disorder producing net-like red patches on the chest or back.",
+causes:"Unknown immune-related mechanism.",
+solution:"Antimalarial medications and sun protection.",
+prevention:"Avoid excessive UV exposure."
+};
+
+skincareKnowledge.scleredema = {
+title:"Scleredema",
+explanation:"A condition causing thickening and hardening of the skin, especially on the neck and upper back.",
+causes:"Diabetes, infections or unknown factors.",
+solution:"Treat underlying disease and consider phototherapy.",
+prevention:"Good diabetes control."
+};
+
+skincareKnowledge.sebaceousHyperplasia = {
+  title:"Sebaceous Hyperplasia",
+  explanation:"A harmless enlargement of oil glands appearing as small yellowish bumps.",
+  causes:"Overgrowth of sebaceous glands with age.",
+  solution:"Electrocautery, laser therapy or topical treatments.",
+  prevention:"No guaranteed prevention."
+};
+
+skincareKnowledge.sweetSyndrome = {
+  title:"Sweet Syndrome",
+  explanation:"An inflammatory disorder causing painful red plaques accompanied by fever.",
+  causes:"Immune system overreaction, infections or cancer.",
+  solution:"Systemic corticosteroids are usually very effective.",
+  prevention:"Treat underlying triggers."
+};
+
+skincareKnowledge.tuftedAngioma = {
+  title:"Tufted Angioma",
+  explanation:"A rare benign vascular tumor appearing as reddish-purple patches or nodules.",
+  causes:"Abnormal blood vessel growth.",
+  solution:"Observation or laser treatment depending on symptoms.",
+  prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.urticariaPigmentosa = {
+  title:"Urticaria Pigmentosa",
+  explanation:"The most common form of cutaneous mastocytosis, causing brown itchy spots.",
+  causes:"Accumulation of mast cells in the skin.",
+  solution:"Antihistamines and avoidance of known triggers.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.xerodermaPigmentosum = {
+  title:"Xeroderma Pigmentosum",
+  explanation:"A rare inherited disorder causing extreme sensitivity to ultraviolet light and greatly increased skin cancer risk.",
+  causes:"Defective DNA repair genes.",
+  solution:"Strict lifelong UV protection and regular skin examinations.",
+  prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.zincDeficiencyDermatitis = {
+  title:"Zinc Deficiency Dermatitis",
+  explanation:"A skin condition caused by inadequate zinc levels, leading to rashes around the mouth, hands and feet.",
+  causes:"Poor dietary intake, malabsorption or inherited disorders.",
+  solution:"Zinc supplementation and correction of the underlying cause.",
+  prevention:"Maintain adequate dietary zinc intake."
+};
+
+skincareKnowledge.livedoReticularis = {
+title:"Livedo Reticularis",
+explanation:"A skin condition that causes a bluish-purple, net-like discoloration, usually on the legs due to reduced blood flow.",
+causes:"Cold temperatures, autoimmune diseases, blood vessel disorders or unknown causes.",
+solution:"Treat the underlying cause and keep the affected areas warm.",
+prevention:"Avoid prolonged exposure to cold and manage underlying medical conditions."
+};
+
+skincareKnowledge.livedoRacemosa = {
+title:"Livedo Racemosa",
+explanation:"A persistent, irregular net-like skin discoloration often associated with serious vascular disorders.",
+causes:"Blood vessel abnormalities and autoimmune diseases.",
+solution:"Medical evaluation and treatment of the underlying condition.",
+prevention:"Control diseases affecting blood circulation."
+};
+
+skincareKnowledge.anetoderma = {
+title:"Anetoderma",
+explanation:"A rare skin disorder where localized areas of skin become loose due to loss of elastic tissue.",
+causes:"Unknown, autoimmune diseases or previous skin inflammation.",
+solution:"There is no definitive cure; cosmetic treatments may help.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.midDermalElastolysis = {
+title:"Mid-Dermal Elastolysis",
+explanation:"A rare condition causing fine wrinkling due to loss of elastic fibers in the middle layer of the skin.",
+causes:"Unknown, possibly autoimmune or sun-related damage.",
+solution:"Sun protection and supportive skincare.",
+prevention:"Protect the skin from excessive UV exposure."
+};
+
+skincareKnowledge.morpheaProfunda = {
+title:"Morphea Profunda",
+explanation:"A deep form of localized scleroderma affecting the skin and tissues beneath it.",
+causes:"Immune system dysfunction.",
+solution:"Immunosuppressive medications and physical therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.lichenAureus = {
+title:"Lichen Aureus",
+explanation:"A rare pigmented skin condition producing golden-brown patches, usually on the legs.",
+causes:"Inflammation of small blood vessels.",
+solution:"Topical corticosteroids and observation.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.erythemaInduratum = {
+title:"Erythema Induratum",
+explanation:"A chronic inflammatory condition causing painful nodules on the lower legs.",
+causes:"Often associated with tuberculosis or immune reactions.",
+solution:"Treat the underlying infection or inflammation.",
+prevention:"Prompt treatment of tuberculosis where applicable."
+};
+
+skincareKnowledge.erythemaElevatumDiutinum = {
+title:"Erythema Elevatum Diutinum",
+explanation:"A rare chronic vasculitis presenting with firm reddish-purple nodules over joints.",
+causes:"Immune complex deposition.",
+solution:"Dapsone and treatment of underlying disease.",
+prevention:"No specific prevention."
+};
+
+skincareKnowledge.cutaneousLarvaMigrans = {
+title:"Cutaneous Larva Migrans",
+explanation:"A parasitic skin infection characterized by winding, itchy tracks beneath the skin.",
+causes:"Hookworm larvae from contaminated sand or soil.",
+solution:"Antiparasitic medications such as ivermectin or albendazole.",
+prevention:"Wear footwear and avoid walking barefoot on contaminated ground."
+};
+
+skincareKnowledge.cutaneousLeishmaniasis = {
+title:"Cutaneous Leishmaniasis",
+explanation:"A parasitic disease causing chronic skin ulcers after sandfly bites.",
+causes:"Leishmania parasites transmitted by sandflies.",
+solution:"Antiparasitic medications prescribed by a physician.",
+prevention:"Use insect repellents and protective clothing."
+};
+
+skincareKnowledge.mycetoma = {
+title:"Mycetoma",
+explanation:"A chronic infection causing swelling, draining sinuses and tissue destruction.",
+causes:"Fungi or bacteria entering through skin injuries.",
+solution:"Long-term antifungal or antibiotic therapy and sometimes surgery.",
+prevention:"Wear protective footwear and avoid skin injuries."
+},
+
+skincareKnowledge.noma = {
+title:"Noma",
+explanation:"A severe gangrenous disease affecting the face, primarily in malnourished children.",
+causes:"Malnutrition, poor hygiene and bacterial infection.",
+solution:"Urgent antibiotics, nutrition and reconstructive surgery.",
+prevention:"Good nutrition, oral hygiene and vaccination."
+},
+
+skincareKnowledge.rhinoscleroma = {
+title:"Rhinoscleroma",
+explanation:"A chronic bacterial infection affecting the nose and upper respiratory tract with skin involvement.",
+causes:"Klebsiella rhinoscleromatis infection.",
+solution:"Long-term antibiotics.",
+prevention:"Prompt treatment of respiratory infections."
+},
+
+skincareKnowledge.chromoblastomycosis = {
+title:"Chromoblastomycosis",
+explanation:"A chronic fungal infection producing wart-like skin lesions.",
+causes:"Traumatic implantation of fungi into the skin.",
+solution:"Long-term antifungal therapy and surgery if needed.",
+prevention:"Wear protective clothing when handling vegetation."
+};
+
+skincareKnowledge.lobomycosis = {
+title:"Lobomycosis",
+explanation:"A rare chronic fungal skin infection causing firm nodules and plaques.",
+causes:"Lacazia loboi fungal infection.",
+solution:"Surgical removal combined with antifungal treatment.",
+prevention:"Avoid skin trauma in endemic regions."
+};
+
+skincareKnowledge.blastomycosisOfSkin = {
+title:"Blastomycosis of the Skin",
+explanation:"A fungal infection that spreads to the skin causing ulcers or wart-like lesions.",
+causes:"Blastomyces fungal infection.",
+solution:"Prescription antifungal medications.",
+prevention:"Avoid exposure in endemic areas when possible."
+};
+
+skincareKnowledge.paracoccidioidomycosis = {
+title:"Paracoccidioidomycosis",
+explanation:"A fungal disease affecting the skin and mucous membranes.",
+causes:"Paracoccidioides fungal infection.",
+solution:"Long-term antifungal treatment.",
+prevention:"Reduce exposure to contaminated soil in endemic regions."
+};
+
+skincareKnowledge.sporotrichoidLymphangitis = {
+title:"Sporotrichoid Lymphangitis",
+explanation:"A skin infection spreading along lymphatic vessels producing nodules.",
+causes:"Usually Sporothrix fungus or certain bacteria.",
+solution:"Appropriate antifungal or antibiotic therapy.",
+prevention:"Wear gloves when gardening or handling plants."
+};
+
+skincareKnowledge.bacillaryAngiomatosis = {
+title:"Bacillary Angiomatosis",
+explanation:"A bacterial infection causing red vascular skin lesions, mainly in immunocompromised individuals.",
+causes:"Bartonella bacterial infection.",
+solution:"Long-term antibiotic treatment.",
+prevention:"Avoid cat scratches and manage immune disorders."
+};
+
+skincareKnowledge.trichomycosisAxillaris = {
+title:"Trichomycosis Axillaris",
+explanation:"A bacterial infection affecting underarm hair, causing yellow, red or black deposits.",
+causes:"Corynebacterium bacteria.",
+solution:"Shaving the affected hair and using topical antibiotics.",
+prevention:"Maintain good hygiene and keep the underarms dry."
+};
+
+skincareKnowledge.actinicPrurigo = {
+title:"Actinic Prurigo",
+explanation:"A chronic itchy skin condition triggered by sunlight, often affecting the face, lips and arms.",
+causes:"Abnormal immune response to ultraviolet radiation.",
+solution:"Use broad-spectrum sunscreen, protective clothing and prescribed corticosteroids.",
+prevention:"Limit sun exposure and wear protective clothing."
+};
+
+skincareKnowledge.aquagenicPruritus = {
+title:"Aquagenic Pruritus",
+explanation:"An intense itching sensation that occurs after contact with water without any visible rash.",
+causes:"Unknown, but sometimes associated with blood disorders.",
+solution:"Antihistamines, phototherapy and treating any underlying condition.",
+prevention:"Use lukewarm water and moisturize after bathing."
+};
+
+skincareKnowledge.aquagenicUrticaria = {
+title:"Aquagenic Urticaria",
+explanation:"A rare condition where contact with water causes itchy hives regardless of the water temperature.",
+causes:"Rare allergic-type reaction to water contact.",
+solution:"Antihistamines and barrier creams before water exposure.",
+prevention:"Minimize prolonged water exposure."
+};
+
+skincareKnowledge.blackHeel = {
+title:"Black Heel",
+explanation:"A harmless condition causing dark spots on the heel due to tiny blood vessel bleeding.",
+causes:"Repeated friction or trauma during sports.",
+solution:"Reduce friction and allow the skin to heal naturally.",
+prevention:"Wear properly fitted footwear."
+};
+
+skincareKnowledge.carotenemia = {
+title:"Carotenemia",
+explanation:"A yellow-orange discoloration of the skin caused by excessive intake of carotene-rich foods.",
+causes:"High consumption of carrots, pumpkins and sweet potatoes.",
+solution:"Reduce carotene-rich foods if necessary.",
+prevention:"Maintain a balanced diet."
+};
+
+skincareKnowledge.chilblainLupus = {
+title:"Chilblain Lupus",
+explanation:"A rare form of lupus causing painful red or purple skin lesions after exposure to cold.",
+causes:"Autoimmune disease triggered by cold temperatures.",
+solution:"Keep warm and use medications prescribed for lupus.",
+prevention:"Protect the skin from cold environments."
+};
+
+skincareKnowledge.cutaneousCrohnsDisease = {
+title:"Cutaneous Crohn's Disease",
+explanation:"A skin manifestation of Crohn's disease causing ulcers, swelling and inflamed skin.",
+causes:"Inflammatory bowel disease.",
+solution:"Treat the underlying Crohn's disease and manage skin lesions.",
+prevention:"Control Crohn's disease with medical treatment."
+};
+
+skincareKnowledge.degosDisease = {
+title:"Degos Disease",
+explanation:"A rare vascular disorder causing porcelain-white skin lesions and possible internal organ involvement.",
+causes:"Abnormal blood vessel blockage.",
+solution:"Supportive care and specialist management.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.discoidLupusErythematosus = {
+title:"Discoid Lupus Erythematosus",
+explanation:"A chronic autoimmune skin disease causing red, scaly patches that may scar.",
+causes:"Autoimmune dysfunction with genetic and environmental factors.",
+solution:"Topical corticosteroids, sun protection and immune-modulating medications.",
+prevention:"Avoid excessive UV exposure."
+};
+
+skincareKnowledge.erythemaAbIgne = {
+title:"Erythema Ab Igne",
+explanation:"A skin discoloration caused by repeated exposure to moderate heat.",
+causes:"Frequent use of heating pads, laptops or heaters.",
+solution:"Remove the heat source and monitor skin changes.",
+prevention:"Avoid prolonged heat exposure."
+};
+
+skincareKnowledge.erythrasma = {
+title:"Erythrasma",
+explanation:"A superficial bacterial skin infection causing reddish-brown patches in skin folds.",
+causes:"Corynebacterium minutissimum infection.",
+solution:"Topical or oral antibiotics as prescribed.",
+prevention:"Keep skin folds clean and dry."
+};
+
+skincareKnowledge.focalDermalHypoplasia = {
+title:"Focal Dermal Hypoplasia",
+explanation:"A rare genetic disorder affecting the skin, bones and eyes.",
+causes:"Mutation in the PORCN gene.",
+solution:"Multidisciplinary medical care based on symptoms.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.granulomaGlutealeInfantum = {
+title:"Granuloma Gluteale Infantum",
+explanation:"A rare diaper-area condition characterized by reddish-purple nodules in infants.",
+causes:"Severe diaper irritation and prolonged moisture.",
+solution:"Improve diaper hygiene and treat skin irritation.",
+prevention:"Frequent diaper changes and barrier creams."
+};
+
+skincareKnowledge.hereditaryHemorrhagicTelangiectasia = {
+title:"Hereditary Hemorrhagic Telangiectasia",
+explanation:"An inherited disorder causing fragile blood vessels and small red skin spots.",
+causes:"Inherited gene mutations affecting blood vessels.",
+solution:"Laser treatment and management of bleeding episodes.",
+prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.ichthyosisLinearisCircumflexa = {
+title:"Ichthyosis Linearis Circumflexa",
+explanation:"A rare skin disorder producing red, scaly patches with double-edged scaling.",
+causes:"Usually associated with Netherton syndrome.",
+solution:"Moisturizers and careful dermatologic care.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.juvenileXanthogranuloma = {
+title:"Juvenile Xanthogranuloma",
+explanation:"A benign skin condition causing yellow-orange nodules in infants and young children.",
+causes:"Unknown accumulation of immune cells.",
+solution:"Most lesions disappear without treatment.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.keratodermaBlennorrhagicum = {
+title:"Keratoderma Blennorrhagicum",
+explanation:"A skin condition associated with reactive arthritis causing thick, scaly lesions on the palms and soles.",
+causes:"Reactive arthritis following infection.",
+solution:"Treat the underlying arthritis and use topical therapies.",
+prevention:"Prompt treatment of triggering infections."
+};
+
+skincareKnowledge.lipoidProteinosis = {
+title:"Lipoid Proteinosis",
+explanation:"A rare inherited disorder causing thickened skin, hoarseness and beaded eyelid papules.",
+causes:"Mutation in the ECM1 gene.",
+solution:"Symptom management and dermatologic follow-up.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.miliariaProfunda = {
+title:"Miliaria Profunda",
+explanation:"A deeper form of heat rash causing flesh-colored bumps after repeated sweating.",
+causes:"Blocked sweat ducts.",
+solution:"Stay cool and avoid excessive heat.",
+prevention:"Wear lightweight clothing and prevent overheating."
+};
+
+skincareKnowledge.necrolyticMigratoryErythema = {
+title:"Necrolytic Migratory Erythema",
+explanation:"A distinctive skin rash often associated with glucagon-producing tumors.",
+causes:"Glucagonoma and nutritional deficiencies.",
+solution:"Treat the underlying tumor and correct nutritional deficiencies.",
+prevention:"Early diagnosis and management of underlying disease."
+};
+
+skincareKnowledge.acrocyanosis = {
+title:"Acrocyanosis",
+explanation:"A condition characterized by persistent bluish discoloration of the hands and feet due to reduced oxygen in small blood vessels.",
+causes:"Cold exposure, poor circulation or nervous system dysfunction.",
+solution:"Keep the body warm and treat any underlying circulatory disorder.",
+prevention:"Protect the hands and feet from cold temperatures."
+};
+
+skincareKnowledge.angiomaSerpiginosum = {
+title:"Angioma Serpiginosum",
+explanation:"A rare vascular disorder causing tiny red spots that gradually spread in a serpentine pattern.",
+causes:"Abnormal development of superficial blood vessels.",
+solution:"Laser therapy can improve the appearance.",
+prevention:"There is no known prevention."
+};
+
+skincareKnowledge.atrophodermaOfPasiniPierini = {
+title:"Atrophoderma of Pasini-Pierini",
+explanation:"A rare skin disorder causing depressed, darkened patches without significant inflammation.",
+causes:"Unknown, possibly related to localized scleroderma.",
+solution:"Observation or dermatologic treatment if symptoms develop.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.blueRubberBlebNevusSyndrome = {
+title:"Blue Rubber Bleb Nevus Syndrome",
+explanation:"A rare condition involving soft blue vascular lesions on the skin and internal organs.",
+causes:"Congenital blood vessel abnormalities.",
+solution:"Laser therapy or surgery for problematic lesions.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.cutaneousHorn = {
+title:"Cutaneous Horn",
+explanation:"A cone-shaped projection of hardened keratin that develops on the skin.",
+causes:"Sun damage, warts or underlying skin tumors.",
+solution:"Surgical removal and examination of the base.",
+prevention:"Protect the skin from excessive sun exposure."
+};
+
+skincareKnowledge.elastoderma = {
+title:"Elastoderma",
+explanation:"A rare disorder causing loose, sagging skin due to excessive elastic tissue.",
+causes:"Abnormal accumulation of elastic fibers.",
+solution:"Surgical correction if necessary.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.fibrokeratoma = {
+title:"Fibrokeratoma",
+explanation:"A small benign skin growth commonly found on fingers or toes.",
+causes:"Unknown, sometimes related to minor trauma.",
+solution:"Simple surgical removal.",
+prevention:"Avoid repeated injury to the skin."
+};
+
+skincareKnowledge.generalizedEssentialTelangiectasia = {
+title:"Generalized Essential Telangiectasia",
+explanation:"A condition causing widespread visible small blood vessels across the skin.",
+causes:"Unknown abnormalities of superficial blood vessels.",
+solution:"Laser treatment may reduce visibility.",
+prevention:"No specific prevention."
+};
+
+skincareKnowledge.hebraPrurigo = {
+title:"Hebra Prurigo",
+explanation:"A chronic itchy skin disorder marked by firm papules and intense scratching.",
+causes:"Unknown, possibly related to chronic allergic reactions.",
+solution:"Topical corticosteroids and antihistamines.",
+prevention:"Avoid scratching and control allergies."
+};
+
+skincareKnowledge.idiopathicGuttateHypomelanosis = {
+title:"Idiopathic Guttate Hypomelanosis",
+explanation:"Small white spots that commonly appear on sun-exposed skin with aging.",
+causes:"Sun damage and aging.",
+solution:"Usually no treatment is required, though cosmetic therapies are available.",
+prevention:"Regular sunscreen use."
+};
+
+skincareKnowledge.keratoacanthoma = {
+title:"Keratoacanthoma",
+explanation:"A rapidly growing skin tumor that often resembles squamous cell carcinoma.",
+causes:"Sun exposure and genetic susceptibility.",
+solution:"Surgical removal is recommended.",
+prevention:"Protect the skin from UV radiation."
+};
+
+skincareKnowledge.lipodermatosclerosis = {
+title:"Lipodermatosclerosis",
+explanation:"A chronic inflammatory condition of the lower legs associated with poor venous circulation.",
+causes:"Chronic venous insufficiency.",
+solution:"Compression therapy and treatment of venous disease.",
+prevention:"Maintain healthy circulation and avoid prolonged standing."
+};
+
+skincareKnowledge.mucinosisFollicularis = {
+    title:"Mucinosis Follicularis",
+    explanation:"A rare disorder where mucin accumulates around hair follicles, causing patches of hair loss.",
+    causes:"Unknown inflammatory process.",
+    solution:"Topical corticosteroids or treatment of underlying disease.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.nevusAnemicus = {
+    title:"Nevus Anemicus",
+    explanation:"A congenital pale skin patch caused by localized blood vessel sensitivity.",
+    causes:"Developmental vascular abnormality.",
+    solution:"No treatment is usually necessary.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.papularElastorrhexis = {
+    title:"Papular Elastorrhexis",
+    explanation:"A rare disorder causing multiple small white or flesh-colored papules due to loss of elastic fibers.",
+    causes:"Unknown.",
+    solution:"Usually requires no treatment.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.reticulateAcropigmentationOfKitamura = {
+    title:"Reticulate Acropigmentation of Kitamura",
+    explanation:"A rare inherited pigmentation disorder affecting the backs of the hands and feet.",
+    causes:"Genetic mutation.",
+    solution:"Laser therapy may improve cosmetic appearance.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.scleredemaAdultorum = {
+    title:"Scleredema Adultorum",
+    explanation:"A connective tissue disorder causing thick, stiff skin over the neck and upper body.",
+    causes:"Diabetes, infections or unknown factors.",
+    solution:"Treat underlying disease and consider phototherapy.",
+    prevention:"Good control of diabetes may reduce risk."
+};
+
+skincareKnowledge.terraFirmaFormeDermatosis = {
+    title:"Terra Firma-Forme Dermatosis",
+    explanation:"A harmless skin condition where dirt-like brown patches persist despite normal washing.",
+    causes:"Delayed skin cell shedding.",
+    solution:"Clean the affected area with 70% isopropyl alcohol.",
+    prevention:"Maintain regular skin hygiene."
+};
+
+skincareKnowledge.whiteFibrousPapulosisOfTheNeck = {
+    title:"White Fibrous Papulosis of the Neck",
+    explanation:"A benign condition causing small white papules on the neck in older adults.",
+    causes:"Age-related changes in collagen and elastic fibers.",
+    solution:"Usually no treatment is required, though laser therapy may help cosmetically.",
+    prevention:"There is no known prevention."
+};
+
+skincareKnowledge.acrodermatitisEnteropathica = {
+    title:"Acrodermatitis Enteropathica",
+    explanation:"A rare inherited disorder that causes zinc deficiency, resulting in skin rashes, hair loss and diarrhea.",
+    causes:"Inherited inability to absorb zinc or severe zinc deficiency.",
+    solution:"Lifelong zinc supplementation under medical supervision.",
+    prevention:"Early diagnosis and consistent zinc supplementation."
+};
+
+skincareKnowledge.amyloidosisCutisDyschromica = {
+    title:"Amyloidosis Cutis Dyschromica",
+    explanation:"A rare inherited form of skin amyloidosis causing mottled dark and light pigmentation.",
+    causes:"Genetic mutations leading to amyloid deposits in the skin.",
+    solution:"Sun protection and supportive dermatologic care.",
+    prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.basalCellNevusSyndrome = {
+    title:"Basal Cell Nevus Syndrome",
+    explanation:"A genetic disorder characterized by multiple basal cell carcinomas and developmental abnormalities.",
+    causes:"Mutation in the PTCH1 gene.",
+    solution:"Regular skin examinations and early treatment of skin cancers.",
+    prevention:"Genetic counseling and sun protection."
+};
+
+skincareKnowledge.calciphylaxis = {
+    title:"Calciphylaxis",
+    explanation:"A rare, life-threatening condition causing painful skin ulcers due to calcium buildup in blood vessels.",
+    causes:"Kidney disease, calcium imbalance and certain medications.",
+    solution:"Urgent medical treatment, wound care and correction of calcium metabolism.",
+    prevention:"Careful management of kidney disease and mineral balance."
+};
+
+skincareKnowledge.confluentReticulatedPapillomatosis = {
+    title:"Confluent Reticulated Papillomatosis",
+    explanation:"A skin disorder causing brown, scaly patches that merge into a net-like pattern.",
+    causes:"Unknown, possibly abnormal keratinization or bacterial involvement.",
+    solution:"Oral antibiotics such as minocycline are often effective.",
+    prevention:"Maintain healthy skin hygiene."
+};
+
+skincareKnowledge.cutaneousEndometriosis = {
+    title:"Cutaneous Endometriosis",
+    explanation:"A rare condition where endometrial tissue grows within the skin, often near surgical scars.",
+    causes:"Implantation of endometrial cells during surgery.",
+    solution:"Surgical removal and hormonal therapy when appropriate.",
+    prevention:"Careful surgical techniques may reduce risk."
+};
+
+skincareKnowledge.disseminatedSuperficialActinicPorokeratosis = {
+    title:"Disseminated Superficial Actinic Porokeratosis",
+    explanation:"A common form of porokeratosis producing numerous scaly lesions on sun-exposed skin.",
+    causes:"Genetic predisposition and chronic sun exposure.",
+    solution:"Cryotherapy, topical medications or laser therapy.",
+    prevention:"Use sunscreen daily."
+};
+
+skincareKnowledge.eccrineAngiomatousHamartoma = {
+    title:"Eccrine Angiomatous Hamartoma",
+    explanation:"A rare benign skin lesion containing excess sweat glands and blood vessels.",
+    causes:"Congenital developmental abnormality.",
+    solution:"Surgical removal if painful or bothersome.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.epidermodysplasiaVerruciformis = {
+    title:"Epidermodysplasia Verruciformis",
+    explanation:"A rare inherited disorder causing widespread HPV infections and increased skin cancer risk.",
+    causes:"Genetic susceptibility to specific HPV types.",
+    solution:"Regular skin monitoring and removal of suspicious lesions.",
+    prevention:"Sun protection and dermatologic follow-up."
+};
+
+skincareKnowledge.familialBenignPemphigus = {
+    title:"Familial Benign Pemphigus",
+    explanation:"Also known as Hailey-Hailey disease, it causes recurrent blisters and erosions in skin folds.",
+    causes:"Mutation in the ATP2C1 gene.",
+    solution:"Topical corticosteroids, antibiotics and gentle skin care.",
+    prevention:"Reduce friction, sweating and heat exposure."
+};
+
+skincareKnowledge.giantCongenitalMelanocyticNevus = {
+    title:"Giant Congenital Melanocytic Nevus",
+    explanation:"A large pigmented birthmark present at birth with an increased melanoma risk.",
+    causes:"Abnormal growth of melanocytes during fetal development.",
+    solution:"Regular monitoring and surgical management when appropriate.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.hypomelanosisOfIto = {
+    title:"Hypomelanosis of Ito",
+    explanation:"A rare condition causing streaks or patches of lighter skin following developmental skin patterns.",
+    causes:"Genetic mosaicism.",
+    solution:"Supportive care and monitoring for associated conditions.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.lichenSpinulosus = {
+    title:"Lichen Spinulosus",
+    explanation:"A rare skin disorder producing groups of tiny rough, spiny papules.",
+    causes:"Unknown, possibly related to abnormal keratinization.",
+    solution:"Moisturizers and keratolytic creams.",
+    prevention:"Maintain good skin hydration."
+};
+
+skincareKnowledge.multicentricReticulohistiocytosis = {
+    title:"Multicentric Reticulohistiocytosis",
+    explanation:"A rare inflammatory disease affecting the skin and joints with reddish-brown nodules.",
+    causes:"Unknown immune-mediated process.",
+    solution:"Immunosuppressive medications and rheumatologic care.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.papulonecroticTuberculid = {
+    title:"Papulonecrotic Tuberculid",
+    explanation:"A hypersensitivity reaction to tuberculosis causing recurring necrotic papules.",
+    causes:"Immune response to Mycobacterium tuberculosis.",
+    solution:"Anti-tuberculosis treatment.",
+    prevention:"Early diagnosis and treatment of tuberculosis."
+};
+
+skincareKnowledge.perforatingFolliculitis = {
+    title:"Perforating Folliculitis",
+    explanation:"A skin disorder where damaged material is expelled through hair follicles.",
+    causes:"Diabetes, kidney disease or unknown factors.",
+    solution:"Topical retinoids and treatment of underlying illness.",
+    prevention:"Control chronic medical conditions."
+};
+
+skincareKnowledge.phytophotodermatitis = {
+    title:"Phytophotodermatitis",
+    explanation:"A skin reaction caused when certain plant chemicals combine with sunlight.",
+    causes:"Contact with citrus fruits, celery or other plants followed by UV exposure.",
+    solution:"Cool compresses, topical steroids and sun protection.",
+    prevention:"Wash the skin after plant contact and avoid sun exposure."
+};
+
+skincareKnowledge.pseudoxanthomaElasticum = {
+    title:"Pseudoxanthoma Elasticum",
+    explanation:"A genetic disorder affecting elastic fibers in the skin, eyes and blood vessels.",
+    causes:"Mutation in the ABCC6 gene.",
+    solution:"Regular monitoring by dermatologists, ophthalmologists and cardiologists.",
+    prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.transientAcantholyticDermatosis = {
+    title:"Transient Acantholytic Dermatosis",
+    explanation:"Also called Grover's disease, it causes itchy red bumps mainly on the chest and back.",
+    causes:"Heat, sweating and dry skin may trigger it.",
+    solution:"Topical corticosteroids and keeping the skin cool.",
+    prevention:"Avoid excessive heat and sweating."
+};
+
+skincareKnowledge.xanthomaDisseminatum = {
+    title:"Xanthoma Disseminatum",
+    explanation:"A rare disorder characterized by widespread yellow-brown nodules caused by lipid-laden immune cells.",
+    causes:"Abnormal proliferation of histiocytes.",
+    solution:"Treatment depends on severity and may include immunosuppressive therapy.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.acrodermatitisEnteropathica = {
+title:"Acrodermatitis Enteropathica",
+explanation:"A rare inherited disorder that causes zinc deficiency, resulting in skin rashes, hair loss and diarrhea.",
+causes:"Inherited inability to absorb zinc or severe zinc deficiency.",
+solution:"Lifelong zinc supplementation under medical supervision.",
+prevention:"Early diagnosis and consistent zinc supplementation."
+};
+
+skincareKnowledge.amyloidosisCutisDyschromica = {
+    title:"Amyloidosis Cutis Dyschromica",
+    explanation:"A rare inherited form of skin amyloidosis causing mottled dark and light pigmentation.",
+    causes:"Genetic mutations leading to amyloid deposits in the skin.",
+    solution:"Sun protection and supportive dermatologic care.",
+    prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.basalCellNevusSyndrome = {
+    title:"Basal Cell Nevus Syndrome",
+    explanation:"A genetic disorder characterized by multiple basal cell carcinomas and developmental abnormalities.",
+    causes:"Mutation in the PTCH1 gene.",
+    solution:"Regular skin examinations and early treatment of skin cancers.",
+    prevention:"Genetic counseling and sun protection."
+};
+
+skincareKnowledge.calciphylaxis = {
+    title:"Calciphylaxis",
+    explanation:"A rare, life-threatening condition causing painful skin ulcers due to calcium buildup in blood vessels.",
+    causes:"Kidney disease, calcium imbalance and certain medications.",
+    solution:"Urgent medical treatment, wound care and correction of calcium metabolism.",
+    prevention:"Careful management of kidney disease and mineral balance."
+};
+
+skincareKnowledge.confluentReticulatedPapillomatosis = {
+    title:"Confluent Reticulated Papillomatosis",
+    explanation:"A skin disorder causing brown, scaly patches that merge into a net-like pattern.",
+    causes:"Unknown, possibly abnormal keratinization or bacterial involvement.",
+    solution:"Oral antibiotics such as minocycline are often effective.",
+    prevention:"Maintain healthy skin hygiene."
+};
+
+skincareKnowledge.cutaneousEndometriosis = {
+    title:"Cutaneous Endometriosis",
+    explanation:"A rare condition where endometrial tissue grows within the skin, often near surgical scars.",
+    causes:"Implantation of endometrial cells during surgery.",
+    solution:"Surgical removal and hormonal therapy when appropriate.",
+    prevention:"Careful surgical techniques may reduce risk."
+};
+
+skincareKnowledge.disseminatedSuperficialActinicPorokeratosis = {
+    title:"Disseminated Superficial Actinic Porokeratosis",
+    explanation:"A common form of porokeratosis producing numerous scaly lesions on sun-exposed skin.",
+    causes:"Genetic predisposition and chronic sun exposure.",
+    solution:"Cryotherapy, topical medications or laser therapy.",
+    prevention:"Use sunscreen daily."
+};
+
+skincareKnowledge.eccrineAngiomatousHamartoma = {
+    title:"Eccrine Angiomatous Hamartoma",
+    explanation:"A rare benign skin lesion containing excess sweat glands and blood vessels.",
+    causes:"Congenital developmental abnormality.",
+    solution:"Surgical removal if painful or bothersome.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.epidermodysplasiaVerruciformis = {
+    title:"Epidermodysplasia Verruciformis",
+    explanation:"A rare inherited disorder causing widespread HPV infections and increased skin cancer risk.",
+    causes:"Genetic susceptibility to specific HPV types.",
+    solution:"Regular skin monitoring and removal of suspicious lesions.",
+    prevention:"Sun protection and dermatologic follow-up."
+};
+
+skincareKnowledge.familialBenignPemphigus = {
+    title:"Familial Benign Pemphigus",
+    explanation:"Also known as Hailey-Hailey disease, it causes recurrent blisters and erosions in skin folds.",
+    causes:"Mutation in the ATP2C1 gene.",
+    solution:"Topical corticosteroids, antibiotics and gentle skin care.",
+    prevention:"Reduce friction, sweating and heat exposure."
+};
+
+skincareKnowledge.giantCongenitalMelanocyticNevus = {
+    title:"Giant Congenital Melanocytic Nevus",
+    explanation:"A large pigmented birthmark present at birth with an increased melanoma risk.",
+    causes:"Abnormal growth of melanocytes during fetal development.",
+    solution:"Regular monitoring and surgical management when appropriate.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.hypomelanosisOfIto = {
+    title:"Hypomelanosis of Ito",
+    explanation:"A rare condition causing streaks or patches of lighter skin following developmental skin patterns.",
+    causes:"Genetic mosaicism.",
+    solution:"Supportive care and monitoring for associated conditions.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.lichenSpinulosus = {
+    title:"Lichen Spinulosus",
+    explanation:"A rare skin disorder producing groups of tiny rough, spiny papules.",
+    causes:"Unknown, possibly related to abnormal keratinization.",
+    solution:"Moisturizers and keratolytic creams.",
+    prevention:"Maintain good skin hydration."
+};
+
+skincareKnowledge.multicentricReticulohistiocytosis = {
+    title:"Multicentric Reticulohistiocytosis",
+    explanation:"A rare inflammatory disease affecting the skin and joints with reddish-brown nodules.",
+    causes:"Unknown immune-mediated process.",
+    solution:"Immunosuppressive medications and rheumatologic care.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.papulonecroticTuberculid = {
+    title:"Papulonecrotic Tuberculid",
+    explanation:"A hypersensitivity reaction to tuberculosis causing recurring necrotic papules.",
+    causes:"Immune response to Mycobacterium tuberculosis.",
+    solution:"Anti-tuberculosis treatment.",
+    prevention:"Early diagnosis and treatment of tuberculosis."
+};
+
+skincareKnowledge.perforatingFolliculitis = {
+    title:"Perforating Folliculitis",
+    explanation:"A skin disorder where damaged material is expelled through hair follicles.",
+    causes:"Diabetes, kidney disease or unknown factors.",
+    solution:"Topical retinoids and treatment of underlying illness.",
+    prevention:"Control chronic medical conditions."
+};
+
+skincareKnowledge.phytophotodermatitis = {
+    title:"Phytophotodermatitis",
+    explanation:"A skin reaction caused when certain plant chemicals combine with sunlight.",
+    causes:"Contact with citrus fruits, celery or other plants followed by UV exposure.",
+    solution:"Cool compresses, topical steroids and sun protection.",
+    prevention:"Wash the skin after plant contact and avoid sun exposure."
+};
+
+skincareKnowledge.pseudoxanthomaElasticum = {
+    title:"Pseudoxanthoma Elasticum",
+    explanation:"A genetic disorder affecting elastic fibers in the skin, eyes and blood vessels.",
+    causes:"Mutation in the ABCC6 gene.",
+    solution:"Regular monitoring by dermatologists, ophthalmologists and cardiologists.",
+    prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.transientAcantholyticDermatosis = {
+    title:"Transient Acantholytic Dermatosis",
+    explanation:"Also called Grover's disease, it causes itchy red bumps mainly on the chest and back.",
+    causes:"Heat, sweating and dry skin may trigger it.",
+    solution:"Topical corticosteroids and keeping the skin cool.",
+    prevention:"Avoid excessive heat and sweating."
+};
+
+skincareKnowledge.xanthomaDisseminatum = {
+    title:"Xanthoma Disseminatum",
+    explanation:"A rare disorder characterized by widespread yellow-brown nodules caused by lipid-laden immune cells.",
+    causes:"Abnormal proliferation of histiocytes.",
+    solution:"Treatment depends on severity and may include immunosuppressive therapy.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.acroangiodermatitis = {
+title:"Acroangiodermatitis",
+explanation:"A benign vascular skin condition that resembles Kaposi sarcoma and usually develops on the lower legs due to poor circulation.",
+causes:"Chronic venous insufficiency or arteriovenous malformations.",
+solution:"Compression therapy, improving circulation and treating the underlying vascular condition.",
+prevention:"Maintain healthy circulation and manage venous disease."
+};
+
+skincareKnowledge.annularElastolyticGiantCellGranuloma = {
+title:"Annular Elastolytic Giant Cell Granuloma",
+explanation:"A rare inflammatory skin disorder causing ring-shaped plaques, usually on sun-exposed areas.",
+causes:"Sun damage and abnormal immune response.",
+solution:"Topical corticosteroids, hydroxychloroquine or observation.",
+prevention:"Use sunscreen and avoid excessive UV exposure."
+};
+
+skincareKnowledge.aplasiaCutisCongenita = {
+title:"Aplasia Cutis Congenita",
+explanation:"A rare condition where a baby is born with an area of missing skin, usually on the scalp.",
+causes:"Genetic factors, vascular disruption or certain medications during pregnancy.",
+solution:"Wound care or surgical repair depending on severity.",
+prevention:"Genetic counseling when appropriate."
+};
+
+skincareKnowledge.calcifiedNoduleOfTheSkin = {
+title:"Calcified Nodule of the Skin",
+explanation:"A harmless skin lesion formed by calcium deposits within the skin.",
+causes:"Localized calcium accumulation after minor injury or unknown causes.",
+solution:"Surgical removal if symptomatic.",
+prevention:"There is no known prevention."
+};
+
+skincareKnowledge.cutaneousCiliatedCyst = {
+title:"Cutaneous Ciliated Cyst",
+explanation:"A rare benign cyst lined with ciliated cells, usually occurring on the legs of young women.",
+causes:"Developmental abnormalities.",
+solution:"Simple surgical excision.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.eccrineNevus = {
+    title:"Eccrine Nevus",
+    explanation:"A rare benign overgrowth of sweat glands causing excessive sweating in a localized area.",
+    causes:"Congenital overdevelopment of eccrine glands.",
+    solution:"Botulinum toxin injections or surgical removal if severe.",
+    prevention:"There is no known prevention."
+};
+
+skincareKnowledge.eruptiveSeborrheicKeratoses = {
+    title:"Eruptive Seborrheic Keratoses",
+    explanation:"A sudden appearance of multiple seborrheic keratoses that may occasionally indicate an underlying illness.",
+    causes:"Aging, genetics or rarely internal malignancy.",
+    solution:"Dermatologic evaluation and treatment if necessary.",
+    prevention:"Routine skin examinations."
+};
+
+skincareKnowledge.familialCylindromatosis = {
+    title:"Familial Cylindromatosis",
+    explanation:"A genetic disorder causing multiple benign tumors on the scalp and face.",
+    causes:"Mutation in the CYLD gene.",
+    solution:"Surgical removal or laser treatment.",
+    prevention:"Genetic counseling."
+};
+
+skincareKnowledge.fibrousPapuleOfTheNose = {
+    title:"Fibrous Papule of the Nose",
+    explanation:"A common benign skin-colored bump usually found on the nose.",
+    causes:"Localized fibrous tissue overgrowth.",
+    solution:"Laser therapy or simple removal if desired.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.granularParakeratosis = {
+    title:"Granular Parakeratosis",
+    explanation:"A rare skin disorder affecting body folds with thickened, reddish-brown patches.",
+    causes:"Abnormal keratinization, friction and irritation.",
+    solution:"Topical corticosteroids and reducing friction.",
+    prevention:"Keep skin folds dry and minimize irritation."
+};
+
+skincareKnowledge.hemosiderinStaining = {
+    title:"Hemosiderin Staining",
+    explanation:"Brown discoloration of the skin caused by iron deposits after blood leaks from small vessels.",
+    causes:"Chronic venous insufficiency or bruising.",
+    solution:"Treat the underlying circulation problem and use compression therapy.",
+    prevention:"Maintain healthy leg circulation."
+};
+
+skincareKnowledge.juvenileHyalineFibromatosis = {
+    title:"Juvenile Hyaline Fibromatosis",
+    explanation:"A rare inherited disorder causing skin nodules, joint contractures and gum overgrowth.",
+    causes:"Mutation in the ANTXR2 gene.",
+    solution:"Supportive care and surgical removal of problematic nodules.",
+    prevention:"Genetic counseling."
+};
+
+skincareKnowledge.linearAtrophodermaOfMoulin = {
+    title:"Linear Atrophoderma of Moulin",
+    explanation:"A rare condition causing linear bands of dark, slightly depressed skin.",
+    causes:"Unknown developmental abnormality.",
+    solution:"Usually no treatment is required.",
+    prevention:"There is no known prevention."
+};
+
+skincareKnowledge.multipleGlomusTumors = {
+    title:"Multiple Glomus Tumors",
+    explanation:"Rare painful benign tumors arising from temperature-regulating blood vessels.",
+    causes:"Inherited genetic mutations or sporadic development.",
+    solution:"Surgical removal of painful lesions.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.nevusOfOta = {
+    title:"Nevus of Ota",
+    explanation:"A bluish-gray pigmentation affecting the face around the eye due to excess melanocytes.",
+    causes:"Congenital dermal melanocyte accumulation.",
+    solution:"Q-switched laser therapy for cosmetic improvement.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.papularMastocytosis = {
+    title:"Papular Mastocytosis",
+    explanation:"A form of mastocytosis characterized by multiple itchy brown papules.",
+    causes:"Accumulation of mast cells within the skin.",
+    solution:"Antihistamines and avoidance of known triggers.",
+    prevention:"There is no known prevention."
+};
+
+skincareKnowledge.progressiveMacularHypomelanosis = {
+    title:"Progressive Macular Hypomelanosis",
+    explanation:"A condition causing gradually spreading pale patches, usually on the trunk.",
+    causes:"Possibly linked to Cutibacterium acnes bacteria.",
+    solution:"Phototherapy and topical antibacterial treatment.",
+    prevention:"Maintain healthy skin hygiene."
+};
+
+skincareKnowledge.sebaceousNevusSyndrome = {
+    title:"Sebaceous Nevus Syndrome",
+    explanation:"A rare congenital syndrome involving sebaceous nevi with neurological and eye abnormalities.",
+    causes:"Genetic mosaic mutations.",
+    solution:"Multidisciplinary medical care and monitoring.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.woollyHairNevus = {
+    title:"Woolly Hair Nevus",
+    explanation:"A localized patch of tightly curled hair differing from the surrounding hair.",
+    causes:"Congenital developmental abnormality.",
+    solution:"Usually no treatment is required.",
+    prevention:"There is no known prevention."
+};
+
+skincareKnowledge.acroosteolysis = {
+  title:"Acroosteolysis",
+  explanation:"A rare condition involving the gradual breakdown of the bones at the tips of the fingers or toes, often accompanied by skin changes.",
+  causes:"Genetic disorders, trauma, autoimmune diseases or occupational exposure.",
+  solution:"Treat the underlying cause, protect the affected digits and receive specialist care.",
+  prevention:"Avoid repeated trauma and manage underlying medical conditions."
+};
+
+skincareKnowledge.angiolymphoidHyperplasiaWithEosinophilia = {
+  title:"Angiolymphoid Hyperplasia with Eosinophilia",
+  explanation:"A rare benign vascular disorder causing red or brown nodules on the head and neck.",
+  causes:"Abnormal blood vessel growth with immune cell involvement.",
+  solution:"Surgical removal, laser therapy or corticosteroid injections.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.atrophieBlanche = {
+  title:"Atrophie Blanche",
+  explanation:"A skin condition characterized by painful ulcers that heal into smooth white scars on the lower legs.",
+  causes:"Poor blood circulation and small blood vessel disease.",
+  solution:"Compression therapy, wound care and treatment of vascular disease.",
+  prevention:"Maintain healthy circulation and manage venous disorders."
+};
+
+skincareKnowledge.cutaneousMetastasis = {
+  title:"Cutaneous Metastasis",
+  explanation:"The spread of cancer cells from an internal organ to the skin, producing nodules or plaques.",
+  causes:"Metastatic cancer.",
+  solution:"Treatment depends on the underlying cancer and may include surgery, chemotherapy or radiotherapy.",
+  prevention:"Early detection and treatment of primary cancers."
+};
+
+skincareKnowledge.dermatitisNeglecta = {
+  title:"Dermatitis Neglecta",
+  explanation:"A skin condition caused by inadequate cleansing, leading to the buildup of sweat, oil and dead skin.",
+  causes:"Poor skin hygiene due to pain, disability or neglect.",
+  solution:"Gentle cleansing with soap, water or alcohol wipes.",
+  prevention:"Maintain regular skin hygiene."
+};
+
+skincareKnowledge.eccrineSpiradenoma = {
+  title:"Eccrine Spiradenoma",
+  explanation:"A rare benign sweat gland tumor that often presents as a painful skin nodule.",
+  causes:"Abnormal growth of eccrine sweat gland cells.",
+  solution:"Surgical removal.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.epidermalNevusSyndrome = {
+  title:"Epidermal Nevus Syndrome",
+  explanation:"A group of disorders involving epidermal nevi along with neurological, skeletal or eye abnormalities.",
+  causes:"Genetic mosaic mutations.",
+  solution:"Multidisciplinary management and surgical treatment when needed.",
+  prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.eruptiveCollagenoma = {
+  title:"Eruptive Collagenoma",
+  explanation:"A rare connective tissue disorder causing multiple firm skin-colored nodules.",
+  causes:"Abnormal collagen accumulation.",
+  solution:"Usually no treatment is necessary unless for cosmetic reasons.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.fibromatosisColli = {
+  title:"Fibromatosis Colli",
+  explanation:"A benign fibrous swelling of the neck muscle seen in newborns.",
+  causes:"Birth trauma or injury to the sternocleidomastoid muscle.",
+  solution:"Physical therapy and gentle stretching exercises.",
+  prevention:"Careful obstetric management."
+};
+
+skincareKnowledge.glomuvenousMalformation = {
+  title:"Glomuvenous Malformation",
+  explanation:"A rare inherited vascular malformation appearing as bluish painful skin lesions.",
+  causes:"Mutation in the GLMN gene.",
+  solution:"Laser therapy or surgical removal if symptomatic.",
+  prevention:"Genetic counseling."
+};
+
+skincareKnowledge.hyperkeratosisLenticularisPerstans = {
+title:"Hyperkeratosis Lenticularis Perstans",
+explanation:"Also known as Flegel disease, this rare condition causes small rough reddish-brown papules on the legs.",
+causes:"Inherited abnormal keratinization.",
+solution:"Topical retinoids and keratolytic creams.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.infantileDigitalFibromatosis = {
+title:"Infantile Digital Fibromatosis",
+explanation:"A rare benign tumor affecting the fingers or toes of infants.",
+causes:"Unknown abnormal fibrous tissue growth.",
+solution:"Observation or surgical removal if function is affected.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.juvenileSpringEruption = {
+title:"Juvenile Spring Eruption",
+explanation:"A seasonal sun-induced skin eruption affecting the ears of children and adolescents.",
+causes:"Sensitivity to spring sunlight.",
+solution:"Topical corticosteroids and sun protection.",
+prevention:"Wear hats and use sunscreen during spring."
+};
+
+skincareKnowledge.kyrleDisease = {
+title:"Kyrle Disease",
+explanation:"A perforating skin disorder causing large itchy papules with central keratin plugs.",
+causes:"Often associated with diabetes and chronic kidney disease.",
+solution:"Topical retinoids, keratolytics and treatment of underlying disease.",
+prevention:"Control diabetes and kidney disease."
+};
+
+skincareKnowledge.lymphangiomaCircumscriptum = {
+title:"Lymphangioma Circumscriptum",
+explanation:"A benign lymphatic malformation appearing as clusters of small translucent blisters.",
+causes:"Congenital lymphatic vessel abnormalities.",
+solution:"Laser therapy or surgical removal.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.microcysticLymphaticMalformation = {
+ title:"Microcystic Lymphatic Malformation",
+ explanation:"A congenital disorder involving abnormal lymphatic vessels forming tiny fluid-filled cysts in the skin.",
+ causes:"Developmental abnormalities of the lymphatic system.",
+ solution:"Laser therapy, surgery or sclerotherapy.",
+ prevention:"No known prevention."
+};
+
+skincareKnowledge.nevusComedonicusSyndrome = {
+ title:"Nevus Comedonicus Syndrome",
+ explanation:"A rare syndrome combining nevus comedonicus with skeletal, eye or neurological abnormalities.",
+ causes:"Genetic mosaic mutations.",
+ solution:"Treat skin lesions and associated systemic abnormalities.",
+ prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.papularAcantholyticDyskeratosis = {
+ title:"Papular Acantholytic Dyskeratosis",
+ explanation:"A rare skin disorder producing itchy papules in the genital or groin region.",
+ causes:"Abnormal skin cell adhesion.",
+ solution:"Topical corticosteroids or retinoids.",
+ prevention:"Reduce friction and irritation."
+};
+
+skincareKnowledge.reticularPigmentedAnomalyOfTheFlexures = {
+ title:"Reticular Pigmented Anomaly of the Flexures",
+ explanation:"A rare inherited pigmentation disorder causing net-like dark patches in body folds.",
+ causes:"Genetic mutation affecting pigmentation.",
+ solution:"Usually supportive care only.",
+ prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.verruciformXanthoma = {
+ title:"Verruciform Xanthoma",
+ explanation:"A rare benign lesion appearing as a wart-like plaque, commonly inside the mouth or on genital skin.",
+ causes:"Unknown, possibly chronic inflammation.",
+ solution:"Simple surgical excision.",
+ prevention:"Maintain good skin and oral hygiene."
+};
+
+skincareKnowledge.acrodermatitisContinuaOfHallopeau = {
+title:"Acrodermatitis Continua of Hallopeau",
+explanation:"A rare chronic form of pustular psoriasis affecting the fingertips and nails, causing painful pustules and nail destruction.",
+causes:"Immune system dysfunction associated with pustular psoriasis.",
+solution:"Biologic medications, topical corticosteroids and systemic therapy prescribed by a dermatologist.",
+prevention:"There is no known prevention, but avoiding psoriasis triggers may help."
+};
+
+skincareKnowledge.angiokeratomaCorporisDiffusum = {
+title:"Angiokeratoma Corporis Diffusum",
+explanation:"A rare condition marked by widespread dark red vascular skin lesions, often associated with inherited metabolic disorders.",
+causes:"Genetic lysosomal storage diseases such as Fabry disease.",
+solution:"Treat the underlying metabolic disorder and consider laser therapy for skin lesions.",
+prevention:"Genetic counseling for affected families."
+};
+
+skincareKnowledge.atrophodermaVermiculatum = {
+title:"Atrophoderma Vermiculatum",
+explanation:"A rare skin disorder causing honeycomb-like depressions on the cheeks due to follicular damage.",
+causes:"Inherited abnormal keratinization.",
+solution:"Topical retinoids and laser resurfacing may improve appearance.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.calcinosisUniversalis = {
+title:"Calcinosis Universalis",
+explanation:"A severe form of calcinosis with widespread calcium deposits in the skin, muscles and connective tissues.",
+causes:"Autoimmune connective tissue diseases such as dermatomyositis.",
+solution:"Treat the underlying autoimmune disease and manage calcium deposits.",
+prevention:"Control connective tissue disorders early."
+};
+
+skincareKnowledge.cutaneousBCellLymphoma = {
+title:"Cutaneous B-Cell Lymphoma",
+explanation:"A rare type of lymphoma that begins in the skin's B lymphocytes.",
+causes:"Abnormal growth of B-cells.",
+solution:"Radiotherapy, surgery, immunotherapy or chemotherapy depending on the subtype.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.cutaneousTCellLymphoma = {
+title:"Cutaneous T-Cell Lymphoma",
+explanation:"A group of cancers that originate from T-cells in the skin, including mycosis fungoides.",
+causes:"Abnormal proliferation of T lymphocytes.",
+solution:"Phototherapy, topical treatments, biologics or systemic therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.digitalPapillaryAdenocarcinoma = {
+title:"Digital Papillary Adenocarcinoma",
+explanation:"A rare malignant sweat gland tumor usually occurring on the fingers or toes.",
+causes:"Cancerous transformation of sweat gland cells.",
+solution:"Wide surgical removal and long-term follow-up.",
+prevention:"Early evaluation of persistent finger or toe lumps."
+};
+
+skincareKnowledge.eccrineCarcinoma = {
+title:"Eccrine Carcinoma",
+explanation:"A rare cancer arising from eccrine sweat glands.",
+causes:"Malignant transformation of sweat gland tissue.",
+solution:"Surgical excision with possible radiotherapy.",
+prevention:"Early dermatologic evaluation of suspicious skin growths."
+};
+
+skincareKnowledge.eruptiveXanthomas = {
+title:"Eruptive Xanthomas",
+explanation:"Small yellow bumps that suddenly appear on the skin due to very high blood fat levels.",
+causes:"Severe hypertriglyceridemia and uncontrolled diabetes.",
+solution:"Lower blood lipid levels and manage diabetes.",
+prevention:"Maintain healthy cholesterol and triglyceride levels."
+};
+
+skincareKnowledge.familialAmyloidosisCutis = {
+title:"Familial Amyloidosis Cutis",
+explanation:"An inherited condition involving abnormal amyloid protein deposits in the skin.",
+causes:"Genetic mutations affecting protein metabolism.",
+solution:"Supportive dermatologic treatment and itch control.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.fibrousHamartomaOfInfancy = {
+title:"Fibrous Hamartoma of Infancy",
+explanation:"A rare benign soft tissue tumor occurring during the first two years of life.",
+causes:"Developmental abnormality of fibrous tissue.",
+solution:"Surgical removal if necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.graftVersusHostSkinDisease = {
+title:"Graft-versus-Host Skin Disease",
+explanation:"A skin complication following bone marrow transplantation where donor immune cells attack the recipient's skin.",
+causes:"Immune reaction after stem cell transplantation.",
+solution:"Immunosuppressive therapy and supportive skin care.",
+prevention:"Careful donor matching and preventive medications."
+};
+
+skincareKnowledge.histiocytoidHemangioma = {
+title:"Histiocytoid Hemangioma",
+explanation:"A rare benign vascular tumor presenting as reddish nodules on the skin.",
+causes:"Abnormal blood vessel growth.",
+solution:"Surgical excision or laser therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.interstitialGranulomatousDermatitis = {
+title:"Interstitial Granulomatous Dermatitis",
+explanation:"An inflammatory skin disorder producing red plaques and cord-like lesions.",
+causes:"Autoimmune diseases or medication reactions.",
+solution:"Treat the underlying disease and use corticosteroids.",
+prevention:"Manage autoimmune disorders appropriately."
+};
+
+skincareKnowledge.juvenileColloidMilium = {
+title:"Juvenile Colloid Milium",
+explanation:"A rare disorder causing translucent yellow papules due to abnormal protein deposits in the skin.",
+causes:"Inherited abnormalities.",
+solution:"Laser treatment or dermabrasion for cosmetic improvement.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.keratosisFollicularisSpinulosaDecalvans = {
+title:"Keratosis Follicularis Spinulosa Decalvans",
+explanation:"A rare inherited disorder causing follicular keratosis and progressive scarring hair loss.",
+causes:"Genetic mutation affecting hair follicles.",
+solution:"Retinoids, antibiotics and supportive dermatologic care.",
+prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.lymphocytomaCutis = {
+title:"Lymphocytoma Cutis",
+explanation:"A benign accumulation of lymphocytes in the skin forming soft red or purple nodules.",
+causes:"Insect bites, infections or medications.",
+solution:"Treat the underlying trigger and use corticosteroids if necessary.",
+prevention:"Avoid known triggers when possible."
+};
+
+skincareKnowledge.multifocalLymphangioendotheliomatosis = {
+title:"Multifocal Lymphangioendotheliomatosis",
+explanation:"A rare vascular disorder causing multiple skin lesions and gastrointestinal bleeding.",
+causes:"Abnormal lymphatic blood vessel growth.",
+solution:"Multidisciplinary medical care and treatment of complications.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.necrobioticXanthogranuloma = {
+title:"Necrobiotic Xanthogranuloma",
+explanation:"A rare inflammatory disorder causing yellow plaques and nodules, often around the eyes.",
+causes:"Often associated with blood protein abnormalities.",
+solution:"Treat the underlying blood disorder and use immunosuppressive therapy.",
+prevention:"Regular monitoring of associated medical conditions."
+},
+
+skincareKnowledge.papularPurpuricGlovesAndSocksSyndrome = {
+title:"Papular Purpuric Gloves and Socks Syndrome",
+explanation:"A viral skin eruption causing painful redness and purple spots on the hands and feet.",
+causes:"Most commonly Parvovirus B19 infection.",
+solution:"Supportive care, hydration and symptom relief.",
+prevention:"Good hygiene practices may reduce viral spread."
+},
+
+skincareKnowledge.poikilodermaOfCivatte = {
+title:"Poikiloderma of Civatte",
+explanation:"A chronic skin condition causing reddish-brown pigmentation, visible blood vessels and skin thinning on the sides of the neck.",
+causes:"Long-term sun exposure, aging and hormonal changes.",
+solution:"Use sunscreen daily, topical retinoids and laser therapy if needed.",
+prevention:"Protect the neck from UV exposure."
+},
+
+skincareKnowledge.porocarcinoma = {
+title:"Porocarcinoma",
+explanation:"A rare malignant tumor arising from sweat glands that may appear as a slow-growing nodule.",
+causes:"Cancerous transformation of eccrine sweat gland cells.",
+solution:"Wide surgical excision and regular follow-up.",
+prevention:"Seek early evaluation of persistent skin growths."
+},
+
+skincareKnowledge.progressiveNodularHistiocytosis = {
+title:"Progressive Nodular Histiocytosis",
+explanation:"A rare non-Langerhans cell histiocytosis causing multiple skin nodules that gradually increase in number.",
+causes:"Abnormal proliferation of histiocytes.",
+solution:"Surgical removal of symptomatic lesions and specialist care.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.pseudolymphomaOfTheSkin = {
+title:"Pseudolymphoma of the Skin",
+explanation:"A benign lymphoid skin reaction that resembles cutaneous lymphoma.",
+causes:"Insect bites, tattoos, medications or infections.",
+solution:"Remove the triggering factor and use corticosteroids if needed.",
+prevention:"Avoid known triggers."
+},
+
+skincareKnowledge.pyogenicGranulomaOfPregnancy = {
+title:"Pyogenic Granuloma of Pregnancy",
+explanation:"A rapidly growing benign vascular lesion that commonly develops during pregnancy.",
+causes:"Hormonal changes and minor skin trauma.",
+solution:"Observation during pregnancy or surgical removal if necessary.",
+prevention:"Avoid unnecessary skin trauma."
+},
+
+skincareKnowledge.retiformHemangioendothelioma = {
+title:"Retiform Hemangioendothelioma",
+explanation:"A rare low-grade vascular tumor with a tendency to recur locally.",
+causes:"Abnormal blood vessel cell growth.",
+solution:"Wide surgical removal and long-term monitoring.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.scleromyxedema = {
+title:"Scleromyxedema",
+explanation:"A rare connective tissue disorder causing widespread waxy papules and skin thickening.",
+causes:"Abnormal mucin deposition often associated with blood protein disorders.",
+solution:"Immunotherapy and management of the underlying condition.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.sebaceousCarcinoma = {
+title:"Sebaceous Carcinoma",
+explanation:"A rare aggressive cancer arising from sebaceous glands, often around the eyelids.",
+causes:"Malignant transformation of sebaceous gland cells.",
+solution:"Early surgical removal with clear margins.",
+prevention:"Prompt evaluation of persistent eyelid lumps."
+},
+
+skincareKnowledge.skinTagSyndrome = {
+title:"Skin Tag Syndrome",
+explanation:"A condition involving numerous skin tags that may be associated with metabolic disorders.",
+causes:"Obesity, insulin resistance and friction.",
+solution:"Removal by a healthcare professional if desired.",
+prevention:"Maintain a healthy weight and reduce skin friction."
+},
+
+skincareKnowledge.subcutaneousFatNecrosisOfTheNewborn = {
+title:"Subcutaneous Fat Necrosis of the Newborn",
+explanation:"A rare condition causing firm nodules beneath the skin of newborns after birth stress.",
+causes:"Birth trauma, hypothermia or oxygen deprivation.",
+solution:"Usually resolves spontaneously with monitoring.",
+prevention:"Careful management of high-risk deliveries."
+},
+
+skincareKnowledge.syringocystadenomaPapilliferum = {
+title:"Syringocystadenoma Papilliferum",
+explanation:"A rare benign sweat gland tumor often present at birth or childhood.",
+causes:"Congenital abnormality of sweat glands.",
+solution:"Surgical removal is recommended.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.trichoepithelioma = {
+title:"Trichoepithelioma",
+explanation:"A benign hair follicle tumor appearing as small flesh-colored papules on the face.",
+causes:"Inherited genetic mutations or sporadic development.",
+solution:"Laser therapy or surgical removal if desired.",
+prevention:"Genetic counseling when hereditary."
+},
+
+skincareKnowledge.trichofolliculoma = {
+title:"Trichofolliculoma",
+explanation:"A rare benign hair follicle tumor often presenting as a small bump with a central tuft of hair.",
+causes:"Abnormal hair follicle development.",
+solution:"Simple surgical excision.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.verrucousHemangioma = {
+title:"Verrucous Hemangioma",
+explanation:"A congenital vascular malformation with thick, wart-like skin changes.",
+causes:"Developmental abnormality of blood vessels.",
+solution:"Complete surgical removal is usually required.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.xanthogranulomaAdult = {
+title:"Adult Xanthogranuloma",
+explanation:"A rare benign disorder causing yellow-orange skin nodules in adults.",
+causes:"Abnormal accumulation of histiocytes.",
+solution:"Observation or surgical removal if symptomatic.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.yellowNailSyndrome = {
+title:"Yellow Nail Syndrome",
+explanation:"A rare disorder involving yellow thickened nails, swelling and respiratory problems.",
+causes:"Abnormal lymphatic function.",
+solution:"Treat respiratory disease and manage lymphedema.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.zosterSineHerpete = {
+title:"Zoster Sine Herpete",
+explanation:"A form of shingles causing nerve pain without the typical skin rash.",
+causes:"Reactivation of the varicella-zoster virus.",
+solution:"Early antiviral medication and pain management.",
+prevention:"Shingles vaccination in eligible adults."
+},
+
+skincareKnowledge.actinicGranuloma = {
+title:"Actinic Granuloma",
+explanation:"A rare inflammatory skin disorder producing ring-shaped lesions on sun-exposed skin.",
+causes:"Sun-damaged elastic fibers triggering an immune response.",
+solution:"Sun protection and topical corticosteroids.",
+prevention:"Use broad-spectrum sunscreen daily."
+},
+
+skincareKnowledge.cutaneousRosaiDorfmanDisease = {
+title:"Cutaneous Rosai-Dorfman Disease",
+explanation:"A rare disorder involving painless red or yellow skin nodules without lymph node involvement.",
+causes:"Abnormal accumulation of histiocytes.",
+solution:"Observation, corticosteroids or surgical removal depending on severity.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.eruptivePseudoangiomatosis = {
+title:"Eruptive Pseudoangiomatosis",
+explanation:"A rare viral-associated eruption causing small red papules surrounded by pale halos.",
+causes:"Viral infections and insect bites.",
+solution:"Usually resolves without treatment.",
+prevention:"Avoid insect bites and maintain good hygiene."
+},
+
+skincareKnowledge.angiomaRepens = {
+title:"Angioma Repens",
+explanation:"A rare vascular skin condition causing clusters of tiny red spots that slowly spread over time.",
+causes:"Abnormal growth of superficial blood vessels.",
+solution:"Laser therapy can improve cosmetic appearance.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.balloonCellNevus = {
+title:"Balloon Cell Nevus",
+explanation:"A rare benign mole containing enlarged balloon-like melanocytes.",
+causes:"Abnormal development of melanocytes.",
+solution:"Usually no treatment is needed unless diagnosis is uncertain.",
+prevention:"Routine skin examinations."
+},
+
+skincareKnowledge.calcifiedEpidermoidCyst = {
+title:"Calcified Epidermoid Cyst",
+explanation:"An epidermoid cyst that develops calcium deposits, making it feel unusually hard.",
+causes:"Long-standing epidermoid cysts.",
+solution:"Surgical removal if symptomatic.",
+prevention:"Early treatment of enlarging cysts."
+},
+
+skincareKnowledge.cutaneousMyxoma = {
+title:"Cutaneous Myxoma",
+explanation:"A rare benign tumor composed of gelatinous connective tissue.",
+causes:"Abnormal connective tissue growth, sometimes associated with Carney complex.",
+solution:"Surgical excision.",
+prevention:"Genetic counseling in inherited cases."
+},
+
+skincareKnowledge.dermatofibrosarcomaProtuberans = {
+title:"Dermatofibrosarcoma Protuberans",
+explanation:"A rare slow-growing skin cancer that begins in the dermis and can invade surrounding tissue.",
+causes:"Genetic mutation involving the COL1A1 and PDGFB genes.",
+solution:"Wide surgical excision or Mohs surgery.",
+prevention:"Early diagnosis of persistent skin lumps."
+},
+
+skincareKnowledge.eccrineAngiomatousNevus = {
+title:"Eccrine Angiomatous Nevus",
+explanation:"A rare congenital lesion containing excess sweat glands and blood vessels.",
+causes:"Developmental abnormality before birth.",
+solution:"Surgical removal if painful or associated with excessive sweating.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.elastosisPerforansSerpiginosa = {
+title:"Elastosis Perforans Serpiginosa",
+explanation:"A rare disorder where abnormal elastic fibers are pushed through the skin.",
+causes:"Inherited connective tissue disorders or medication side effects.",
+solution:"Topical retinoids, cryotherapy or laser treatment.",
+prevention:"Monitor medications associated with the condition."
+},
+
+skincareKnowledge.fibromaMolle = {
+title:"Fibroma Molle",
+explanation:"Another name for a soft fibroma or skin tag, a common benign skin growth.",
+causes:"Skin friction, aging and genetics.",
+solution:"Simple removal if desired.",
+prevention:"Reduce chronic skin friction."
+},
+
+skincareKnowledge.giantCellFibroblastoma = {
+title:"Giant Cell Fibroblastoma",
+explanation:"A rare soft tissue tumor occurring mainly in children.",
+causes:"Genetic abnormalities similar to dermatofibrosarcoma protuberans.",
+solution:"Complete surgical removal.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.hyperplasticLichenPlanus = {
+title:"Hyperplastic Lichen Planus",
+explanation:"A thickened, wart-like form of lichen planus commonly affecting the legs.",
+causes:"Autoimmune inflammation.",
+solution:"Potent topical corticosteroids and immunomodulators.",
+prevention:"Manage chronic inflammation."
+},
+
+skincareKnowledge.intradermalSpitzNevus = {
+title:"Intradermal Spitz Nevus",
+explanation:"A benign mole composed of Spitz cells located within the dermis.",
+causes:"Benign melanocyte proliferation.",
+solution:"Observation or surgical removal if diagnosis is uncertain.",
+prevention:"Routine skin monitoring."
+},
+
+skincareKnowledge.keratoelastoidosisMarginalis = {
+title:"Keratoelastoidosis Marginalis",
+explanation:"A rare skin disorder producing firm yellow papules along the edges of the hands.",
+causes:"Chronic sun exposure and aging.",
+solution:"Protect from UV light and use moisturizers.",
+prevention:"Wear sunscreen and protective gloves outdoors."
+},
+
+skincareKnowledge.lichenAureus = {
+title:"Lichen Aureus",
+explanation:"A localized form of pigmented purpuric dermatosis presenting as golden-brown patches.",
+causes:"Leaking capillaries and chronic inflammation.",
+solution:"Topical corticosteroids or observation.",
+prevention:"Maintain healthy circulation."
+},
+
+skincareKnowledge.microvenularHemangioma = {
+title:"Microvenular Hemangioma",
+explanation:"A rare benign vascular tumor presenting as small red or purple plaques.",
+causes:"Benign proliferation of tiny veins.",
+solution:"Surgical removal if necessary.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.nevusSebaceusOfJadassohn = {
+title:"Nevus Sebaceus of Jadassohn",
+explanation:"A congenital hairless plaque containing abnormal sebaceous glands, usually on the scalp.",
+causes:"Developmental mosaic mutation.",
+solution:"Regular monitoring or surgical removal.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.papularMucinosis = {
+title:"Papular Mucinosis",
+explanation:"A group of disorders characterized by mucin deposits forming waxy skin papules.",
+causes:"Unknown, sometimes linked to blood disorders.",
+solution:"Treat the underlying disease and use immunotherapy if necessary.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.reactivePerforatingCollagenosis = {
+title:"Reactive Perforating Collagenosis",
+explanation:"A skin disorder where damaged collagen is eliminated through the epidermis after minor injury.",
+causes:"Genetics, diabetes or chronic kidney disease.",
+solution:"Topical retinoids and treatment of underlying illness.",
+prevention:"Protect the skin from repeated trauma."
+},
+
+skincareKnowledge.sebaceousHyperplasia = {
+title:"Sebaceous Hyperplasia",
+explanation:"A harmless enlargement of sebaceous glands appearing as small yellow bumps on the face.",
+causes:"Aging, hormones and genetics.",
+solution:"Laser treatment, electrocautery or observation.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.tuftedAngioma = {
+title:"Tufted Angioma",
+explanation:"A rare benign vascular tumor often appearing in childhood as a painful red-purple plaque.",
+causes:"Abnormal blood vessel growth.",
+solution:"Laser therapy, surgery or observation depending on symptoms.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.winerDilatedPore = {
+title:"Winer Dilated Pore",
+explanation:"A large open comedone caused by an enlarged hair follicle filled with keratin.",
+causes:"Blocked hair follicles and aging.",
+solution:"Professional extraction or surgical removal.",
+prevention:"Maintain healthy skin cleansing habits."
+
+};
+
+skincareKnowledge.acrocyanosis = {
+title:"Acrocyanosis",
+explanation:"A condition causing persistent bluish discoloration of the hands and feet due to reduced oxygen delivery to the skin.",
+causes:"Constriction of small blood vessels, cold exposure or circulatory disorders.",
+solution:"Keep the body warm and treat any underlying circulatory condition.",
+prevention:"Avoid prolonged cold exposure and wear warm clothing."
+},
+
+skincareKnowledge.anetoderma = {
+title:"Anetoderma",
+explanation:"A rare skin disorder where patches of skin become loose or wrinkled due to the loss of elastic fibers.",
+causes:"Autoimmune diseases, infections or unknown causes.",
+solution:"There is no cure, but cosmetic treatments may improve appearance.",
+prevention:"Manage associated medical conditions early."
+},
+
+skincareKnowledge.bullousLupusErythematosus = {
+title:"Bullous Lupus Erythematosus",
+explanation:"A rare blistering form of systemic lupus causing tense blisters on the skin.",
+causes:"Autoimmune attack associated with lupus.",
+solution:"Dapsone, corticosteroids and treatment of lupus.",
+prevention:"Proper lupus management reduces flare-ups."
+};
+
+skincareKnowledge.cutaneousHorn = {
+title:"Cutaneous Horn",
+explanation:"A hard cone-shaped growth made of keratin that develops on the skin.",
+causes:"Sun damage, warts or underlying skin cancers.",
+solution:"Surgical removal and biopsy of the base.",
+prevention:"Protect skin from excessive sun exposure."
+};
+
+skincareKnowledge.discoidLupusErythematosus = {
+title:"Discoid Lupus Erythematosus",
+explanation:"A chronic autoimmune skin disease causing red scaly plaques that may leave scars.",
+causes:"Autoimmune dysfunction and sun exposure.",
+solution:"Topical steroids, antimalarial drugs and sunscreen.",
+prevention:"Avoid excessive UV exposure."
+};
+
+skincareKnowledge.elastofibromaDorsi = {
+title:"Elastofibroma Dorsi",
+explanation:"A rare benign soft tissue growth usually found beneath the shoulder blade.",
+causes:"Repeated mechanical friction and aging.",
+solution:"Observation or surgical removal if painful.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.epidermolyticAcanthoma = {
+title:"Epidermolytic Acanthoma",
+explanation:"A harmless wart-like skin lesion commonly found on the trunk or genital area.",
+causes:"Localized abnormal keratinization.",
+solution:"Usually no treatment is required.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.familialMultipleLipomatosis = {
+title:"Familial Multiple Lipomatosis",
+explanation:"An inherited disorder causing numerous soft fatty lumps beneath the skin.",
+causes:"Genetic inheritance.",
+solution:"Surgical removal of symptomatic lipomas.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.granulomatousSlackSkin = {
+title:"Granulomatous Slack Skin",
+explanation:"A rare variant of cutaneous T-cell lymphoma causing loose hanging skin folds.",
+causes:"Abnormal T-cell proliferation.",
+solution:"Dermatology and oncology management.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.hereditaryLeiomyomatosis = {
+title:"Hereditary Leiomyomatosis",
+explanation:"A genetic disorder causing painful smooth muscle tumors in the skin.",
+causes:"Mutation in the FH gene.",
+solution:"Pain management and surgical removal when necessary.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.incontinentiaPigmenti = {
+title:"Incontinentia Pigmenti",
+explanation:"A rare inherited disorder affecting the skin, hair, teeth and nervous system.",
+causes:"Mutation in the IKBKG gene.",
+solution:"Supportive multidisciplinary care.",
+prevention:"Genetic counseling for affected families."
+};
+
+skincareKnowledge.keratosisPilarisRubra = {
+title:"Keratosis Pilaris Rubra",
+explanation:"A form of keratosis pilaris characterized by persistent redness around rough bumps.",
+causes:"Excess keratin blocking hair follicles.",
+solution:"Moisturizers, exfoliants and topical retinoids.",
+prevention:"Keep the skin moisturized."
+};
+
+skincareKnowledge.lipedematousScalp = {
+title:"Lipedematous Scalp",
+explanation:"A rare condition where the scalp becomes unusually thick due to excess fatty tissue.",
+causes:"Unknown.",
+solution:"Observation or surgical treatment in severe cases.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.morpheaProfunda = {
+title:"Morphea Profunda",
+explanation:"A deep form of localized scleroderma affecting the skin and underlying tissues.",
+causes:"Autoimmune inflammation.",
+solution:"Immunosuppressive therapy and physical therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.nevusAnemicus = {
+title:"Nevus Anemicus",
+explanation:"A congenital pale skin patch caused by permanently narrowed blood vessels.",
+causes:"Developmental vascular abnormality.",
+solution:"No treatment is usually necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.perforatingCalcificElastosis = {
+title:"Perforating Calcific Elastosis",
+explanation:"A rare disorder where calcified elastic fibers are eliminated through the skin.",
+causes:"Abnormal calcium deposition in elastic tissue.",
+solution:"Treat symptoms and associated disorders.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.reticulateAcropigmentationOfKitamura = {
+title:"Reticulate Acropigmentation of Kitamura",
+explanation:"A rare inherited pigmentation disorder causing net-like dark spots on the hands and feet.",
+causes:"Genetic mutation.",
+solution:"Sun protection and cosmetic treatment if desired.",
+prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.scleredemaAdultorum = {
+title:"Scleredema Adultorum",
+explanation:"A connective tissue disorder causing thickened, stiff skin of the neck and upper back.",
+causes:"Diabetes, infections or unknown causes.",
+solution:"Treat underlying disease and consider phototherapy.",
+prevention:"Control diabetes effectively."
+};
+
+skincareKnowledge.tumidLupus = {
+title:"Tumid Lupus",
+explanation:"A rare form of cutaneous lupus producing smooth swollen red plaques without scarring.",
+causes:"Autoimmune disease and UV exposure.",
+solution:"Antimalarial medications and strict sun protection.",
+prevention:"Avoid excessive sunlight."
+};
+
+skincareKnowledge.verruciformEpidermalNevus = {
+title:"Verruciform Epidermal Nevus",
+explanation:"A congenital wart-like skin lesion following developmental skin lines.",
+causes:"Genetic mosaic mutation.",
+solution:"Laser therapy or surgical removal if necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.acquiredPerforatingDermatosis = {
+title:"Acquired Perforating Dermatosis",
+explanation:"A skin disorder in which damaged collagen and elastic fibers are eliminated through the epidermis, producing itchy bumps.",
+causes:"Chronic kidney disease, diabetes mellitus and skin trauma.",
+solution:"Treat the underlying disease, use topical corticosteroids, retinoids and moisturizers.",
+prevention:"Good control of diabetes and kidney disease."
+};
+
+skincareKnowledge.angiokeratomaOfFordyce = {
+title:"Angiokeratoma of Fordyce",
+explanation:"Small dark red or purple vascular bumps usually found on the scrotum or vulva.",
+causes:"Dilated superficial blood vessels and increased venous pressure.",
+solution:"Usually no treatment is needed; laser therapy or electrocautery for bleeding lesions.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.atrophodermaOfPasiniPierini = {
+title:"Atrophoderma of Pasini-Pierini",
+explanation:"A rare skin condition causing sharply defined depressed patches with slight dark pigmentation.",
+causes:"Unknown; possibly related to localized scleroderma.",
+solution:"Observation or dermatologic treatment if associated with morphea.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.basaloidFollicularHamartoma = {
+title:"Basaloid Follicular Hamartoma",
+explanation:"A rare benign tumor arising from hair follicles.",
+causes:"Genetic mutations or sporadic development.",
+solution:"Observation or surgical removal if symptomatic.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.blueRubberBlebNevusSyndrome = {
+title:"Blue Rubber Bleb Nevus Syndrome",
+explanation:"A rare disorder causing multiple soft blue vascular malformations of the skin and digestive tract.",
+causes:"Congenital venous malformations.",
+solution:"Laser therapy, surgery or treatment of gastrointestinal bleeding.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.calcinosisCircumscripta = {
+title:"Calcinosis Circumscripta",
+explanation:"Localized calcium deposits forming hard nodules beneath the skin.",
+causes:"Connective tissue diseases or repeated trauma.",
+solution:"Surgical removal if painful and management of underlying disease.",
+prevention:"Treat connective tissue disorders promptly."
+};
+
+skincareKnowledge.clearCellAcanthoma = {
+title:"Clear Cell Acanthoma",
+explanation:"A rare benign skin tumor appearing as a slow-growing pink or red plaque.",
+causes:"Unknown.",
+solution:"Simple surgical removal.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.cutaneousPlasmacytosis = {
+title:"Cutaneous Plasmacytosis",
+explanation:"A rare disorder involving excessive plasma cells within the skin causing reddish-brown patches.",
+causes:"Unknown immune dysfunction.",
+solution:"Corticosteroids, phototherapy or immunomodulatory treatment.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.degosDisease = {
+title:"Degos Disease",
+explanation:"A rare vascular disease causing porcelain-white skin lesions and possible internal organ involvement.",
+causes:"Abnormal blood vessel blockage.",
+solution:"Supportive care and specialist management.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.disseminatedPorokeratosis = {
+title:"Disseminated Porokeratosis",
+explanation:"A group of inherited disorders causing multiple scaly lesions with raised borders.",
+causes:"Genetics and ultraviolet radiation.",
+solution:"Cryotherapy, topical retinoids and sun protection.",
+prevention:"Use sunscreen and avoid excessive UV exposure."
+};
+
+skincareKnowledge.eccrineHidrocystoma = {
+title:"Eccrine Hidrocystoma",
+explanation:"A harmless sweat gland cyst usually occurring around the eyelids.",
+causes:"Blocked eccrine sweat ducts.",
+solution:"Drainage, laser treatment or surgical removal.",
+prevention:"Reduce excessive sweating when possible."
+};
+
+skincareKnowledge.epithelioidHemangioma = {
+title:"Epithelioid Hemangioma",
+explanation:"A benign vascular tumor presenting as reddish nodules on the head and neck.",
+causes:"Abnormal blood vessel growth.",
+solution:"Surgical excision or laser therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.fibrokeratoma = {
+title:"Fibrokeratoma",
+explanation:"A small benign fibrous growth usually found on fingers or toes.",
+causes:"Minor trauma or unknown factors.",
+solution:"Simple surgical removal.",
+prevention:"Protect the skin from repeated injury."
+};
+
+skincareKnowledge.generalizedEssentialTelangiectasia = {
+title:"Generalized Essential Telangiectasia",
+explanation:"A rare disorder involving widespread visible dilated blood vessels.",
+causes:"Unknown.",
+solution:"Laser therapy for cosmetic improvement.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.haloNevus = {
+title:"Halo Nevus",
+explanation:"A mole surrounded by a ring of lighter skin due to immune destruction of pigment cells.",
+causes:"Autoimmune response against melanocytes.",
+solution:"Usually observation unless melanoma is suspected.",
+prevention:"Routine skin examinations."
+};
+
+skincareKnowledge.ichthyosisHystrix = {
+title:"Ichthyosis Hystrix",
+explanation:"A very rare inherited disorder causing thick, spiny scales over large areas of the body.",
+causes:"Genetic mutations affecting keratin production.",
+solution:"Daily moisturizers, keratolytic agents and retinoids.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.juvenileXanthogranuloma = {
+title:"Juvenile Xanthogranuloma",
+explanation:"A benign childhood condition causing yellow-orange skin nodules.",
+causes:"Accumulation of histiocytes.",
+solution:"Usually resolves spontaneously without treatment.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.keratoacanthomaCentrifugumMarginatum = {
+title:"Keratoacanthoma Centrifugum Marginatum",
+explanation:"A rare variant of keratoacanthoma that enlarges outward without spontaneous regression.",
+causes:"Sun exposure and abnormal keratinocyte growth.",
+solution:"Complete surgical excision.",
+prevention:"Practice sun protection."
+};
+
+skincareKnowledge.lichenScrofulosorum = {
+title:"Lichen Scrofulosorum",
+explanation:"A rare skin eruption associated with tuberculosis, producing tiny grouped papules.",
+causes:"Hypersensitivity reaction to Mycobacterium tuberculosis.",
+solution:"Treat the underlying tuberculosis infection.",
+prevention:"Early diagnosis and treatment of tuberculosis."
+};
+
+skincareKnowledge.melanocyticNevus = {
+title:"Melanocytic Nevus",
+explanation:"A common benign mole formed by clusters of pigment-producing melanocytes.",
+causes:"Genetics and sun exposure.",
+solution:"Usually no treatment unless suspicious for melanoma.",
+prevention:"Protect skin from excessive UV exposure and monitor changing moles."
+};
+
+skincareKnowledge.mucinosisFollicularis = {
+    title:"Mucinosis Follicularis",
+    explanation:"A rare inflammatory skin disorder where mucin accumulates around hair follicles, causing red plaques and hair loss.",
+    causes:"Unknown; may occur alone or with lymphoma.",
+    solution:"Topical corticosteroids, phototherapy and treatment of any underlying disease.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.necrobiosisLipoidicaDiabeticorum = {
+    title:"Necrobiosis Lipoidica Diabeticorum",
+    explanation:"A chronic skin disease producing shiny yellow-brown plaques, usually on the shins.",
+    causes:"Diabetes-related blood vessel damage and inflammation.",
+    solution:"Control blood sugar, topical corticosteroids and protect affected skin.",
+    prevention:"Maintain good diabetes management."
+};
+
+skincareKnowledge.nodularElastosis = {
+    title:"Nodular Elastosis",
+    explanation:"A rare condition characterized by nodules formed from damaged elastic tissue due to chronic sun exposure.",
+    causes:"Long-term ultraviolet radiation.",
+    solution:"Sun protection and surgical removal if needed.",
+    prevention:"Wear sunscreen and protective clothing."
+};
+
+skincareKnowledge.onychomatricoma = {
+    title:"Onychomatricoma",
+    explanation:"A rare benign nail matrix tumor causing thickened, distorted nails.",
+    causes:"Abnormal growth of nail matrix cells.",
+    solution:"Complete surgical removal.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.papularElastorrhexis = {
+    title:"Papular Elastorrhexis",
+    explanation:"A rare connective tissue disorder causing multiple small white papules on the trunk and arms.",
+    causes:"Loss of elastic fibers in the skin.",
+    solution:"Usually no treatment is necessary.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.palisadedNeutrophilicGranulomatousDermatitis = {
+    title:"Palisaded Neutrophilic Granulomatous Dermatitis",
+    explanation:"A rare inflammatory skin disease associated with autoimmune disorders.",
+    causes:"Rheumatoid arthritis, lupus and other autoimmune diseases.",
+    solution:"Treat the underlying autoimmune disease and use corticosteroids.",
+    prevention:"Proper management of autoimmune conditions."
+};
+
+skincareKnowledge.perforatingFolliculitis = {
+    title:"Perforating Folliculitis",
+    explanation:"A disorder in which damaged follicular material is expelled through the skin, causing itchy bumps.",
+    causes:"Diabetes, kidney disease and chronic scratching.",
+    solution:"Topical retinoids and treatment of the underlying condition.",
+    prevention:"Control diabetes and avoid scratching."
+};
+
+skincareKnowledge.pigmentedPurgeicDermatosisLichenPlanusLike = {
+    title:"Lichen Planus-like Pigmented Purpuric Dermatosis",
+    explanation:"A rare subtype of pigmented purpuric dermatosis combining features of lichen planus and capillary leakage.",
+    causes:"Unknown immune-mediated inflammation.",
+    solution:"Topical corticosteroids and compression if leg circulation is poor.",
+    prevention:"Maintain healthy circulation."
+};
+
+skincareKnowledge.porokeratoticEccrineOstialDermalDuctNevus = {
+    title:"Porokeratotic Eccrine Ostial and Dermal Duct Nevus",
+    explanation:"A rare congenital skin disorder producing linear keratotic papules.",
+    causes:"Developmental abnormality of sweat ducts.",
+    solution:"Laser therapy, topical retinoids or surgery.",
+    prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.primaryCutaneousAmyloidosisMacular = {
+    title:"Macular Primary Cutaneous Amyloidosis",
+    explanation:"A form of skin amyloidosis presenting as rippled brown pigmentation.",
+    causes:"Repeated friction and abnormal protein deposition.",
+    solution:"Reduce friction and use topical corticosteroids.",
+    prevention:"Avoid chronic rubbing of the skin."
+};
+
+skincareKnowledge.pseudoxanthomaElasticumLikePapillaryDermalElastolysis = {
+    title:"Pseudoxanthoma Elasticum-like Papillary Dermal Elastolysis",
+    explanation:"A rare aging-related disorder causing tiny yellow papules on the neck.",
+    causes:"Loss of elastic fibers due to aging and sun damage.",
+    solution:"Sun protection and cosmetic treatment if desired.",
+    prevention:"Protect skin from UV exposure."
+};
+
+skincareKnowledge.reticularErythematousMucinosis = {
+    title:"Reticular Erythematous Mucinosis",
+    explanation:"A chronic skin disease producing red net-like plaques on the chest and back.",
+    causes:"Unknown; possibly autoimmune.",
+    solution:"Hydroxychloroquine and sun protection.",
+    prevention:"Avoid excessive sunlight."
+};
+
+skincareKnowledge.scleroticFibroma = {
+    title:"Sclerotic Fibroma",
+    explanation:"A rare benign connective tissue tumor appearing as a firm skin-colored nodule.",
+    causes:"Abnormal collagen production.",
+    solution:"Simple surgical excision.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.sebaceousAdenoma = {
+    title:"Sebaceous Adenoma",
+    explanation:"A benign tumor of sebaceous glands that may be associated with Muir-Torre syndrome.",
+    causes:"Abnormal sebaceous gland growth.",
+    solution:"Surgical removal if needed.",
+    prevention:"Genetic evaluation in hereditary cases."
+};
+
+skincareKnowledge.superficialActinicPorokeratosis = {
+    title:"Superficial Actinic Porokeratosis",
+    explanation:"A sun-related skin disorder causing multiple ring-shaped scaly lesions.",
+    causes:"Ultraviolet exposure and genetic susceptibility.",
+    solution:"Sun protection, cryotherapy and topical medications.",
+    prevention:"Use sunscreen consistently."
+};
+
+skincareKnowledge.trichoblastoma = {
+    title:"Trichoblastoma",
+    explanation:"A rare benign hair follicle tumor usually appearing on the scalp or face.",
+    causes:"Benign follicular cell proliferation.",
+    solution:"Surgical removal if diagnosis is uncertain.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.trichilemmoma = {
+    title:"Trichilemmoma",
+    explanation:"A benign tumor originating from the outer root sheath of hair follicles.",
+    causes:"Genetic mutations or sporadic occurrence.",
+    solution:"Observation or surgical removal.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.urticariaPigmentosaAdult = {
+    title:"Adult Urticaria Pigmentosa",
+    explanation:"A form of cutaneous mastocytosis causing brown itchy spots that become swollen when rubbed.",
+    causes:"Accumulation of mast cells in the skin.",
+    solution:"Antihistamines and avoidance of triggers.",
+    prevention:"Avoid heat, friction and medications that trigger mast cell release."
+};
+
+skincareKnowledge.verrucousCarcinoma = {
+    title:"Verrucous Carcinoma",
+    explanation:"A slow-growing, well-differentiated form of squamous cell carcinoma with a wart-like appearance.",
+    causes:"Human papillomavirus, tobacco use and chronic irritation.",
+    solution:"Wide surgical excision.",
+    prevention:"HPV prevention and avoidance of chronic irritation."
+};
+
+skincareKnowledge.xanthomaDisseminatum = {
+    title:"Xanthoma Disseminatum",
+    explanation:"A rare non-Langerhans cell histiocytosis causing numerous yellow-brown nodules on the skin and mucous membranes.",
+    causes:"Abnormal histiocyte proliferation.",
+    solution:"Specialist management with immunosuppressive therapy when necessary.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.xerodermaPigmentosumVariant = {
+title:"Xeroderma Pigmentosum Variant",
+explanation:"A rare inherited disorder in which the skin cannot properly repair damage caused by ultraviolet light, greatly increasing the risk of skin cancer.",
+causes:"Genetic mutations affecting DNA repair.",
+solution:"Strict sun protection, regular skin examinations and early treatment of suspicious lesions.",
+prevention:"Genetic counseling and lifelong UV protection."
+};
+
+skincareKnowledge.acanthomaFissuratum = {
+title:"Acanthoma Fissuratum",
+explanation:"A benign skin growth caused by chronic pressure or friction, commonly from eyeglasses.",
+causes:"Repeated mechanical irritation.",
+solution:"Remove the source of friction and use topical corticosteroids if inflamed.",
+prevention:"Ensure properly fitted eyewear."
+};
+
+skincareKnowledge.amyloidosisCutisDyschromica = {
+title:"Amyloidosis Cutis Dyschromica",
+explanation:"A rare inherited form of cutaneous amyloidosis causing mottled dark and light skin patches.",
+causes:"Genetic mutations with abnormal amyloid deposition.",
+solution:"Sun protection and dermatologist-directed therapy.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.angiolipoma = {
+title:"Angiolipoma",
+explanation:"A benign fatty tumor containing many small blood vessels that is often painful when pressed.",
+causes:"Unknown; may have a hereditary component.",
+solution:"Surgical removal if painful.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.calciphylaxis = {
+title:"Calciphylaxis",
+explanation:"A life-threatening condition where calcium accumulates in small blood vessels, causing painful skin ulcers.",
+causes:"Advanced kidney disease, high calcium-phosphate levels and certain medications.",
+solution:"Emergency specialist treatment, wound care and correction of mineral imbalance.",
+prevention:"Careful management of kidney disease and mineral metabolism."
+};
+
+skincareKnowledge.cutaneousCrohnsDisease = {
+title:"Cutaneous Crohn's Disease",
+explanation:"A rare skin manifestation of Crohn's disease causing ulcers, swelling and nodules.",
+causes:"Inflammation associated with Crohn's disease.",
+solution:"Treat the underlying Crohn's disease with appropriate medications.",
+prevention:"Maintain good control of Crohn's disease."
+};
+
+skincareKnowledge.diffusePlaneXanthoma = {
+title:"Diffuse Plane Xanthoma",
+explanation:"Flat yellow patches on the skin caused by cholesterol deposits, sometimes linked to blood disorders.",
+causes:"Abnormal lipid metabolism or blood protein disorders.",
+solution:"Treat the underlying condition and manage cholesterol levels.",
+prevention:"Regular monitoring of blood lipid levels."
+};
+
+skincareKnowledge.eccrineNevoidHyperhidrosis = {
+title:"Eccrine Nevoid Hyperhidrosis",
+explanation:"A rare disorder causing excessive sweating in a localized area of the body.",
+causes:"Localized overgrowth of eccrine sweat glands.",
+solution:"Botulinum toxin injections or surgical treatment if severe.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.fibromaOfTendonSheath = {
+title:"Fibroma of Tendon Sheath",
+explanation:"A rare benign fibrous tumor attached to tendons, usually affecting the hands.",
+causes:"Unknown.",
+solution:"Surgical excision if painful or limiting movement.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.granulomaGlutealeInfantum = {
+title:"Granuloma Gluteale Infantum",
+explanation:"A rare diaper area condition causing reddish-purple nodules in infants.",
+causes:"Chronic irritation, occlusion and prolonged diaper rash.",
+solution:"Improve diaper hygiene and treat underlying irritation.",
+prevention:"Keep the diaper area clean and dry."
+};
+
+skincareKnowledge.hidroacanthomaSimplex = {
+title:"Hidroacanthoma Simplex",
+explanation:"A rare benign sweat gland tumor presenting as a slowly growing plaque.",
+causes:"Benign proliferation of sweat gland cells.",
+solution:"Surgical removal.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.idiopathicGuttateHypomelanosis = {
+title:"Idiopathic Guttate Hypomelanosis",
+explanation:"Small white spots that develop on sun-exposed skin with aging.",
+causes:"Sun damage and natural aging.",
+solution:"Usually no treatment is necessary; cosmetic therapies may help.",
+prevention:"Consistent sunscreen use."
+};
+
+skincareKnowledge.juvenilePapillomatosisOfTheSkin = {
+title:"Juvenile Papillomatosis of the Skin",
+explanation:"A rare benign papillomatous skin growth occurring in children.",
+causes:"Unknown developmental abnormality.",
+solution:"Surgical removal if necessary.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.keratosisObturans = {
+title:"Keratosis Obturans",
+explanation:"A rare condition involving the accumulation of keratin within the ear canal.",
+causes:"Abnormal skin shedding in the ear canal.",
+solution:"Professional removal of keratin and regular follow-up.",
+prevention:"Routine ear care under medical supervision."
+};
+
+skincareKnowledge.lichenSpinulosus = {
+title:"Lichen Spinulosus",
+explanation:"A rare skin disorder causing groups of tiny rough follicular bumps with spiny projections.",
+causes:"Unknown; possibly related to immune dysfunction.",
+solution:"Moisturizers, keratolytic creams and topical retinoids.",
+prevention:"Maintain skin hydration."
+};
+
+skincareKnowledge.miliaEnPlaque = {
+title:"Milia en Plaque",
+explanation:"A rare condition where numerous milia develop within an inflamed skin plaque.",
+causes:"Unknown; may follow skin injury.",
+solution:"Topical retinoids, laser therapy or surgical extraction.",
+prevention:"Avoid unnecessary skin trauma."
+};
+
+skincareKnowledge.nevusLipomatosusCutaneousSuperficialis = {
+title:"Nevus Lipomatosus Cutaneous Superficialis",
+explanation:"A rare benign skin lesion containing fat cells within the dermis.",
+causes:"Congenital developmental abnormality.",
+solution:"Surgical removal for cosmetic reasons if desired.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.papularMucinosisLocalized = {
+title:"Localized Papular Mucinosis",
+explanation:"A localized form of papular mucinosis characterized by waxy papules due to mucin deposits.",
+causes:"Unknown.",
+solution:"Observation or dermatologist-directed treatment.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.rheumatoidNeutrophilicDermatitis = {
+title:"Rheumatoid Neutrophilic Dermatitis",
+explanation:"A rare skin manifestation of rheumatoid arthritis causing red plaques and nodules.",
+causes:"Inflammation associated with rheumatoid arthritis.",
+solution:"Treat the underlying rheumatoid arthritis and use corticosteroids when appropriate.",
+prevention:"Maintain good control of rheumatoid arthritis."
+};
+
+skincareKnowledge.subcornealPustularDermatosis = {
+title:"Subcorneal Pustular Dermatosis",
+explanation:"A chronic skin disease producing recurrent sterile pustules, mainly in middle-aged women.",
+causes:"Abnormal immune response and neutrophil accumulation.",
+solution:"Dapsone is commonly effective, along with dermatologist-guided therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.teleangiectasiaMacularisEruptivaPerstans = {
+title:"Telangiectasia Macularis Eruptiva Perstans",
+explanation:"A rare form of cutaneous mastocytosis causing reddish-brown patches with tiny visible blood vessels.",
+causes:"Abnormal accumulation of mast cells in the skin.",
+solution:"Antihistamines, avoidance of triggers and dermatologist-guided treatment.",
+prevention:"Avoid heat, alcohol and medications that trigger mast cell release."
+};
+
+skincareKnowledge.transepidermalEliminationDisorder = {
+title:"Transepidermal Elimination Disorder",
+explanation:"A group of skin disorders where damaged tissue is expelled through the epidermis.",
+causes:"Diabetes, kidney disease and connective tissue disorders.",
+solution:"Treat the underlying disease and use topical therapies.",
+prevention:"Manage chronic medical conditions effectively."
+};
+
+skincareKnowledge.tuftedHairFolliculitis = {
+title:"Tufted Hair Folliculitis",
+explanation:"A rare scalp disorder where several hairs emerge from a single follicle due to chronic inflammation.",
+causes:"Chronic bacterial infection and follicular damage.",
+solution:"Antibiotics and anti-inflammatory medications.",
+prevention:"Treat scalp infections promptly."
+};
+
+skincareKnowledge.unilateralLaterothoracicExanthem = {
+title:"Unilateral Laterothoracic Exanthem",
+explanation:"A self-limiting childhood rash beginning on one side of the body.",
+causes:"Likely viral infections.",
+solution:"Supportive care and anti-itch medication if needed.",
+prevention:"Good hygiene may reduce viral spread."
+};
+
+skincareKnowledge.urticarialVasculitis = {
+title:"Urticarial Vasculitis",
+explanation:"A condition where hives last longer than 24 hours due to inflammation of small blood vessels.",
+causes:"Autoimmune disease, infections or medications.",
+solution:"Antihistamines, corticosteroids and treatment of the underlying cause.",
+prevention:"Avoid known medication triggers."
+};
+
+skincareKnowledge.vascularEctasia = {
+title:"Vascular Ectasia",
+explanation:"An abnormal widening of superficial blood vessels causing visible red skin lesions.",
+causes:"Aging, sun damage or vascular disorders.",
+solution:"Laser therapy for cosmetic improvement.",
+prevention:"Protect skin from excessive sun exposure."
+};
+
+skincareKnowledge.wartsEpidermodysplasiaVerruciformis = {
+title:"Epidermodysplasia Verruciformis",
+explanation:"A rare inherited disorder causing persistent HPV infections and widespread wart-like lesions.",
+causes:"Genetic mutations affecting immune response to HPV.",
+solution:"Regular skin monitoring, lesion removal and sun protection.",
+prevention:"Genetic counseling and UV protection."
+};
+
+skincareKnowledge.xanthomaStriatumPalmare = {
+title:"Xanthoma Striatum Palmare",
+explanation:"Yellow cholesterol deposits appearing along the creases of the palms.",
+causes:"Familial dysbetalipoproteinemia and abnormal cholesterol metabolism.",
+solution:"Control blood lipids and treat the underlying disorder.",
+prevention:"Maintain healthy cholesterol levels."
+};
+
+skincareKnowledge.zincResponsiveDermatosis = {
+title:"Zinc Responsive Dermatosis",
+explanation:"A skin condition that improves significantly with zinc supplementation.",
+causes:"Zinc deficiency or impaired zinc absorption.",
+solution:"Oral zinc replacement under medical supervision.",
+prevention:"Maintain adequate dietary zinc intake."
+};
+
+skincareKnowledge.acralPersistentPapularMucinosis = {
+title:"Acral Persistent Papular Mucinosis",
+explanation:"A rare disorder causing persistent waxy papules on the backs of the hands and wrists.",
+causes:"Localized mucin deposition.",
+solution:"Usually no treatment is required; topical therapies may help.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.benignCephalicHistiocytosis = {
+title:"Benign Cephalic Histiocytosis",
+explanation:"A rare childhood disorder causing small yellow-brown papules on the face.",
+causes:"Benign proliferation of histiocytes.",
+solution:"Usually resolves spontaneously without treatment.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.connectiveTissueNevus = {
+title:"Connective Tissue Nevus",
+explanation:"A benign hamartoma composed of collagen or elastic tissue.",
+causes:"Congenital connective tissue overgrowth.",
+solution:"Observation or surgical removal if necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.digitalMucousCyst = {
+title:"Digital Mucous Cyst",
+explanation:"A small fluid-filled cyst usually found near the fingernails in older adults.",
+causes:"Degenerative joint disease and leakage of joint fluid.",
+solution:"Drainage or surgical removal.",
+prevention:"Manage osteoarthritis when present."
+};
+
+skincareKnowledge.elastoma = {
+title:"Elastoma",
+explanation:"A rare connective tissue nevus characterized by excessive elastic fibers.",
+causes:"Congenital abnormality of elastic tissue.",
+solution:"Usually no treatment is needed.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.fibrousHamartoma = {
+title:"Fibrous Hamartoma",
+explanation:"A benign overgrowth of fibrous tissue occurring beneath the skin.",
+causes:"Developmental abnormality.",
+solution:"Surgical removal if symptomatic.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.granulomaFaciale = {
+title:"Granuloma Faciale",
+explanation:"A chronic inflammatory disorder causing reddish-brown plaques on the face.",
+causes:"Unknown; associated with chronic inflammation of blood vessels.",
+solution:"Topical corticosteroids, laser therapy or surgery.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.hyperkeratosisPalmarisEtPlantaris = {
+title:"Hyperkeratosis Palmaris et Plantaris",
+explanation:"A disorder causing excessive thickening of the skin on the palms and soles.",
+causes:"Inherited conditions, friction or chronic skin diseases.",
+solution:"Keratolytic creams, moisturizers and retinoids.",
+prevention:"Reduce repeated friction and maintain skin hydration."
+};
+
+skincareKnowledge.intravascularPapillaryEndothelialHyperplasia = {
+title:"Intravascular Papillary Endothelial Hyperplasia",
+explanation:"A rare benign vascular lesion formed by excessive growth of endothelial cells inside blood vessels.",
+causes:"Reaction to blood clots within vessels.",
+solution:"Complete surgical removal.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.lichenNitidusGeneralized = {
+title:"Generalized Lichen Nitidus",
+explanation:"A widespread form of lichen nitidus producing numerous tiny shiny skin-colored papules.",
+causes:"Unknown immune-mediated inflammation.",
+solution:"Phototherapy, topical corticosteroids and moisturizers.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.mucinousNevus = {
+title:"Mucinous Nevus",
+explanation:"A rare congenital skin lesion characterized by localized mucin accumulation in the skin.",
+causes:"Developmental abnormality.",
+solution:"Surgical removal if cosmetically desired.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.nevusComedonicus = {
+title:"Nevus Comedonicus",
+explanation:"A rare congenital skin disorder characterized by groups of enlarged hair follicles filled with keratin, resembling blackheads.",
+causes:"Developmental abnormality of hair follicles caused by genetic mosaicism.",
+solution:"Topical retinoids, surgical removal or laser therapy depending on severity.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.papularXanthoma = {
+title:"Papular Xanthoma",
+explanation:"A rare benign disorder causing multiple yellow-orange papules due to lipid-filled immune cells.",
+causes:"Abnormal accumulation of histiocytes containing lipids.",
+solution:"Usually observation; treat associated lipid disorders if present.",
+prevention:"Maintain healthy cholesterol levels."
+};
+
+skincareKnowledge.perianalStreptococcalDermatitis = {
+title:"Perianal Streptococcal Dermatitis",
+explanation:"A bacterial skin infection around the anus causing redness, pain and itching, especially in children.",
+causes:"Group A Streptococcus infection.",
+solution:"Oral antibiotics prescribed by a healthcare provider.",
+prevention:"Good hand hygiene and prompt treatment of strep infections."
+};
+
+skincareKnowledge.phakomatosisPigmentovascularis = {
+title:"Phakomatosis Pigmentovascularis",
+explanation:"A rare congenital syndrome involving both pigmentary birthmarks and vascular malformations.",
+causes:"Genetic mosaic mutations during fetal development.",
+solution:"Laser therapy and multidisciplinary management depending on associated abnormalities.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.pilomatricoma = {
+title:"Pilomatricoma",
+explanation:"A benign skin tumor arising from hair matrix cells, often presenting as a hard lump under the skin.",
+causes:"Mutation affecting hair follicle cells.",
+solution:"Complete surgical removal.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.porokeratosisPtychotropica = {
+title:"Porokeratosis Ptychotropica",
+explanation:"A rare form of porokeratosis affecting the buttocks and genital folds with itchy wart-like plaques.",
+causes:"Abnormal keratinization and genetic susceptibility.",
+solution:"Cryotherapy, laser treatment or topical retinoids.",
+prevention:"Protect affected skin and seek early treatment."
+};
+
+skincareKnowledge.primaryLocalizedCutaneousNodularAmyloidosis = {
+title:"Primary Localized Cutaneous Nodular Amyloidosis",
+explanation:"A rare disorder where amyloid proteins accumulate in localized skin nodules.",
+causes:"Localized plasma cell abnormalities.",
+solution:"Surgical removal or laser therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.pseudocystOfTheAuricle = {
+title:"Pseudocyst of the Auricle",
+explanation:"A painless fluid-filled swelling within the cartilage of the outer ear.",
+causes:"Minor trauma or cartilage degeneration.",
+solution:"Drainage combined with compression dressing.",
+prevention:"Avoid repeated ear trauma."
+};
+
+skincareKnowledge.pyodermaGangrenosumVegetans = {
+title:"Pyoderma Gangrenosum Vegetans",
+explanation:"A superficial variant of pyoderma gangrenosum producing slow-growing ulcers and plaques.",
+causes:"Immune system dysfunction.",
+solution:"Topical corticosteroids and treatment of underlying disease.",
+prevention:"Manage associated inflammatory disorders."
+};
+
+skincareKnowledge.reticulatePigmentationOfDohi = {
+title:"Reticulate Pigmentation of Dohi",
+explanation:"A rare inherited pigment disorder causing mixed dark and light spots in a net-like pattern.",
+causes:"Genetic mutation affecting pigmentation.",
+solution:"Usually no treatment is required.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.sebaceousNevus = {
+title:"Sebaceous Nevus",
+explanation:"A congenital yellow-orange hairless plaque commonly found on the scalp or face.",
+causes:"Developmental abnormality of sebaceous glands.",
+solution:"Regular monitoring and surgical removal if necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.skinMetastases = {
+title:"Skin Metastases",
+explanation:"Cancer that has spread from an internal organ to the skin, producing firm nodules or plaques.",
+causes:"Advanced internal cancers.",
+solution:"Treatment focuses on the underlying cancer.",
+prevention:"Early detection and treatment of primary cancers."
+};
+
+skincareKnowledge.solarElastosis = {
+title:"Solar Elastosis",
+explanation:"Premature aging of the skin caused by chronic sun exposure, leading to thick, yellow, wrinkled skin.",
+causes:"Long-term ultraviolet radiation.",
+solution:"Retinoids, moisturizers and laser resurfacing.",
+prevention:"Daily sunscreen and protective clothing."
+};
+
+skincareKnowledge.steatocystomaMultiplex = {
+title:"Steatocystoma Multiplex",
+explanation:"A condition characterized by numerous oil-filled cysts beneath the skin.",
+causes:"Inherited mutation of keratin genes.",
+solution:"Drainage, laser therapy or surgical removal.",
+prevention:"Genetic counseling where appropriate."
+};
+
+skincareKnowledge.subepidermalCalcifiedNodule = {
+title:"Subepidermal Calcified Nodule",
+explanation:"A rare benign calcium deposit appearing as a hard white nodule, usually in children.",
+causes:"Localized calcium deposition.",
+solution:"Simple surgical excision.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.trichoadenoma = {
+title:"Trichoadenoma",
+explanation:"A rare benign tumor originating from hair follicle structures.",
+causes:"Abnormal follicular differentiation.",
+solution:"Complete surgical removal.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.trichodiscoma = {
+title:"Trichodiscoma",
+explanation:"A rare benign hair follicle tumor that may occur as part of inherited syndromes.",
+causes:"Genetic mutations affecting follicular growth.",
+solution:"Observation or surgical removal.",
+prevention:"Genetic counseling in hereditary cases."
+};
+
+skincareKnowledge.verruciformXanthomaOfOralMucosa = {
+title:"Verruciform Xanthoma of the Oral Mucosa",
+explanation:"A rare benign wart-like lesion that develops inside the mouth.",
+causes:"Chronic inflammation and localized immune response.",
+solution:"Simple surgical removal.",
+prevention:"Maintain good oral hygiene."
+};
+
+skincareKnowledge.whiteFibrousPapulosisOfTheNeck = {
+title:"White Fibrous Papulosis of the Neck",
+explanation:"A benign aging-related condition producing small white papules on the neck.",
+causes:"Age-related changes in collagen and elastic fibers.",
+solution:"Usually no treatment is required; laser therapy for cosmetic improvement.",
+prevention:"Protect skin from chronic sun exposure."
+};
+
+skincareKnowledge.xanthomaTuberosum = {
+title:"Tuberous Xanthoma",
+explanation:"Firm yellow nodules over joints caused by severe cholesterol abnormalities.",
+causes:"Familial hypercholesterolemia and other lipid disorders.",
+solution:"Aggressive cholesterol-lowering therapy and treatment of the underlying condition.",
+prevention:"Maintain healthy lipid levels and undergo regular cholesterol screening."
+};
+
+skincareKnowledge.acrodermatitisParaneoplastica = {
+title:"Acrodermatitis Paraneoplastica",
+explanation:"Also known as Bazex syndrome, it is a rare skin disorder associated with internal cancers, especially of the upper respiratory tract.",
+causes:"Paraneoplastic reaction triggered by an underlying cancer.",
+solution:"Treat the underlying cancer; skin lesions often improve afterward.",
+prevention:"Early detection and treatment of associated cancers."
+};
+
+skincareKnowledge.angiokeratomaOfMibelli = {
+title:"Angiokeratoma of Mibelli",
+explanation:"A rare vascular skin condition causing dark wart-like bumps on the fingers, toes, ears or knees.",
+causes:"Chronic cold exposure and abnormal superficial blood vessels.",
+solution:"Laser therapy, electrocautery or observation if asymptomatic.",
+prevention:"Protect extremities from cold injury."
+};
+
+skincareKnowledge.atrophicDermatofibroma = {
+title:"Atrophic Dermatofibroma",
+explanation:"A rare variant of dermatofibroma that appears as a depressed scar-like patch.",
+causes:"Benign fibrous skin growth with tissue thinning.",
+solution:"Usually no treatment is needed; surgical removal if diagnosis is uncertain.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.cutaneousMeningioma = {
+title:"Cutaneous Meningioma",
+explanation:"A rare skin lesion containing meningothelial cells, often present from birth or after surgery.",
+causes:"Developmental abnormalities or extension of a meningioma.",
+solution:"Surgical excision and neurologic evaluation if necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.dermatitisArtefacta = {
+title:"Dermatitis Artefacta",
+explanation:"A condition in which skin lesions are self-inflicted, often unconsciously, due to psychological distress.",
+causes:"Underlying psychiatric or emotional disorders.",
+solution:"Psychological support, counseling and gentle skin care.",
+prevention:"Address emotional and mental health concerns early."
+};
+
+skincareKnowledge.eccrineSyringofibroadenoma = {
+title:"Eccrine Syringofibroadenoma",
+explanation:"A rare benign tumor arising from sweat ducts, often appearing as a wart-like plaque.",
+causes:"Abnormal eccrine duct proliferation.",
+solution:"Surgical removal is usually recommended.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.epidermolyticPalmoplantarKeratoderma = {
+title:"Epidermolytic Palmoplantar Keratoderma",
+explanation:"An inherited disorder causing thickened skin on the palms and soles with blistering.",
+causes:"Mutations in keratin genes.",
+solution:"Keratolytic creams, retinoids and protective footwear.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.eruptiveSyringomas = {
+title:"Eruptive Syringomas",
+explanation:"Multiple small sweat gland tumors that appear suddenly on the chest, neck or eyelids.",
+causes:"Benign overgrowth of eccrine sweat ducts.",
+solution:"Laser therapy, electrocautery or topical retinoids for cosmetic improvement.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.fibrolipomatousHamartoma = {
+title:"Fibrolipomatous Hamartoma",
+explanation:"A rare overgrowth of fibrous and fatty tissue around a nerve, often affecting the hand.",
+causes:"Congenital developmental abnormality.",
+solution:"Observation or surgery if nerve compression occurs.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.generalizedLichenAmyloidosis = {
+title:"Generalized Lichen Amyloidosis",
+explanation:"A widespread form of cutaneous amyloidosis causing intensely itchy, rough papules.",
+causes:"Abnormal amyloid deposition often worsened by chronic scratching.",
+solution:"Topical steroids, antihistamines and reducing skin friction.",
+prevention:"Avoid chronic scratching and rubbing."
+};
+
+skincareKnowledge.hidradenitisSuppurativaFulminans = {
+title:"Hidradenitis Suppurativa Fulminans",
+explanation:"A severe aggressive form of hidradenitis suppurativa with widespread painful abscesses and systemic symptoms.",
+causes:"Severe inflammatory dysregulation of hair follicles.",
+solution:"Biologic therapy, systemic medications and specialist care.",
+prevention:"Early treatment of hidradenitis suppurativa may reduce progression."
+};
+
+skincareKnowledge.interstitialGranulomatousDrugReaction = {
+title:"Interstitial Granulomatous Drug Reaction",
+explanation:"A rare inflammatory skin reaction triggered by certain medications.",
+causes:"Drug-induced immune reaction.",
+solution:"Stop the offending medication and use anti-inflammatory treatment.",
+prevention:"Review medication history and monitor for reactions."
+};
+
+skincareKnowledge.juvenileXanthogranulomaDisseminated = {
+title:"Disseminated Juvenile Xanthogranuloma",
+explanation:"A rare widespread form of juvenile xanthogranuloma with numerous skin lesions.",
+causes:"Excess accumulation of histiocytes.",
+solution:"Usually observation; systemic therapy in severe cases.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.keratosisPilarisAtrophicans = {
+title:"Keratosis Pilaris Atrophicans",
+explanation:"A group of inherited disorders causing rough follicular bumps and permanent scarring.",
+causes:"Abnormal keratinization around hair follicles.",
+solution:"Moisturizers, retinoids and early dermatologic care.",
+prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.lipedematousAlopecia = {
+title:"Lipedematous Alopecia",
+explanation:"A rare condition with an unusually thick scalp accompanied by hair loss.",
+causes:"Unknown; possibly abnormal fat deposition in the scalp.",
+solution:"Supportive dermatologic management.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.multipleFamilialTrichoepithelioma = {
+title:"Multiple Familial Trichoepithelioma",
+explanation:"An inherited disorder causing numerous benign hair follicle tumors on the face.",
+causes:"Autosomal dominant genetic mutation.",
+solution:"Laser therapy, electrosurgery or surgical removal for cosmetic reasons.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.nevusSebaceusSyndrome = {
+title:"Nevus Sebaceus Syndrome",
+explanation:"A congenital syndrome involving sebaceous nevi with neurologic, eye or skeletal abnormalities.",
+causes:"Genetic mosaic mutations during development.",
+solution:"Multidisciplinary evaluation and treatment of associated abnormalities.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.papularPurpuricGlovesAndSocksSyndrome = {
+title:"Papular Purpuric Gloves and Socks Syndrome",
+explanation:"A viral rash causing painful redness and purple spots on the hands and feet.",
+causes:"Most commonly Parvovirus B19 infection.",
+solution:"Supportive care, hydration and pain relief.",
+prevention:"Good hygiene practices may reduce viral spread."
+};
+
+skincareKnowledge.reticulatePigmentationOfKitamura = {
+title:"Reticulate Pigmentation of Kitamura",
+explanation:"A rare inherited disorder causing net-like dark pigmentation on the hands and feet.",
+causes:"Genetic mutation affecting pigmentation.",
+solution:"Usually no treatment is required; sun protection may help.",
+prevention:"Cannot be prevented genetically."
+};
+
+skincareKnowledge.syringomaEruptiveFamilial = {
+title:"Familial Eruptive Syringoma",
+explanation:"An inherited tendency to develop multiple small sweat gland tumors in adolescence or adulthood.",
+causes:"Genetic predisposition affecting eccrine ducts.",
+solution:"Laser therapy or electrocautery for cosmetic improvement.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.syringoma = {
+title:"Syringoma",
+explanation:"A benign sweat gland tumor that appears as small flesh-colored or yellowish bumps, commonly around the eyes.",
+causes:"Overgrowth of eccrine sweat gland ducts; genetics may play a role.",
+solution:"Usually no treatment is necessary. Laser therapy, electrocautery or surgical removal may be performed for cosmetic reasons.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.papularAcrodermatitisOfChildhood = {
+title:"Papular Acrodermatitis of Childhood",
+explanation:"Also known as Gianotti-Crosti syndrome, this condition causes itchy papules on the arms, legs and face in children.",
+causes:"Usually follows viral infections such as Epstein-Barr virus or hepatitis B.",
+solution:"Supportive care, moisturizers and antihistamines for itching.",
+prevention:"Good hygiene and vaccination against preventable viral infections."
+};
+
+skincareKnowledge.pigmentedBasalCellCarcinoma = {
+title:"Pigmented Basal Cell Carcinoma",
+explanation:"A darker variant of basal cell carcinoma that may resemble melanoma.",
+causes:"Chronic ultraviolet radiation exposure.",
+solution:"Surgical removal, Mohs surgery or dermatologist-directed treatment.",
+prevention:"Daily sunscreen and routine skin examinations."
+};
+
+skincareKnowledge.proliferatingTrichilemmalTumor = {
+title:"Proliferating Trichilemmal Tumor",
+explanation:"A rare hair follicle tumor that usually develops from a scalp cyst.",
+causes:"Growth of trichilemmal cyst cells.",
+solution:"Complete surgical excision.",
+prevention:"Treat enlarging scalp cysts early."
+};
+
+skincareKnowledge.pseudoepitheliomatousHyperplasia = {
+title:"Pseudoepitheliomatous Hyperplasia",
+explanation:"A benign overgrowth of the epidermis that can resemble squamous cell carcinoma.",
+causes:"Chronic inflammation, infections or trauma.",
+solution:"Treat the underlying cause and biopsy when diagnosis is uncertain.",
+prevention:"Prompt treatment of chronic skin inflammation."
+};
+
+skincareKnowledge.pyogenicGranuloma = {
+title:"Pyogenic Granuloma",
+explanation:"A rapidly growing benign vascular lesion that bleeds easily after minor trauma.",
+causes:"Minor injury, pregnancy or certain medications.",
+solution:"Laser therapy, cauterization or surgical removal.",
+prevention:"Protect skin from repeated injury."
+};
+
+skincareKnowledge.retiformPurpura = {
+    title:"Retiform Purpura",
+    explanation:"A net-like pattern of purple skin discoloration caused by blockage or inflammation of blood vessels.",
+    causes:"Vasculitis, clotting disorders or severe infections.",
+    solution:"Urgent treatment of the underlying medical condition.",
+    prevention:"Manage clotting disorders and autoimmune diseases."
+};
+
+skincareKnowledge.rhinophyma = {
+    title:"Rhinophyma",
+    explanation:"A severe form of rosacea causing enlargement and thickening of the nose.",
+    causes:"Long-standing untreated rosacea.",
+    solution:"Laser resurfacing or surgical reduction.",
+    prevention:"Early treatment of rosacea."
+};
+
+skincareKnowledge.sclerodermaEnCoupDeSabre = {
+    title:"Scleroderma En Coup de Sabre",
+    explanation:"A localized form of scleroderma causing a linear scar-like groove on the forehead or scalp.",
+    causes:"Autoimmune inflammation.",
+    solution:"Immunosuppressive therapy and dermatologist follow-up.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.sebaceousEpithelioma = {
+    title:"Sebaceous Epithelioma",
+    explanation:"A rare benign or low-grade sebaceous gland tumor that may be associated with hereditary syndromes.",
+    causes:"Abnormal sebaceous gland growth.",
+    solution:"Surgical removal and genetic evaluation if indicated.",
+    prevention:"Regular skin examinations."
+};
+
+skincareKnowledge.superficialEpitheliomaWithSebaceousDifferentiation = {
+    title:"Superficial Epithelioma with Sebaceous Differentiation",
+    explanation:"A rare benign skin tumor showing sebaceous gland differentiation.",
+    causes:"Unknown.",
+    solution:"Simple surgical excision.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.trichilemmalCyst = {
+    title:"Trichilemmal Cyst",
+    explanation:"A common benign cyst that develops from hair follicles, especially on the scalp.",
+    causes:"Blocked hair follicles and genetic predisposition.",
+    solution:"Surgical removal if painful or infected.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.verruciformEpidermodysplasia = {
+    title:"Verruciform Epidermodysplasia",
+    explanation:"A wart-like skin condition associated with abnormal susceptibility to human papillomavirus.",
+    causes:"Inherited immune defects.",
+    solution:"Regular dermatologic monitoring and lesion removal.",
+    prevention:"Sun protection and genetic counseling."
+};
+
+skincareKnowledge.xanthoastrocytomaCutaneousAssociation = {
+    title:"Cutaneous Association with Pleomorphic Xanthoastrocytoma",
+    explanation:"Rare skin findings occasionally reported alongside pleomorphic xanthoastrocytoma syndromes.",
+    causes:"Rare genetic associations.",
+    solution:"Multidisciplinary specialist care.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.yellowUrticaria = {
+    title:"Yellow Urticaria",
+    explanation:"A rare form of hives appearing yellow because of elevated bilirubin levels.",
+    causes:"Liver disease causing jaundice.",
+    solution:"Treat the underlying liver disorder and manage urticaria.",
+    prevention:"Maintain liver health and seek early treatment for liver disease."
+};
+
+skincareKnowledge.zoonBalanitis = {
+    title:"Zoon Balanitis",
+    explanation:"A chronic inflammatory condition causing shiny red patches on the glans penis in uncircumcised men.",
+    causes:"Chronic irritation and moisture.",
+    solution:"Improved hygiene, topical medications or circumcision in persistent cases.",
+    prevention:"Good genital hygiene."
+};
+
+skincareKnowledge.acroangiodermatitis = {
+  title: "Acroangiodermatitis",
+  explanation: "A benign vascular condition resembling Kaposi sarcoma that develops due to poor circulation.",
+  causes: "Chronic venous insufficiency or arteriovenous malformations.",
+  solution: "Compression therapy and treatment of venous disease.",
+  prevention: "Maintain healthy circulation."
+};
+
+skincareKnowledge.balloonCellMelanoma = {
+  title: "Balloon Cell Melanoma",
+  explanation: "A rare subtype of melanoma composed of balloon-like pigment cells.",
+  causes: "Malignant transformation of melanocytes.",
+  solution: "Early surgical removal and oncology management.",
+  prevention: "Routine mole checks and UV protection."
+};
+
+skincareKnowledge.cutaneousCholesterolGranuloma = {
+  title: "Cutaneous Cholesterol Granuloma",
+  explanation: "A rare inflammatory lesion containing cholesterol crystals within the skin.",
+  causes: "Chronic tissue injury and inflammation.",
+  solution: "Surgical removal if symptomatic.",
+  prevention: "Prompt treatment of chronic skin injuries."
+};
+
+skincareKnowledge.acrodermatitisEnteropathicaAcquired = {
+  title:"Acquired Acrodermatitis Enteropathica",
+  explanation:"A zinc deficiency disorder in adults causing dermatitis, diarrhea and hair loss.",
+  causes:"Poor nutrition, intestinal disease or impaired zinc absorption.",
+  solution:"Oral zinc supplementation and treatment of the underlying cause.",
+  prevention:"Maintain adequate dietary zinc intake."
+};
+
+skincareKnowledge.adnexalCarcinoma = {
+  title:"Adnexal Carcinoma",
+  explanation:"A rare skin cancer arising from sweat, sebaceous or hair follicle glands.",
+  causes:"Malignant transformation of skin appendage cells.",
+  solution:"Wide surgical excision and oncology follow-up.",
+  prevention:"Early evaluation of persistent skin tumors."
+};
+
+skincareKnowledge.angiomaSerpiginosum = {
+  title:"Angioma Serpiginosum",
+  explanation:"A rare vascular disorder producing clusters of tiny red spots in a serpentine pattern.",
+  causes:"Abnormal capillary development.",
+  solution:"Pulsed dye laser for cosmetic improvement.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.atrophieBlanche = {
+  title:"Atrophie Blanche",
+  explanation:"White scar-like patches on the legs caused by poor blood circulation and healed ulcers.",
+  causes:"Chronic venous disease or small blood vessel disorders.",
+  solution:"Compression therapy and wound management.",
+  prevention:"Treat venous insufficiency early."
+};
+
+skincareKnowledge.calcinosisCutisUniversalis = {
+  title:"Calcinosis Cutis Universalis",
+  explanation:"Extensive calcium deposits affecting large areas of the skin and soft tissues.",
+  causes:"Autoimmune connective tissue diseases.",
+  solution:"Treat the underlying disease and remove painful deposits when necessary.",
+  prevention:"Manage connective tissue disorders promptly."
+};
+
+skincareKnowledge.chilblainLupus = {
+  title:"Chilblain Lupus",
+  explanation:"A rare form of cutaneous lupus causing painful purple lesions after cold exposure.",
+  causes:"Autoimmune disease triggered by cold temperatures.",
+  solution:"Keep warm, use corticosteroids and antimalarial medication.",
+  prevention:"Avoid prolonged cold exposure."
+};
+
+skincareKnowledge.clearCellHidradenoma = {
+  title:"Clear Cell Hidradenoma",
+  explanation:"A benign sweat gland tumor presenting as a slow-growing skin nodule.",
+  causes:"Benign proliferation of sweat gland cells.",
+  solution:"Complete surgical excision.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.cutaneousLarvaMigrans = {
+  title:"Cutaneous Larva Migrans",
+  explanation:"A parasitic skin infection producing winding itchy tracks beneath the skin.",
+  causes:"Hookworm larvae penetrating the skin from contaminated sand or soil.",
+  solution:"Antiparasitic medications such as ivermectin or albendazole.",
+  prevention:"Wear footwear and avoid sitting on contaminated beaches."
+};
+
+skincareKnowledge.degenerativeCollagenousPlaques = {
+  title:"Degenerative Collagenous Plaques",
+  explanation:"Yellowish thickened plaques occurring mainly on the hands and feet of older adults.",
+  causes:"Chronic pressure, aging and collagen degeneration.",
+  solution:"Moisturizers and reduction of mechanical stress.",
+  prevention:"Protect pressure-prone skin."
+};
+
+skincareKnowledge.disseminatedSuperficialActinicPorokeratosis = {
+  title:"Disseminated Superficial Actinic Porokeratosis",
+  explanation:"A common inherited form of porokeratosis producing multiple sun-induced scaly rings.",
+  causes:"Genetics and chronic ultraviolet exposure.",
+  solution:"Topical retinoids, cryotherapy and sun protection.",
+  prevention:"Daily sunscreen use."
+};
+
+skincareKnowledge.eccrineSpiradenoma = {
+  title:"Eccrine Spiradenoma",
+  explanation:"A rare benign sweat gland tumor that is often painful to touch.",
+  causes:"Benign sweat gland proliferation.",
+  solution:"Surgical removal.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.epidermolysisBullosaSimplex = {
+  title:"Epidermolysis Bullosa Simplex",
+  explanation:"An inherited blistering disorder where mild friction causes skin blisters.",
+  causes:"Mutations in keratin genes.",
+  solution:"Protect the skin, wound care and infection prevention.",
+  prevention:"Genetic counseling."
+};
+
+skincareKnowledge.fibroelastolyticPapulosis = {
+  title:"Fibroelastolytic Papulosis",
+  explanation:"A rare aging-related disorder causing tiny white papules on the neck.",
+  causes:"Loss of elastic fibers with aging.",
+  solution:"Usually no treatment is necessary.",
+  prevention:"Protect skin from excessive sun exposure."
+};
+
+skincareKnowledge.granulomaAnnularePerforating = {
+  title:"Perforating Granuloma Annulare",
+  explanation:"A rare subtype of granuloma annulare where damaged tissue is expelled through the skin.",
+  causes:"Unknown immune-mediated inflammation.",
+  solution:"Topical corticosteroids or intralesional injections.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.hidradenomaPapilliferum = {
+  title:"Hidradenoma Papilliferum",
+  explanation:"A rare benign sweat gland tumor occurring mainly in the genital region of women.",
+  causes:"Apocrine gland proliferation.",
+  solution:"Complete surgical excision.",
+  prevention:"No known prevention."
+};
+
+skincareKnowledge.incontinentiaPigmentiAchromians = {
+  title:"Incontinentia Pigmenti Achromians",
+  explanation:"A pigmentary disorder producing streaks of lighter skin following Blaschko's lines.",
+  causes:"Genetic mosaicism.",
+  solution:"Usually supportive care only.",
+  prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.juvenileSpringEruption = {
+  title:"Juvenile Spring Eruption",
+  explanation:"A seasonal sun-induced eruption affecting the ears of children.",
+  causes:"Sensitivity to ultraviolet light.",
+  solution:"Topical corticosteroids and sun protection.",
+  prevention:"Wear hats and apply sunscreen."
+};
+
+skincareKnowledge.keratosisPunctataPalmarisEtPlantaris = {
+  title:"Keratosis Punctata Palmaris et Plantaris",
+  explanation:"A rare inherited disorder causing multiple tiny keratotic pits on the palms and soles.",
+  causes:"Genetic abnormalities affecting keratinization.",
+  solution:"Keratolytic creams and moisturizers.",
+  prevention:"Genetic counseling."
+};
+
+skincareKnowledge.lipomembranousFatNecrosis = {
+  title:"Lipomembranous Fat Necrosis",
+  explanation:"A microscopic pattern of fat degeneration associated with poor circulation.",
+  causes:"Venous insufficiency and chronic ischemia.",
+  solution:"Treat the underlying vascular disease.",
+  prevention:"Maintain healthy circulation."
+};
+
+skincareKnowledge.melanosisRiehl = {
+  title:"Riehl's Melanosis",
+  explanation:"A form of facial hyperpigmentation caused by repeated exposure to allergens or cosmetics.",
+  causes:"Pigmented contact dermatitis.",
+  solution:"Avoid triggering products, use sunscreen and dermatologist-guided treatment.",
+  prevention:"Patch test new skincare and cosmetic products."
+};
+
+skincareKnowledge.myxoidCyst = {
+title:"Myxoid Cyst",
+explanation:"A small, jelly-like cyst usually found near the end joints of the fingers or toes, often associated with arthritis.",
+causes:"Degeneration of connective tissue and osteoarthritis.",
+solution:"Drainage, steroid injection or surgical removal.",
+prevention:"Manage underlying joint disease."
+},
+
+skincareKnowledge.nevusAnemicusSyndrome = {
+title:"Nevus Anemicus Syndrome",
+explanation:"A rare condition where pale skin patches occur alongside neurological or developmental abnormalities.",
+causes:"Congenital vascular abnormalities.",
+solution:"Supportive care based on associated conditions.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.nodularAmyloidosis = {
+title:"Nodular Amyloidosis",
+explanation:"A localized form of amyloidosis where firm waxy nodules develop due to protein deposits in the skin.",
+causes:"Localized plasma cell abnormalities.",
+solution:"Surgical removal or laser therapy when needed.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.papillomatosisCutisLymphostatica = {
+title:"Papillomatosis Cutis Lymphostatica",
+explanation:"A rare skin condition causing wart-like growths due to chronic lymphedema.",
+causes:"Long-standing lymphatic obstruction.",
+solution:"Compression therapy and treatment of lymphedema.",
+prevention:"Early management of chronic swelling."
+},
+
+skincareKnowledge.pigmentedContactDermatitis = {
+title:"Pigmented Contact Dermatitis",
+explanation:"A form of contact dermatitis causing persistent dark pigmentation with little inflammation.",
+causes:"Repeated exposure to allergens in cosmetics, fragrances or dyes.",
+solution:"Avoid allergens and use dermatologist-prescribed treatments.",
+prevention:"Patch test new skincare and cosmetic products."
+},
+
+skincareKnowledge.porokeratoma = {
+title:"Porokeratoma",
+explanation:"A rare benign skin lesion sharing features of porokeratosis and keratoma.",
+causes:"Abnormal keratinization.",
+solution:"Surgical removal if symptomatic.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.progressiveCribriformZosteriformHyperpigmentation = {
+title:"Progressive Cribriform Zosteriform Hyperpigmentation",
+explanation:"A rare pigmentary disorder producing net-like streaks of dark skin following Blaschko's lines.",
+causes:"Genetic mosaicism.",
+solution:"Usually no treatment is required.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.pustularBacterid = {
+title:"Pustular Bacterid",
+explanation:"A rare eruption of sterile pustules on the palms and soles associated with bacterial infections elsewhere in the body.",
+causes:"Immune response to distant bacterial infection.",
+solution:"Treat the underlying infection.",
+prevention:"Prompt treatment of bacterial infections."
+},
+
+skincareKnowledge.reticularErythematousMucinosisSyndrome = {
+title:"Reticular Erythematous Mucinosis Syndrome",
+explanation:"A chronic skin disorder characterized by red net-like patches due to mucin accumulation.",
+causes:"Unknown autoimmune mechanisms.",
+solution:"Hydroxychloroquine and sun protection.",
+prevention:"Avoid excessive UV exposure."
+},
+
+skincareKnowledge.scleromyxedemaLocalized = {
+title:"Localized Scleromyxedema",
+explanation:"A localized variant of scleromyxedema causing firm waxy papules in limited areas.",
+causes:"Abnormal mucin deposition.",
+solution:"Dermatologist-directed immunotherapy.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.sebaceousHamartoma = {
+title:"Sebaceous Hamartoma",
+explanation:"A benign overgrowth of sebaceous glands present from birth.",
+causes:"Congenital developmental abnormality.",
+solution:"Observation or surgical removal.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.skinFragilitySyndrome = {
+title:"Skin Fragility Syndrome",
+explanation:"A group of disorders in which the skin tears or blisters easily after minimal trauma.",
+causes:"Inherited connective tissue disorders or chronic corticosteroid use.",
+solution:"Protective skin care and treatment of the underlying condition.",
+prevention:"Avoid unnecessary skin trauma."
+},
+
+skincareKnowledge.syringofibroadenoma = {
+title:"Syringofibroadenoma",
+explanation:"A rare benign tumor arising from eccrine sweat ducts.",
+causes:"Abnormal sweat gland proliferation.",
+solution:"Complete surgical excision.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.telangiectaticMastocytosis = {
+title:"Telangiectatic Mastocytosis",
+explanation:"A rare form of mastocytosis characterized by reddish-brown patches with visible blood vessels.",
+causes:"Accumulation of mast cells in the skin.",
+solution:"Antihistamines and avoidance of triggers.",
+prevention:"Avoid heat, alcohol and medications that trigger mast cell activation."
+},
+
+skincareKnowledge.transepidermalElastosis = {
+title:"Transepidermal Elastosis",
+explanation:"A rare disorder where damaged elastic fibers are expelled through the skin.",
+causes:"Connective tissue degeneration.",
+solution:"Topical retinoids and treatment of associated disorders.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.verrucousEpidermalHamartoma = {
+title:"Verrucous Epidermal Hamartoma",
+explanation:"A congenital wart-like overgrowth of epidermal tissue.",
+causes:"Genetic mosaic mutation.",
+solution:"Laser therapy or surgical removal.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.xanthomatousDermatitis = {
+title:"Xanthomatous Dermatitis",
+explanation:"An inflammatory skin condition accompanied by yellow lipid-filled lesions.",
+causes:"Abnormal lipid metabolism and chronic inflammation.",
+solution:"Treat the underlying lipid disorder.",
+prevention:"Maintain healthy cholesterol levels."
+},
+
+skincareKnowledge.zincDeficiencyDermatitis = {
+title:"Zinc Deficiency Dermatitis",
+explanation:"An inflammatory rash caused by insufficient zinc levels in the body.",
+causes:"Poor nutrition, malabsorption or chronic illness.",
+solution:"Oral zinc supplementation and dietary improvement.",
+prevention:"Consume zinc-rich foods regularly."
+},
+
+skincareKnowledge.annularElastolyticGiantCellGranuloma = {
+title:"Annular Elastolytic Giant Cell Granuloma",
+explanation:"A rare inflammatory disorder producing ring-shaped plaques on sun-exposed skin.",
+causes:"Immune destruction of sun-damaged elastic fibers.",
+solution:"Topical corticosteroids, antimalarials and sun protection.",
+prevention:"Limit excessive sun exposure."
+},
+
+skincareKnowledge.papularAcantholyticDyskeratosis = {
+title:"Papular Acantholytic Dyskeratosis",
+explanation:"A rare skin disorder causing itchy papules in the genital or groin region due to abnormal skin cell adhesion.",
+causes:"Abnormal keratinocyte differentiation.",
+solution:"Topical corticosteroids, retinoids or laser therapy.",
+prevention:"Reduce friction and irritation in affected areas."
+},
+
+skincareKnowledge.acrodermatitisContinuaOfHallopeau = {
+title:"Acrodermatitis Continua of Hallopeau",
+explanation:"A rare chronic form of pustular psoriasis affecting the fingertips and nails, leading to painful pustules and nail destruction.",
+causes:"Autoimmune inflammation related to pustular psoriasis.",
+solution:"Biologic medications, retinoids and dermatologist-directed therapy.",
+prevention:"Early treatment helps reduce progression."
+};
+
+skincareKnowledge.acquiredPerforatingDermatosis = {
+title:"Acquired Perforating Dermatosis",
+explanation:"A skin disorder where damaged collagen or elastic fibers are expelled through the skin, causing itchy bumps.",
+causes:"Diabetes, chronic kidney disease and repetitive scratching.",
+solution:"Treat the underlying condition and use topical retinoids or corticosteroids.",
+prevention:"Control chronic diseases and avoid scratching."
+};
+
+skincareKnowledge.angiokeratomaCorporisDiffusum = {
+title:"Angiokeratoma Corporis Diffusum",
+explanation:"A rare disorder with widespread dark red vascular papules associated with inherited metabolic diseases.",
+causes:"Genetic lysosomal storage disorders such as Fabry disease.",
+solution:"Treat the underlying disease and remove symptomatic lesions.",
+prevention:"Genetic counseling for affected families."
+};
+
+skincareKnowledge.atrophodermaOfPasiniPierini = {
+title:"Atrophoderma of Pasini-Pierini",
+explanation:"A rare skin disorder causing sharply defined depressed patches of darker skin.",
+causes:"Unknown; may be related to localized scleroderma.",
+solution:"Observation or dermatologist-guided therapy.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.basaloidFollicularHamartoma = {
+title:"Basaloid Follicular Hamartoma",
+explanation:"A rare benign hair follicle tumor that may occur alone or with inherited syndromes.",
+causes:"Genetic mutations affecting follicle development.",
+solution:"Observation or surgical removal if needed.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.calcifiedEpidermoidCyst = {
+title:"Calcified Epidermoid Cyst",
+explanation:"An epidermoid cyst that has hardened due to calcium deposition over time.",
+causes:"Long-standing epidermoid cyst.",
+solution:"Complete surgical excision.",
+prevention:"Treat enlarging cysts early."
+};
+
+skincareKnowledge.cutaneousFocalMucinosis = {
+title:"Cutaneous Focal Mucinosis",
+explanation:"A rare benign skin lesion caused by localized mucin accumulation.",
+causes:"Unknown.",
+solution:"Simple surgical removal if necessary.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.dermatofibrosarcomaProtuberansPigmented = {
+title:"Pigmented Dermatofibrosarcoma Protuberans",
+explanation:"A rare pigmented variant of dermatofibrosarcoma protuberans known as Bednar tumor.",
+causes:"Genetic chromosomal translocation.",
+solution:"Wide surgical excision or Mohs surgery.",
+prevention:"Early diagnosis improves outcomes."
+};
+
+skincareKnowledge.eccrineAngiomatousHamartoma = {
+title:"Eccrine Angiomatous Hamartoma",
+explanation:"A rare benign lesion containing excess sweat glands and blood vessels, often painful.",
+causes:"Congenital developmental abnormality.",
+solution:"Surgical removal if symptomatic.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.eruptivePseudoangiomatosis = {
+title:"Eruptive Pseudoangiomatosis",
+explanation:"A self-limited viral-associated rash consisting of tiny red papules with pale halos.",
+causes:"Viral infections.",
+solution:"Supportive care until spontaneous resolution.",
+prevention:"Practice good hygiene to reduce viral spread."
+};
+
+skincareKnowledge.fibrokeratomaAcquiredDigital = {
+title:"Acquired Digital Fibrokeratoma",
+explanation:"A small benign horn-like growth commonly found on fingers or toes.",
+causes:"Minor trauma or unknown factors.",
+solution:"Simple surgical excision.",
+prevention:"Protect digits from repeated injury."
+};
+
+skincareKnowledge.generalizedEssentialTelangiectasia = {
+title:"Generalized Essential Telangiectasia",
+explanation:"A rare disorder causing widespread dilated superficial blood vessels without systemic disease.",
+causes:"Unknown.",
+solution:"Laser therapy for cosmetic improvement.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.hyperkeratosisLenticularisPerstans = {
+title:"Hyperkeratosis Lenticularis Perstans",
+explanation:"Also called Flegel disease, this rare disorder causes tiny rough reddish-brown papules on the legs.",
+causes:"Inherited keratinization abnormality.",
+solution:"Topical retinoids and keratolytic creams.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.infantilePerianalPyramidalProtrusion = {
+title:"Infantile Perianal Pyramidal Protrusion",
+explanation:"A benign soft tissue protrusion near the anus seen mainly in young girls.",
+causes:"Congenital factors or chronic constipation.",
+solution:"Treat constipation and observe.",
+prevention:"Maintain healthy bowel habits."
+};
+
+skincareKnowledge.keratoelastoidosisMarginalis = {
+title:"Keratoelastoidosis Marginalis",
+explanation:"A rare condition producing keratotic papules along the margins of the hands.",
+causes:"Chronic sun exposure and aging.",
+solution:"Moisturizers and keratolytic creams.",
+prevention:"Protect hands from UV exposure."
+};
+
+skincareKnowledge.linearLichenPlanus = {
+title:"Linear Lichen Planus",
+explanation:"A rare variant of lichen planus following Blaschko's lines.",
+causes:"Autoimmune inflammation.",
+solution:"Topical corticosteroids and immunomodulators.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.morpheaProfunda = {
+title:"Morphea Profunda",
+explanation:"A deep form of localized scleroderma affecting the skin and underlying tissues.",
+causes:"Autoimmune connective tissue inflammation.",
+solution:"Immunosuppressive medications and physical therapy.",
+prevention:"Early treatment reduces disability."
+};
+
+skincareKnowledge.nevusSebaceusSyndrome = {
+title:"Nevus Sebaceus Syndrome",
+explanation:"A congenital syndrome involving sebaceous nevi with neurological and eye abnormalities.",
+causes:"Genetic mosaic mutation.",
+solution:"Multidisciplinary medical management.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.papularPurpuricGlovesAndSocksSyndrome = {
+title:"Papular Purpuric Gloves and Socks Syndrome",
+explanation:"A viral rash affecting the hands and feet with redness, swelling and purplish spots.",
+causes:"Most commonly Parvovirus B19 infection.",
+solution:"Supportive care and hydration.",
+prevention:"Good hygiene reduces viral transmission."
+};
+
+skincareKnowledge.reactivePerforatingCollagenosisInherited = {
+title:"Inherited Reactive Perforating Collagenosis",
+explanation:"A rare inherited disorder where collagen is eliminated through the skin after minor injury.",
+causes:"Genetic mutation affecting collagen repair.",
+solution:"Protect the skin, topical retinoids and dermatologist-guided treatment.",
+prevention:"Avoid unnecessary skin trauma."
+};
+
+skincareKnowledge.scleredemaDiabeticorum = {
+    title:"Scleredema Diabeticorum",
+    explanation:"A skin disorder causing thickening and hardening of the skin, especially over the upper back and neck in people with diabetes.",
+    causes:"Long-standing poorly controlled diabetes.",
+    solution:"Improve blood sugar control, phototherapy and physical therapy.",
+    prevention:"Maintain good diabetes management."
+};
+
+skincareKnowledge.sebaceousCarcinomaExtraocular = {
+    title:"Extraocular Sebaceous Carcinoma",
+    explanation:"A rare aggressive sebaceous gland cancer occurring outside the eyelids.",
+    causes:"Malignant transformation of sebaceous glands.",
+    solution:"Wide surgical excision and oncology follow-up.",
+    prevention:"Early evaluation of suspicious skin nodules."
+};
+
+skincareKnowledge.segmentalNeurofibromatosis = {
+    title:"Segmental Neurofibromatosis",
+    explanation:"A localized form of neurofibromatosis affecting only one area of the body.",
+    causes:"Post-zygotic mutation of the NF1 gene.",
+    solution:"Observation or surgical removal of symptomatic tumors.",
+    prevention:"Genetic counseling."
+};
+
+skincareKnowledge.subcutaneousGranulomaAnnulare = {
+title:"Subcutaneous Granuloma Annulare",
+explanation:"A deep form of granuloma annulare presenting as painless lumps beneath the skin in children.",
+causes:"Unknown immune response.",
+solution:"Observation or corticosteroid injections if needed.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.sweatGlandCarcinoma = {
+title:"Sweat Gland Carcinoma",
+explanation:"A rare malignant tumor arising from sweat glands.",
+causes:"Cancerous transformation of sweat gland cells.",
+solution:"Wide surgical excision and oncology care.",
+prevention:"Early assessment of persistent skin tumors."
+};
+
+skincareKnowledge.telangiectasiaHereditariaHemorrhagica = {
+title:"Hereditary Hemorrhagic Telangiectasia",
+explanation:"A genetic disorder causing fragile blood vessels in the skin and internal organs.",
+causes:"Inherited mutations affecting blood vessel formation.",
+solution:"Laser therapy, management of bleeding and specialist care.",
+prevention:"Genetic counseling."
+};
+
+skincareKnowledge.trichilemmalCarcinoma = {
+title:"Trichilemmal Carcinoma",
+explanation:"A rare low-grade skin cancer arising from the outer root sheath of hair follicles.",
+causes:"Sun exposure and genetic mutations.",
+solution:"Complete surgical removal.",
+prevention:"Protect skin from excessive UV exposure."
+};
+
+skincareKnowledge.tumoralCalcinosis = {
+title:"Tumoral Calcinosis",
+explanation:"Large calcium deposits around joints causing firm masses beneath the skin.",
+causes:"Inherited phosphate metabolism disorders.",
+solution:"Surgery and correction of phosphate imbalance.",
+prevention:"Early management of metabolic abnormalities."
+};
+
+skincareKnowledge.verrucousHemangiomaCongenital = {
+title:"Congenital Verrucous Hemangioma",
+explanation:"A vascular birthmark that becomes thickened and wart-like over time.",
+causes:"Congenital vascular malformation.",
+solution:"Complete surgical removal with laser assistance when appropriate.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.wartsButchers = {
+title:"Butcher's Warts",
+explanation:"Hand warts commonly affecting people who handle raw meat or fish.",
+causes:"Human papillomavirus infection.",
+solution:"Cryotherapy, salicylic acid or laser treatment.",
+prevention:"Wear protective gloves and maintain hand hygiene."
+};
+
+skincareKnowledge.woollyHairNevus = {
+title:"Woolly Hair Nevus",
+explanation:"A localized patch of tightly curled hair differing from the surrounding hair.",
+causes:"Congenital follicular abnormality.",
+solution:"Usually no treatment is necessary.",
+prevention:"Cannot be prevented."
+};
+
+skincareKnowledge.xanthomaPlane = {
+title:"Plane Xanthoma",
+explanation:"Flat yellow cholesterol deposits commonly appearing on the eyelids, neck or trunk.",
+causes:"Lipid disorders or blood diseases.",
+solution:"Treat the underlying condition and manage cholesterol.",
+prevention:"Maintain healthy cholesterol levels."
+};
+
+skincareKnowledge.yellowCallusSyndrome = {
+title:"Yellow Callus Syndrome",
+explanation:"A rare condition causing thick yellow calluses on pressure-bearing areas.",
+causes:"Repeated friction and abnormal keratinization.",
+solution:"Keratolytic creams and pressure reduction.",
+prevention:"Wear properly fitted footwear."
+};
+
+skincareKnowledge.zosteriformLichenPlanus = {
+title:"Zosteriform Lichen Planus",
+explanation:"A rare form of lichen planus following a shingles-like distribution.",
+causes:"Autoimmune inflammation.",
+solution:"Topical corticosteroids and antihistamines.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.acralFibrokeratoma = {
+title:"Acral Fibrokeratoma",
+explanation:"A benign fibrous growth occurring on fingers, toes or palms.",
+causes:"Minor trauma or unknown factors.",
+solution:"Simple surgical excision.",
+prevention:"Avoid repeated trauma to the digits."
+},
+
+skincareKnowledge.benignLymphangioendothelioma = {
+title:"Benign Lymphangioendothelioma",
+explanation:"A rare benign tumor involving abnormal lymphatic vessel growth.",
+causes:"Unknown lymphatic proliferation.",
+solution:"Surgical removal if symptomatic.",
+prevention:"No known prevention."
+},
+
+skincareKnowledge.cutaneousCiliatedCyst = {
+title:"Cutaneous Ciliated Cyst",
+explanation:"A rare benign cyst lined with ciliated cells, most often occurring on the legs of young women.",
+causes:"Developmental remnants or hormone-sensitive tissue.",
+solution:"Simple surgical excision.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.digitalPapillaryAdenocarcinoma = {
+title:"Digital Papillary Adenocarcinoma",
+explanation:"A rare aggressive sweat gland cancer affecting fingers and toes.",
+causes:"Malignant sweat gland cells.",
+solution:"Wide surgical excision or amputation in advanced cases.",
+prevention:"Early diagnosis of persistent finger or toe masses."
+},
+
+skincareKnowledge.elastosisPerforansSerpiginosaDrugInduced = {
+title:"Drug-Induced Elastosis Perforans Serpiginosa",
+explanation:"A medication-related form of elastosis perforans serpiginosa where damaged elastic fibers are expelled through the skin.",
+causes:"Certain medications, especially penicillamine.",
+solution:"Discontinue the triggering medication under medical supervision and treat skin lesions.",
+prevention:"Monitor patients taking high-risk medications."
+},
+
+skincareKnowledge.epidermodysplasiaPapillaris = {
+title:"Epidermodysplasia Papillaris",
+explanation:"A rare inherited disorder characterized by persistent wart-like lesions due to abnormal susceptibility to certain HPV types.",
+causes:"Genetic defects affecting immune response to human papillomavirus.",
+solution:"Regular dermatologic monitoring, lesion removal and sun protection.",
+prevention:"Genetic counseling and early skin examinations."
+},
+
+skincareKnowledge.familialProgressiveHyperpigmentation = {
+title:"Familial Progressive Hyperpigmentation",
+explanation:"A rare inherited disorder causing gradually increasing dark pigmentation from infancy.",
+causes:"Genetic mutations affecting melanin production.",
+solution:"Usually no treatment is required; cosmetic treatments may be considered.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.giantCongenitalMelanocyticNevus = {
+title:"Giant Congenital Melanocytic Nevus",
+explanation:"A very large pigmented birthmark present at birth with an increased risk of melanoma.",
+causes:"Congenital overgrowth of melanocytes.",
+solution:"Regular dermatologic monitoring and surgical management when appropriate.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.hairThreadTourniquetSyndrome = {
+title:"Hair Thread Tourniquet Syndrome",
+explanation:"A strand of hair tightly wraps around a finger, toe or genitalia, cutting off blood circulation.",
+causes:"Loose hair accidentally wrapping around body parts.",
+solution:"Immediate removal of the constricting hair.",
+prevention:"Inspect infants regularly and remove loose hairs."
+},
+
+skincareKnowledge.ichthyosisBullosaOfSiemens = {
+    title:"Ichthyosis Bullosa of Siemens",
+    explanation:"A mild inherited blistering form of ichthyosis with peeling and thickened skin.",
+    causes:"Mutation of the KRT2 gene.",
+    solution:"Moisturizers, keratolytic creams and gentle skin care.",
+    prevention:"Genetic counseling."
+},
+
+skincareKnowledge.juvenileDermatomyositisSkinManifestations = {
+    title:"Juvenile Dermatomyositis Skin Manifestations",
+    explanation:"Characteristic skin findings of juvenile dermatomyositis including Gottron papules and heliotrope rash.",
+    causes:"Autoimmune inflammation.",
+    solution:"Immunosuppressive medications and specialist care.",
+    prevention:"No known prevention."
+},
+
+skincareKnowledge.keloidalScleroderma = {
+    title:"Keloidal Scleroderma",
+    explanation:"A rare form of scleroderma producing keloid-like nodules within hardened skin.",
+    causes:"Autoimmune connective tissue disease.",
+    solution:"Immunosuppressive therapy and dermatologist follow-up.",
+    prevention:"No known prevention."
+},
+
+skincareKnowledge.lichenAureus = {
+    title:"Lichen Aureus",
+    explanation:"A localized pigmented purpuric dermatosis producing golden-brown patches on the legs.",
+    causes:"Capillary inflammation and leakage.",
+    solution:"Topical corticosteroids and compression therapy when indicated.",
+    prevention:"Maintain healthy circulation."
+},
+
+skincareKnowledge.melanomaInSitu = {
+title:"Melanoma In Situ",
+explanation:"The earliest stage of melanoma where cancer cells remain confined to the epidermis.",
+causes:"Ultraviolet radiation and genetic susceptibility.",
+solution:"Complete surgical excision.",
+prevention:"Sun protection and routine skin examinations."
+},
+
+skincareKnowledge.nevusSpilus = {
+title:"Nevus Spilus",
+explanation:"A light brown patch containing numerous darker spots or small moles.",
+causes:"Congenital pigment cell abnormality.",
+solution:"Usually observation only.",
+prevention:"Cannot be prevented."
+},
+
+skincareKnowledge.occipitalPressureAlopecia = {
+title:"Occipital Pressure Alopecia",
+explanation:"Hair loss caused by prolonged pressure on the back of the scalp.",
+causes:"Extended immobility or prolonged surgery.",
+solution:"Reduce pressure and allow hair regrowth.",
+prevention:"Frequent repositioning during prolonged bed rest."
+};
+
+skincareKnowledge.papularMastocytosis = {
+title:"Papular Mastocytosis",
+explanation:"A form of cutaneous mastocytosis causing numerous itchy brown papules.",
+causes:"Accumulation of mast cells in the skin.",
+solution:"Antihistamines and avoidance of triggers.",
+prevention:"Avoid heat, friction and mast cell triggers."
+};
+
+skincareKnowledge.porphyriaCutaneaTardaFamilial = {
+title:"Familial Porphyria Cutanea Tarda",
+explanation:"An inherited disorder causing fragile blistering skin on sun-exposed areas.",
+causes:"Inherited deficiency of uroporphyrinogen decarboxylase.",
+solution:"Phlebotomy, low-dose hydroxychloroquine and sun protection.",
+prevention:"Avoid alcohol, excess iron and ultraviolet exposure."
+};
+
+skincareKnowledge.reactiveAngioendotheliomatosis = {
+title:"Reactive Angioendotheliomatosis",
+explanation:"A rare vascular skin disorder associated with systemic disease and abnormal blood flow.",
+causes:"Underlying vascular or autoimmune disorders.",
+solution:"Treat the underlying condition.",
+prevention:"Manage vascular disease appropriately."
+};
+
+skincareKnowledge.sebaceousHyperplasiaGiant = {
+title:"Giant Sebaceous Hyperplasia",
+explanation:"An unusually large benign enlargement of sebaceous glands.",
+causes:"Age-related sebaceous gland overgrowth.",
+solution:"Laser therapy or surgical removal.",
+prevention:"No known prevention."
+};
+
+skincareKnowledge.trichorrhexisInvaginata = {
+    title:"Trichorrhexis Invaginata",
+    explanation:"Also called bamboo hair, this hair shaft abnormality is commonly associated with Netherton syndrome.",
+    causes:"Mutation of the SPINK5 gene.",
+    solution:"Gentle hair care and management of associated skin disease.",
+    prevention:"Genetic counseling."
+};
+
+skincareKnowledge.unilateralNevoidTelangiectasia = {
+    title:"Unilateral Nevoid Telangiectasia",
+    explanation:"A localized collection of superficial dilated blood vessels affecting one side of the body.",
+    causes:"Hormonal influences or congenital vascular abnormalities.",
+    solution:"Laser therapy for cosmetic improvement.",
+    prevention:"No known prevention."
+};
+
+skincareKnowledge.vascularEhlersDanlosSkinManifestations = {
+    title:"Vascular Ehlers-Danlos Skin Manifestations",
+    explanation:"Skin findings in vascular Ehlers-Danlos syndrome including thin translucent skin and easy bruising.",
+    causes:"Mutation of the COL3A1 gene.",
+    solution:"Protect the skin and receive multidisciplinary care.",
+    prevention:"Genetic counseling."
+};
+
+skincareKnowledge.wartyDyskeratoma = {
+    title:"Warty Dyskeratoma",
+    explanation:"A rare benign follicular tumor appearing as a solitary wart-like nodule.",
+    causes:"Abnormal follicular keratinization.",
+    solution:"Simple surgical excision.",
+    prevention:"No known prevention."
+};
 
 function toggleAI(){
 
@@ -5678,7 +9632,7 @@ function sendMessage(){
 const input = document.getElementById("chatInput");
 const messages = document.getElementById("chatMessages");
 
-const text = input.value.trim();
+const text=sanitizeInput(input.value.trim());
 
 if(text==="") return;
 
@@ -5768,11 +9722,6 @@ async function submitQuiz() {
   
   await new Promise(resolve => setTimeout(resolve, 3000));
 
-  if (loadingEl) loadingEl.style.display = "none";
-
-document.getElementById("loading").style.display="none";
-
-  const form = document.getElementById("newsletterForm");
   const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
   const skinType = document.getElementById("skinType").value;
@@ -5783,7 +9732,6 @@ document.getElementById("loading").style.display="none";
   let score = 60;
 
   if (skinType === "Oily") score -= 10;
-  if (concern === "Acne") score -= 10;
 
   let recommendation = "";
 
@@ -5805,24 +9753,7 @@ document.getElementById("loading").style.display="none";
 
   let productHTML = "";
 
-if (concern === "Acne") {
-
-  productHTML = `
-  <div class="product-card">
-    <h3>🔥 Acne Care Course</h3>
-    <p>Learn how to reduce breakouts and build a clear skin routine.</p>
-
-    <a class="product-btn"
-       href="https://selar.com/jsr426"
-       target="_blank">
-       View Product
-    </a>
-  </div>
-  `;
-
-}
-
-else if (
+if (
   concern === "Hyperpigmentation" ||
   concern === "Dark Spots"
 ) {
@@ -5868,81 +9799,137 @@ document.getElementById(
   console.log("About to insert into Supabase");
 
   const { data, error } = await supabaseClient
-    .from("leads")
-    .insert([
-      {
-        name,
-        email,
-        skin_type: skinType,
-        concern,
-        oil_level: oilLevel,
-        sensitivity: sensitivity,
-        score,
-        recommendation
-      }
-    ])
-    .select();
+  .from("leads")
+  .insert([
+    {
+      name,
+      email,
 
-    console.log("Insert finished");
-console.log(data);
-console.log(error);
+      skin_type: skinType,
+      concern,
 
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
+      oil_level: oilLevel,
+
+      sensitivity,
+
+      score,
+
+      recommendation,
+
+      submitted_at: new Date().toISOString(),
+
+      quiz_version: "2.0",
+
+      source: "Skin Quiz",
+
+      status: "New Lead",
+
+      email_status: "Pending",
+
+      last_email_sent: null,
+
+      email_sequence_day: 1,
+
+last_sequence_email_sent: new Date().toISOString(),
+
+next_email_due: new Date(
+  Date.now() + 24 * 60 * 60 * 1000
+).toISOString(),
+
+      tags: ["quiz"],
+
+      notes: null
+    }
+  ])
+  .select();
+  
+   if (error) {
+  console.error("Supabase Error:", error);
+
+  alert("Unable to save your quiz. Please try again.");
+
+  return;
+}
 
   if (!error) {
 
-  await fetch("/.netlify/functions/subscribe", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-  email: email,
-  attributes: {
-    FIRSTNAME: name
+  const emailResponse = await fetch("/.netlify/functions/send-email", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
   },
-  listIds: [3],
-  updateEnabled: true
-})
-  });
+  body: JSON.stringify({
+    name,
+    email,
+    skinType,
+    concern,
+    oilLevel,
+    sensitivity,
+    score,
+    recommendation
+  })
+});
 
-  alert("Skin plan generated!");
+// 1. Move the assignment up so leadId exists before it is used
+const leadId = data?.[0]?.id;
 
-  document.getElementById("results").scrollIntoView({
+if (!emailResponse.ok) {
+  console.error("Email sending failed.");
+  alert("Your quiz was saved, but we couldn't send your email.");
+  return;
+}
+
+// 2. Now leadId is initialized and can be used in the filter
+const { error: updateError } = await supabaseClient
+  .from("leads")
+  .update({
+    email_status: "Sent",
+    last_email_sent: new Date().toISOString()
+  })
+  .eq("id", leadId);
+
+if (updateError) {
+  console.error(updateError);
+}
+
+console.log("Inserted lead:", data);
+console.log("Lead ID:", leadId);
+
+alert("🎉 Your skin report has been generated and sent to your email.");
+
+document.getElementById("results").scrollIntoView({
   behavior: "smooth"
 });
 
-const analysisText =
-document.getElementById(
-"analysisText"
-);
+const analysisText = document.getElementById("analysisText");
+analysisText.innerText = "Analyzing your skin profile...";
 
-analysisText.innerText =
-"Analyzing skin type...";
-
-setTimeout(()=>{
-analysisText.innerText =
-"Checking skin barrier...";
-},1000);
+setTimeout(() => {
+  analysisText.innerText = "Comparing against 1,000+ skin conditions...";
+}, 1000); // Added missing closing bracket and delay
 
 setTimeout(()=>{
 analysisText.innerText =
-"Calculating hydration score...";
+"Selecting science-backed ingredients..."
 },2000);
 
 setTimeout(()=>{
 analysisText.innerText =
-"Generating recommendations...";
+"Generating your personalized skin report..."
 },3000);
 
 setTimeout(()=>{
-  analysisText.innerText = "Analysis complete!";
+  analysisText.innerText = "Sending your report to your email..."
 }, 4000);
 
-  }
-  }
+setTimeout(()=>{
+  analysisText.innerText = "Done! 🎉"
+}, 5000);
 
+loadingEl.style.display = "none";
+}
+
+}
 
 function quickSearch(topic){
 
@@ -5951,6 +9938,7 @@ document.getElementById("knowledgeSearch").value = topic;
 searchKnowledge();
 
 }
+
 
 function showCategory(category){
 
@@ -6341,6 +10329,16 @@ return icons[topic] || "🌿";
 
 }
 
+function sanitizeInput(text){
+
+return text
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#39;");
+
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("newsletterForm");
   alert("JS is connected ✅");
@@ -6418,59 +10416,44 @@ counters.forEach(counter => {
 
 });
 
-function startVoiceSearch(){
+function startVoiceSearch() {
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
-const SpeechRecognition =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Sorry, your browser doesn't support voice search.");
+    return;
+  }
 
-if(!SpeechRecognition){
+  const recognition = new SpeechRecognition();
 
-alert("Sorry, your browser doesn't support voice search.");
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
 
-return;
+  const mic = document.querySelector(".voice-btn");
+  if (mic) {
+    mic.classList.add("listening");
+  }
 
-}
+  recognition.start();
 
-const recognition =
-new SpeechRecognition();
+  recognition.onresult = function (event) {
+    const speech = event.results[0][0].transcript;
+    document.getElementById("knowledgeSearch").value = speech;
+    searchKnowledge();
+  };
 
-recognition.lang="en-US";
+  recognition.onerror = function () {
+    alert("Couldn't understand. Please try again.");
+  };
 
-recognition.interimResults=false;
-
-recognition.maxAlternatives=1;
-
-const mic =
-document.querySelector(".voice-btn");
-
-mic.classList.add("listening");
-
-recognition.start();
-
-recognition.onresult=function(event){
-
-const speech =
-event.results[0][0].transcript;
-
-document.getElementById("knowledgeSearch").value=speech;
-
-searchKnowledge();
-
-};
-
-recognition.onerror=function(){
-
-alert("Couldn't understand. Please try again.");
-
-};
-
-recognition.onend=function(){
-
-mic.classList.remove("listening");
-
-};
-
+  recognition.onend = function () {
+    if (mic) {
+      mic.classList.remove("listening");
+    }
+  };
 }
 
 document.addEventListener("mousemove", function (e) {
