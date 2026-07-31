@@ -53,6 +53,18 @@ exports.handler = async (event) => {
 
       .eq("email", email);
 
+    await supabase
+
+      .from("product_clicks")
+
+      .insert({
+
+        email,
+
+        product
+
+      });
+
     return {
 
       statusCode:302,
@@ -82,15 +94,3 @@ exports.handler = async (event) => {
   }
 
 };
-
-await supabase
-
-.from("product_clicks")
-
-.insert({
-
-email,
-
-product
-
-});
