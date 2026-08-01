@@ -9496,22 +9496,6 @@ skincareKnowledge.wartyDyskeratoma = {
     prevention:"No known prevention."
 };
 
-function toggleAI(){
-
-const ai =
-document.getElementById("aiWindow");
-
-if(ai.style.display==="flex"){
-
-ai.style.display="none";
-
-}else{
-
-ai.style.display="flex";
-
-}
-
-}
 
 function searchKnowledge() {
 
@@ -9869,6 +9853,60 @@ next_email_due: new Date(
     recommendation
   })
 });
+
+await supabase
+    .from("profiles")
+    .update({
+        current_skin_score: score,
+        current_skin_type: skinType,
+        current_concern: concern,
+        current_recommendation: recommendation,
+        last_quiz_date: new Date().toISOString()
+    })
+    .eq("id", user.id);
+    
+// ==========================================
+// Save Quiz Result to Supabase
+// ==========================================
+
+// Check if the user is logged in
+const {
+    data: { user }
+} = await supabase.auth.getUser();
+
+if (user) {
+
+    const { error } = await supabase
+        .from("quiz_results")
+        .insert({
+
+            user_id: user.id,
+
+            skin_type: skinType,
+
+            concern: concern,
+
+            oil_level: oilLevel,
+
+            sensitivity: sensitivity,
+
+            score: score,
+
+            recommendation: recommendation
+
+        });
+
+    if (error) {
+
+        console.error("Error saving quiz:", error);
+
+    } else {
+
+        console.log("✅ Quiz saved successfully.");
+
+    }
+
+}
 
 // 1. Move the assignment up so leadId exists before it is used
 const leadId = data?.[0]?.id;

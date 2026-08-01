@@ -3,6 +3,26 @@ const supabaseClient = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
+// Check if admin is logged in
+(async () => {
+
+  const { data } = await supabaseClient.auth.getSession();
+
+  if (!data.session) {
+
+    window.location.href = "login.html";
+
+    return;
+
+  }
+
+})();
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
 // Global variable for all subscribers
 let subscribers = [];
 
@@ -518,3 +538,11 @@ data:days
 );
 
 }
+
+document.getElementById("logoutBtn").onclick = async () => {
+
+  await supabaseClient.auth.signOut();
+
+  window.location.href = "login.html";
+
+};

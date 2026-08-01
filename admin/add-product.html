@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>Add Product</title>
+
+<link rel="stylesheet" href="dashboard.css">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<div class="sidebar">
+
+<h2>🌿 EMerriment</h2>
+
+<a href="dashboard.html">Dashboard</a>
+
+<a href="subscribers.html">Subscribers</a>
+
+<a href="email-sequence.html">Email Sequence</a>
+
+<a href="products.html" class="active">Products</a>
+
+<a href="analytics.html">Analytics</a>
+
+<a href="settings.html">Settings</a>
+
+<button id="logoutBtn">🚪 Logout</button>
+
+</div>
+
+<div class="main">
+
+<h1>Add Product</h1>
+
+<form id="productForm">
+
+<label>Product Name</label>
+
+<input
+type="text"
+id="name"
+required>
+
+<label>Description</label>
+
+<textarea
+id="description"
+rows="6"
+required></textarea>
+
+<label>Price (₦)</label>
+
+<input
+type="number"
+id="price"
+required>
+
+<label>Selar Link</label>
+
+<input
+type="url"
+id="selarLink"
+required>
+
+<label>Category</label>
+
+<select id="category">
+
+<option>Course</option>
+
+<option>Bundle</option>
+
+<option>Challenge</option>
+
+<option>Guide</option>
+
+</select>
+
+<label>Product Image URL</label>
+
+<input
+type="url"
+id="image">
+
+<label>
+
+<input
+type="checkbox"
+id="featured">
+
+Featured Product
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+id="recommended">
+
+Recommended By Skin Quiz
+
+</label>
+
+<button type="submit">
+
+Save Product
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const SUPABASE_URL="https://ioeulnjrozkbetaongbv.supabase.co";
+
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc";
+
+</script>
+
+<script src="add-product.js"></script>
+
+</body>
+
+</html>

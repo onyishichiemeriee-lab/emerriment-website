@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Article | EMerriment Admin</title>
+
+    <link rel="stylesheet" href="css/adminCMS.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="js/new-articleCMS.js" defer></script>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="logo">
+        🌿 <span>EMerriment Admin</span>
+    </div>
+
+    <button id="logoutBtn" class="logout-btn">
+        Logout
+    </button>
+
+</header>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <a href="dashboardCMS.html">🏠 Dashboard</a>
+        <a href="articlesCMS.html" class="active">📚 Articles</a>
+        <a href="usersCMS.html">👥 Users</a>
+        <a href="analyticsCMS.html">📊 Analytics</a>
+        <a href="productsCMS.html">🛍️ Products</a>
+
+    </aside>
+
+    <main class="content">
+
+        <h1>Create New Article</h1>
+
+        <form id="articleForm">
+
+            <label>Article Title</label>
+            <input type="text" id="title" required>
+
+            <label>Slug</label>
+            <input type="text" id="slug" placeholder="what-is-acne" required>
+
+            <label>Category</label>
+            <select id="category" required>
+
+                <option value="">Select Category</option>
+                <option>Skin Diseases</option>
+                <option>Skin Concerns</option>
+                <option>Ingredients</option>
+                <option>Natural Remedies</option>
+                <option>Routines</option>
+                <option>Product Reviews</option>
+                <option>Myths & Facts</option>
+
+            </select>
+
+            <label>Featured Image</label>
+
+<input
+type="file"
+id="featuredImage"
+accept="image/*">
+
+<img
+id="imagePreview"
+style="
+width:300px;
+margin-top:15px;
+display:none;
+border-radius:12px;
+">
+            
+            <label>Summary</label>
+            <textarea id="summary" rows="4"></textarea>
+
+            <label>Reading Time (minutes)</label>
+            <input type="number" id="reading_time" value="5">
+
+            <label>SEO Keywords (comma separated)</label>
+            <input type="text" id="seo_keywords">
+
+            <label>Related Conditions (comma separated)</label>
+            <input type="text" id="related_conditions">
+
+            <label>Article Content</label>
+
+            <textarea
+                id="content"
+                rows="18"
+                placeholder="Write your article here..."
+                required
+            ></textarea>
+
+            <div style="display:flex;gap:15px;margin-top:20px;flex-wrap:wrap;">
+
+                <button
+                    type="button"
+                    id="saveDraft"
+                    class="logout-btn">
+                    Save Draft
+                </button>
+
+                <button
+                    type="submit"
+                    class="logout-btn">
+                    Publish
+                </button>
+
+            </div>
+
+        </form>
+
+        <div id="message" style="margin-top:20px;font-weight:bold;"></div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment AI Admin Dashboard</title>
+
+
+<link rel="stylesheet" href="css/ai-admin.css">
+
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     ADMIN HEADER
+========================================= -->
+
+
+<header class="ai-admin-header">
+
+
+    <div class="admin-brand">
+
+
+        <div class="admin-logo">
+
+            🤖
+
+        </div>
+
+
+        <div>
+
+            <h1>
+                EMerriment AI
+            </h1>
+
+            <p>
+                Admin Control Panel
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+
+    <div class="admin-actions">
+
+
+        <button id="refreshAI">
+
+            🔄 Refresh
+
+        </button>
+
+
+        <a href="../dashboard.html">
+
+            CMS Dashboard
+
+        </a>
+
+
+    </div>
+
+
+</header>
+
+
+
+
+<!-- =========================================
+     ADMIN LAYOUT
+========================================= -->
+
+
+<div class="admin-layout">
+
+
+
+<!-- SIDEBAR -->
+
+<aside class="ai-sidebar">
+
+
+    <nav>
+
+
+        <a href="ai-dashboard.html"
+           class="active">
+
+            📊 Overview
+
+        </a>
+
+
+        <a href="#conversations">
+
+            💬 Conversations
+
+        </a>
+
+
+        <a href="#knowledge">
+
+            🧠 Knowledge
+
+        </a>
+
+
+        <a href="#settings">
+
+            ⚙️ AI Settings
+
+        </a>
+
+
+        <a href="#feedback">
+
+            ⭐ Feedback
+
+        </a>
+
+
+    </nav>
+
+
+</aside>
+
+
+
+
+
+<!-- MAIN CONTENT -->
+
+
+<main class="ai-main">
+
+
+
+<section class="dashboard-title">
+
+
+    <h2>
+        AI Performance Overview
+    </h2>
+
+
+    <p>
+        Monitor and improve your EMerriment AI assistant.
+    </p>
+
+
+</section>
+
+
+
+
+<!-- =========================================
+     ANALYTICS CARDS
+========================================= -->
+
+
+<section class="analytics-grid">
+
+
+    <div class="analytics-card">
+
+
+        <span>
+            💬
+        </span>
+
+
+        <div>
+
+            <h3 id="totalConversations">
+                0
+            </h3>
+
+
+            <p>
+                Total Conversations
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+
+
+    <div class="analytics-card">
+
+
+        <span>
+            📝
+        </span>
+
+
+        <div>
+
+            <h3 id="totalMessages">
+                0
+            </h3>
+
+
+            <p>
+                Total Messages
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+    <div class="analytics-card">
+
+
+        <span>
+            ⭐
+        </span>
+
+
+        <div>
+
+            <h3 id="averageRating">
+                0
+            </h3>
+
+
+            <p>
+                Average Rating
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+    <div class="analytics-card">
+
+
+        <span>
+            ❓
+        </span>
+
+
+        <div>
+
+            <h3 id="unansweredQuestions">
+                0
+            </h3>
+
+
+            <p>
+                Unanswered Questions
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+
+</section>
+
+
+
+
+
+<!-- FUTURE MODULE SECTIONS -->
+
+<section id="conversations"
+class="dashboard-section">
+
+
+<h2>
+    Recent Conversations
+</h2>
+
+
+<div id="conversationMonitor">
+
+
+    <!-- Loaded by ai-admin.js -->
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+<section id="knowledge"
+class="dashboard-section">
+
+
+<h2>
+    Knowledge Insights
+</h2>
+
+
+<div id="knowledgeInsights">
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+<section id="settings"
+class="dashboard-section">
+
+
+<h2>
+    AI Settings
+</h2>
+
+
+<div id="aiSettings">
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+<section id="feedback"
+class="dashboard-section">
+
+
+<h2>
+    User Feedback
+</h2>
+
+
+<div id="feedbackList">
+
+
+</div>
+
+
+</section>
+
+<!-- =========================================
+     AI IMPROVEMENT TOOLS
+========================================= -->
+
+
+<section class="dashboard-section" id="improvement">
+
+
+<h2>
+    🧠 AI Improvement Center
+</h2>
+
+
+
+<!-- UNANSWERED QUESTIONS -->
+
+<div class="improvement-box">
+
+
+<h3>
+    ❓ Unanswered Questions
+</h3>
+
+
+<p>
+    Questions where users need better AI responses.
+</p>
+
+
+<div id="unansweredList">
+
+    <!-- Loaded by ai-admin.js -->
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- PROMPT EDITOR -->
+
+
+<div class="improvement-box">
+
+
+<h3>
+    ✍️ AI Prompt Editor
+</h3>
+
+
+<textarea
+id="aiPromptEditor"
+placeholder="Enter AI instructions..."
+></textarea>
+
+
+<button id="savePrompt">
+
+    Save AI Prompt
+
+</button>
+
+
+</div>
+
+
+
+
+
+<!-- FEEDBACK REVIEW -->
+
+
+<div class="improvement-box">
+
+
+<h3>
+    ⭐ Feedback Review
+</h3>
+
+
+<div id="feedbackReview">
+
+    <!-- Loaded by ai-admin.js -->
+
+</div>
+
+
+</div>
+
+
+
+</section>
+
+
+
+</main>
+
+
+</div>
+
+
+
+
+<script src="../../js/supabase.js"></script>
+
+<script src="js/ai-admin.js"></script>
+
+
+</body>
+
+</html>

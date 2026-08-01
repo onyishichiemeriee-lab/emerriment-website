@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>EMerriment AI Assistant</title>
+
+    <link rel="stylesheet"
+          href="css/ai.css">
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+</head>
+
+<body>
+
+<header class="ai-header">
+
+    <a href="../dashboard.html"
+       class="back-btn">
+
+        ← Dashboard
+
+    </a>
+
+    <div>
+
+        <h1>
+
+            🤖 EMerriment AI
+
+        </h1>
+
+        <p>
+
+            Your Personal Skincare Assistant
+
+        </p>
+
+    </div>
+
+</header>
+
+<section class="profile-card">
+
+    <h2>Your Skin Profile</h2>
+
+    <div class="profile-grid">
+
+        <div class="profile-item">
+
+            <span>Skin Type</span>
+
+            <strong id="skinType">
+
+                Loading...
+
+            </strong>
+
+        </div>
+
+        <div class="profile-item">
+
+            <span>Main Concern</span>
+
+            <strong id="skinConcern">
+
+                Loading...
+
+            </strong>
+
+        </div>
+
+        <div class="profile-item">
+
+            <span>Sensitivity</span>
+
+            <strong id="skinSensitivity">
+
+                Loading...
+
+            </strong>
+
+        </div>
+
+        <div class="profile-item">
+
+            <span>Skin Score</span>
+
+            <strong id="skinScore">
+
+                --
+
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+<main class="chat-wrapper">
+
+    <div id="chatContainer"
+         class="chat-container">
+
+        <div class="ai-message">
+
+            <div class="message-avatar">
+
+                🤖
+
+            </div>
+
+            <div class="message-content">
+
+                <h4>
+
+                    EMerriment AI
+
+                </h4>
+
+                <p>
+
+                    Hello 👋
+
+                    I'm your AI skincare assistant.
+
+                    I can help you understand skin conditions, build routines, explain ingredients, recommend articles, and suggest products based on your skin profile.
+
+                    How can I help you today?
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="typingIndicator"
+         class="typing-indicator hidden">
+
+        🤖 EMerriment AI is thinking...
+
+    </div>
+
+</main>
+
+<section class="suggested-prompts">
+
+    <h3>
+
+        💡 Suggested Questions
+
+    </h3>
+
+    <div id="suggestionList"
+         class="prompt-grid">
+
+        <button class="prompt-btn">
+
+            Why isn't my skin glowing?
+
+        </button>
+
+        <button class="prompt-btn">
+
+            Build my skincare routine
+
+        </button>
+
+        <button class="prompt-btn">
+
+            Explain Niacinamide
+
+        </button>
+
+        <button class="prompt-btn">
+
+            Recommend products for acne
+
+        </button>
+
+        <button class="prompt-btn">
+
+            How do I fade dark spots?
+
+        </button>
+
+        <button class="prompt-btn">
+
+            What causes oily skin?
+
+        </button>
+
+    </div>
+
+</section>
+
+<footer class="chat-input-area">
+
+    <textarea
+
+        id="messageInput"
+
+        placeholder="Ask EMerriment AI anything about skincare..."
+
+        rows="1">
+
+    </textarea>
+
+    <button id="sendButton">
+
+        Send
+
+    </button>
+
+</footer>
+
+<script src="../js/supabase.js"></script>
+
+<script src="js/ai-ui.js"></script>
+
+<script src="js/ai-api.js"></script>
+
+<script src="js/ai-database.js"></script>
+
+<script src="js/ai.js"></script>
+
+</body>
+
+</html>

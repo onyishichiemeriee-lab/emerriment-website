@@ -1,0 +1,672 @@
+/* =========================================
+   EMerriment AI History Page
+   Main Styles
+========================================= */
+
+
+* {
+
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+
+}
+
+
+body {
+
+    font-family: "Inter", Arial, sans-serif;
+
+    background: #faf7f2;
+
+    color: #2c2c2c;
+
+    min-height: 100vh;
+
+}
+
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+
+.history-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 20px 40px;
+
+    background: white;
+
+    border-bottom: 1px solid #eee;
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 10;
+
+}
+
+
+
+.header-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 25px;
+
+}
+
+
+
+.back-button {
+
+    text-decoration: none;
+
+    color: #8b6b3f;
+
+    font-size: 14px;
+
+}
+
+
+
+.brand-area {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+}
+
+
+
+.ai-logo {
+
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #efe1c7;
+
+    font-size: 22px;
+
+}
+
+
+
+.brand-area h1 {
+
+    font-size: 22px;
+
+}
+
+
+
+.brand-area p {
+
+    font-size: 13px;
+
+    color: #777;
+
+}
+
+
+
+.new-chat-btn {
+
+    border: none;
+
+    background: #b48a45;
+
+    color: white;
+
+    padding: 12px 20px;
+
+    border-radius: 25px;
+
+    cursor: pointer;
+
+    transition: .3s;
+
+}
+
+
+
+.new-chat-btn:hover {
+
+    transform: translateY(-2px);
+
+    opacity: .9;
+
+}
+
+
+
+/* =========================================
+   SEARCH BAR
+========================================= */
+
+
+.history-search {
+
+    padding: 30px 40px;
+
+}
+
+
+
+.search-wrapper {
+
+    max-width: 700px;
+
+    margin: auto;
+
+    display: flex;
+
+    align-items: center;
+
+    background: white;
+
+    border-radius: 15px;
+
+    padding: 0 18px;
+
+    box-shadow: 0 5px 20px rgba(0,0,0,.05);
+
+}
+
+
+
+.search-icon {
+
+    font-size: 18px;
+
+}
+
+
+
+.search-wrapper input {
+
+    width: 100%;
+
+    padding: 18px;
+
+    border: none;
+
+    outline: none;
+
+    font-size: 15px;
+
+    background: transparent;
+
+}
+
+
+
+/* =========================================
+   CONVERSATION SECTION
+========================================= */
+
+
+.conversation-section {
+
+    padding: 0 40px 40px;
+
+}
+
+
+
+.section-title {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+}
+
+
+
+.section-title h2 {
+
+    font-size: 20px;
+
+}
+
+
+
+.section-title span {
+
+    color: #888;
+
+    font-size: 14px;
+
+}
+
+
+
+/* =========================================
+   CONVERSATION CARDS
+========================================= */
+
+
+.conversation-list {
+
+    display: grid;
+
+    gap: 18px;
+
+}
+
+
+
+.conversation-card {
+
+    background: white;
+
+    padding: 22px;
+
+    border-radius: 18px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    cursor: pointer;
+
+    border: 1px solid transparent;
+
+    transition: .3s;
+
+}
+
+
+
+.conversation-card:hover {
+
+    transform: translateY(-3px);
+
+    border-color: #d6b77a;
+
+}
+
+
+
+.conversation-card.active {
+
+    border-color: #b48a45;
+
+    background: #fffaf0;
+
+}
+
+
+
+.conversation-info h3 {
+
+    font-size: 17px;
+
+    margin-bottom: 8px;
+
+}
+
+
+
+.conversation-info p {
+
+    color: #777;
+
+    font-size: 14px;
+
+}
+
+
+
+.conversation-meta {
+
+    display: flex;
+
+    gap: 12px;
+
+    align-items: center;
+
+}
+
+
+
+.chat-time {
+
+    color: #999;
+
+    font-size: 12px;
+
+}
+
+
+
+.menu-button {
+
+    border: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    font-size: 20px;
+
+}
+
+
+
+/* =========================================
+   ACTION MENU
+========================================= */
+
+
+.conversation-menu {
+
+    position: absolute;
+
+    background: white;
+
+    border-radius: 14px;
+
+    padding: 10px;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+
+}
+
+
+
+.conversation-menu button {
+
+    display: block;
+
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+
+    background: transparent;
+
+    text-align: left;
+
+    cursor: pointer;
+
+}
+
+
+
+.conversation-menu button:hover {
+
+    background: #f6efe3;
+
+}
+
+
+
+.danger-action {
+
+    color: #c0392b;
+
+}
+
+
+
+.hidden {
+
+    display: none;
+
+}
+
+
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+
+.empty-state {
+
+    text-align: center;
+
+    padding: 70px 20px;
+
+}
+
+
+
+.empty-icon {
+
+    font-size: 50px;
+
+    margin-bottom: 20px;
+
+}
+
+
+
+.empty-state h3 {
+
+    margin-bottom: 10px;
+
+}
+
+
+
+.empty-state p {
+
+    color: #777;
+
+    max-width: 400px;
+
+    margin: auto;
+
+}
+
+
+
+.start-chat-btn {
+
+    display: inline-block;
+
+    margin-top: 25px;
+
+    padding: 12px 25px;
+
+    background: #b48a45;
+
+    color:white;
+
+    border-radius:25px;
+
+    text-decoration:none;
+
+}
+
+
+
+/* =========================================
+   LOADING STATE
+========================================= */
+
+
+.loading-state {
+
+    text-align:center;
+
+    padding:50px;
+
+}
+
+
+
+.loader {
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:50%;
+
+    border:4px solid #eee;
+
+    border-top-color:#b48a45;
+
+    animation:spin 1s linear infinite;
+
+    margin:auto;
+
+}
+
+
+
+@keyframes spin {
+
+    to {
+
+        transform:rotate(360deg);
+
+    }
+
+}
+
+
+
+/* =========================================
+   DARK MODE READY
+========================================= */
+
+
+@media(prefers-color-scheme: dark){
+
+
+body {
+
+    background:#181818;
+
+    color:#eee;
+
+}
+
+
+.history-header,
+.search-wrapper,
+.conversation-card,
+.conversation-menu {
+
+    background:#222;
+
+}
+
+
+.conversation-card.active {
+
+    background:#332b20;
+
+}
+
+
+.search-wrapper input {
+
+    color:white;
+
+}
+
+
+}
+
+
+
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
+
+@media(max-width:768px){
+
+
+.history-header {
+
+    padding:18px;
+
+    flex-direction:column;
+
+    gap:18px;
+
+    align-items:flex-start;
+
+}
+
+
+.header-left {
+
+    gap:15px;
+
+}
+
+
+
+.history-search,
+.conversation-section {
+
+    padding-left:18px;
+
+    padding-right:18px;
+
+}
+
+
+
+.conversation-card {
+
+    align-items:flex-start;
+
+}
+
+
+
+.brand-area h1 {
+
+    font-size:18px;
+
+}
+
+
+
+.new-chat-btn {
+
+    width:100%;
+
+}
+
+
+
+}

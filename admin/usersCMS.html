@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment CMS - Users</title>
+
+<link rel="stylesheet" href="css/adminCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="../js/supabase.js"></script>
+
+<script src="js/usersCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="logo">
+
+🌿 <span>EMerriment CMS</span>
+
+</div>
+
+<button id="logoutBtn" class="logout-btn">
+
+Logout
+
+</button>
+
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<a href="dashboardCMS.html">🏠 Dashboard</a>
+
+<a href="articlesCMS.html">📚 Articles</a>
+
+<a href="usersCMS.html" class="active">👥 Users</a>
+
+<a href="analyticsCMS.html">📊 Analytics</a>
+
+<a href="productsCMS.html">🛍️ Products</a>
+
+</aside>
+
+<main class="content">
+
+<h1>Registered Users</h1>
+
+<input
+type="text"
+id="searchInput"
+placeholder="Search by name or email..."
+style="width:100%;padding:12px;margin:20px 0;border-radius:8px;border:1px solid #ccc;">
+
+<div style="overflow-x:auto;">
+
+<table style="width:100%;border-collapse:collapse;">
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Email</th>
+
+<th>Skin Type</th>
+
+<th>Joined</th>
+
+<th>Details</th>
+
+</tr>
+
+</thead>
+
+<tbody id="usersBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+</main>
+
+</div>
+
+</body>
+
+</html>

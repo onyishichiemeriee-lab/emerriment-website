@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Skin Journey | EMerriment</title>
+
+    <link rel="stylesheet" href="../css/skin-journey.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="../js/supabase.js" defer></script>
+
+    <script src="../js/skin-journey.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="logo">
+        🌿 <span>EMerriment</span>
+    </div>
+
+    <nav>
+
+        <a href="../dashboard.html">Dashboard</a>
+
+        <a href="#">Profile</a>
+
+        <button id="logoutBtn">Logout</button>
+
+    </nav>
+
+</header>
+
+<main class="container">
+
+    <!-- Welcome -->
+
+    <section class="hero">
+
+        <h1 id="welcomeMessage">
+            My Skin Journey 🌿
+        </h1>
+
+        <p>
+            Every step matters. Track your progress, celebrate improvements, and stay committed to healthier skin.
+        </p>
+
+    </section>
+
+    <!-- Statistics -->
+
+    <section class="stats">
+
+        <div class="card">
+
+            <h3>⭐ Current Skin Score</h3>
+
+            <h2 id="currentScore">--</h2>
+
+        </div>
+
+        <div class="card">
+
+            <h3>📊 Total Quizzes</h3>
+
+            <h2 id="totalQuizzes">0</h2>
+
+        </div>
+
+        <div class="card">
+
+            <h3>📅 Last Assessment</h3>
+
+            <h2 id="lastQuizDate">--</h2>
+
+        </div>
+
+    </section>
+
+    <!-- Progress -->
+
+    <section class="progress-section">
+
+        <h2>
+            📈 Skin Progress
+        </h2>
+
+        <div class="chart-placeholder">
+
+            <p>
+                Progress chart will appear here.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- Latest Result -->
+
+    <section class="latest-result">
+
+        <h2>
+            🌿 Latest Skin Analysis
+        </h2>
+
+        <div class="result-card">
+
+            <p><strong>Skin Type:</strong> <span id="skinType">--</span></p>
+
+            <p><strong>Main Concern:</strong> <span id="concern">--</span></p>
+
+            <p><strong>Oil Level:</strong> <span id="oilLevel">--</span></p>
+
+            <p><strong>Sensitivity:</strong> <span id="sensitivity">--</span></p>
+
+            <p><strong>Recommendation:</strong></p>
+
+            <p id="recommendation">
+                No recommendation available yet.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- Timeline -->
+
+    <section class="timeline">
+
+        <h2>
+            🕒 Quiz History
+        </h2>
+
+        <div id="timelineContainer">
+
+            <p>
+                Your previous quiz results will appear here.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- Goals -->
+
+    <section class="goals">
+
+        <h2>
+            🎯 Current Goal
+        </h2>
+
+        <div class="goal-card">
+
+            <p id="currentGoal">
+                Build a consistent skincare routine and improve your skin health.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- Actions -->
+
+    <section class="actions">
+
+        <a href="../quiz.html" class="primary-btn">
+
+            ➕ Take New Skin Quiz
+
+        </a>
+
+    </section>
+
+</main>
+
+<footer>
+
+    <p>
+
+        © 2026 EMerriment. Your journey to healthy skin starts here.
+
+    </p>
+
+</footer>
+
+</body>
+
+</html>

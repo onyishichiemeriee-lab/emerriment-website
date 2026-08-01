@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment Article</title>
+
+<link rel="stylesheet" href="css/encyclopediaCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/supabase.js"></script>
+
+<script src="js/article.js" defer></script>
+
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+
+<header class="header">
+
+<div class="logo">
+
+🌿 <span>EMerriment</span>
+
+</div>
+
+<nav>
+
+<a href="index.html">Home</a>
+
+<a href="quiz.html">Skin Quiz</a>
+
+<a href="dashboardCMS.html">Dashboard</a>
+
+<a href="encyclopediaCMS.html">Encyclopedia</a>
+
+</nav>
+
+</header>
+
+<!-- ================= ARTICLE ================= -->
+
+<main class="article-page">
+
+<img
+
+id="featuredImage"
+
+class="article-image"
+
+src=""
+
+alt="Article Image">
+
+<div class="article-container">
+
+<span
+
+id="articleCategory"
+
+class="article-category">
+
+</span>
+
+<h1 id="articleTitle">
+
+Loading...
+
+</h1>
+
+<div class="article-rating-summary">
+
+    ⭐ <span id="averageRating">0.0</span>
+
+    (<span id="ratingCount">0</span> reviews)
+
+</div>
+
+<div class="article-meta">
+
+<span id="readingTime"></span>
+
+<span id="difficulty"></span>
+
+<span id="publishDate"></span>
+
+</div>
+
+<p
+
+id="articleSummary"
+
+class="article-summary">
+
+</p>
+
+<div
+
+id="articleContent"
+
+class="article-content">
+
+Loading article...
+
+</div>
+
+<section class="article-rating">
+
+    <h2>⭐ Rate this article</h2>
+
+    <div id="ratingStars" class="rating-stars">
+
+        <span data-rating="1">⭐</span>
+        <span data-rating="2">⭐</span>
+        <span data-rating="3">⭐</span>
+        <span data-rating="4">⭐</span>
+        <span data-rating="5">⭐</span>
+
+    </div>
+
+    <div class="helpful-buttons">
+
+        <button id="helpfulYes">
+
+            👍 Helpful
+
+        </button>
+
+        <button id="helpfulNo">
+
+            👎 Not Helpful
+
+        </button>
+
+    </div>
+
+    <textarea
+
+        id="feedback"
+
+        placeholder="Share your feedback (optional)...">
+
+    </textarea>
+
+    <button id="submitRating">
+
+        Submit Feedback
+
+    </button>
+
+</section>
+
+<!-- ================= ACTIONS ================= -->
+
+<div class="article-actions">
+
+<button id="saveBtn">
+
+🤍 Save Article
+
+</button>
+
+<button id="addToCollectionBtn">
+    📂 Add to Collection
+</button>
+
+<button id="shareBtn">
+
+📤 Share
+
+</button>
+
+</div>
+
+</div>
+
+</main>
+
+<!-- ================= PRODUCTS ================= -->
+
+<section>
+
+<h2>🛍 Recommended Products</h2>
+
+<div
+
+id="recommendedProducts"
+
+class="article-grid">
+
+</div>
+
+</section>
+
+<!-- ================= RELATED ================= -->
+
+<section>
+
+<h2>📚 Related Articles</h2>
+
+<div
+
+id="relatedArticles"
+
+class="article-grid">
+
+</div>
+
+</section>
+
+<!-- ================= NAVIGATION ================= -->
+
+<section class="article-navigation">
+
+<button id="previousArticle">
+
+← Previous
+
+</button>
+
+<button id="nextArticle">
+
+Next →
+
+</button>
+
+</section>
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+<p>
+
+© 2026 EMerriment
+
+Helping the world glow naturally.
+
+</p>
+
+</footer>
+
+</body>
+
+</html>

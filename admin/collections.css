@@ -1,0 +1,35 @@
+.collection-card{
+
+    background:#fff;
+
+    padding:20px;
+
+    border-radius:16px;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+
+    margin-bottom:20px;
+
+}
+
+.collection-card h3{
+
+    color:#1f7a4d;
+
+    margin-bottom:10px;
+
+}
+
+.collection-card button{
+
+    margin-top:15px;
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+}

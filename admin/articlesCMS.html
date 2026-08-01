@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Articles | EMerriment Admin</title>
+
+    <link rel="stylesheet" href="css/adminCMS.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="js/articlesCMS.js" defer></script>
+</head>
+<body>
+
+<header class="topbar">
+
+    <div class="logo">
+        🌿 <span>EMerriment Admin</span>
+    </div>
+
+    <button id="logoutBtn" class="logout-btn">
+        Logout
+    </button>
+
+</header>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <a href="dashboardCMS.html">🏠 Dashboard</a>
+
+        <a href="articlesCMS.html" class="active">📚 Articles</a>
+
+        <a href="usersCMS.html">👥 Users</a>
+
+        <a href="analyticsCMS.html">📊 Analytics</a>
+
+        <a href="productsCMS.html">🛍️ Products</a>
+
+    </aside>
+
+    <main class="content">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px;flex-wrap:wrap;">
+
+            <h1>Manage Articles</h1>
+
+            <a href="new-articleCMS.html" class="action-card">
+                ➕ New Article
+            </a>
+
+        </div>
+
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Search articles..."
+            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:20px;"
+        >
+
+        <div style="overflow-x:auto;">
+
+            <table id="articlesTable" style="width:100%;border-collapse:collapse;background:#fff;">
+
+                <thead>
+
+                    <tr>
+
+                        <th style="padding:15px;text-align:left;">Title</th>
+
+                        <th style="padding:15px;text-align:left;">Category</th>
+
+                        <th style="padding:15px;text-align:left;">Status</th>
+
+                        <th style="padding:15px;text-align:left;">Reading Time</th>
+
+                        <th style="padding:15px;text-align:left;">Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="articlesBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

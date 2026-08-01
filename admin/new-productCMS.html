@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment CMS - New Product</title>
+
+<link rel="stylesheet" href="css/adminCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="js/new-productCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="logo">
+
+🌿 <span>EMerriment CMS</span>
+
+</div>
+
+<button id="logoutBtn" class="logout-btn">
+
+Logout
+
+</button>
+
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<a href="dashboardCMS.html">🏠 Dashboard</a>
+
+<a href="articlesCMS.html">📚 Articles</a>
+
+<a href="usersCMS.html">👥 Users</a>
+
+<a href="analyticsCMS.html">📊 Analytics</a>
+
+<a href="productsCMS.html" class="active">🛍 Products</a>
+
+</aside>
+
+<main class="content">
+
+<h1>Add New Product</h1>
+
+<form id="productForm">
+
+<label>Product Name</label>
+<input type="text" id="name" required>
+
+<label>Slug</label>
+<input type="text" id="slug" required>
+
+<label>Category</label>
+
+<select id="category">
+
+<option>Cleansers</option>
+<option>Moisturizers</option>
+<option>Serums</option>
+<option>Sunscreens</option>
+<option>Toners</option>
+<option>Masks</option>
+<option>Exfoliants</option>
+<option>Body Care</option>
+<option>Hair Care</option>
+<option>Other</option>
+
+</select>
+
+<label>Description</label>
+
+<textarea id="description" rows="6"></textarea>
+
+<label>Price</label>
+
+<input type="number" id="price" step="0.01">
+
+<label>Image URL</label>
+
+<input type="url" id="image_url">
+
+<label>Affiliate/Product Link</label>
+
+<input type="url" id="affiliate_link">
+
+<label>Stock Status</label>
+
+<select id="stock_status">
+
+<option>In Stock</option>
+
+<option>Out of Stock</option>
+
+<option>Coming Soon</option>
+
+</select>
+
+<label>
+
+<input type="checkbox" id="is_featured">
+
+Featured Product
+
+</label>
+
+<br><br>
+
+<button class="logout-btn">
+
+Save Product
+
+</button>
+
+</form>
+
+<div id="message"></div>
+
+</main>
+
+</div>
+
+</body>
+</html>

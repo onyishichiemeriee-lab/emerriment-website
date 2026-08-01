@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Analytics</title>
+
+<link rel="stylesheet" href="dashboard.css">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<div class="sidebar">
+
+<h2>🌿 EMerriment</h2>
+
+<a href="dashboard.html">Dashboard</a>
+
+<a href="subscribers.html">Subscribers</a>
+
+<a href="email-sequence.html">Email Sequence</a>
+
+<a href="products.html">Products</a>
+
+<a class="active" href="analytics.html">Analytics</a>
+
+<a href="settings.html">Settings</a>
+
+<button id="logoutBtn">🚪 Logout</button>
+
+</div>
+
+<div class="main">
+
+<h1>Business Analytics</h1>
+
+<div class="cards">
+
+<div class="card">
+
+<h2 id="totalSubscribers">0</h2>
+
+<p>Total Subscribers</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="dailyGrowth">0</h2>
+
+<p>Today's Subscribers</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="weeklyGrowth">0</h2>
+
+<p>Last 7 Days</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="monthlyGrowth">0</h2>
+
+<p>Last 30 Days</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="growthRate">0%</h2>
+
+<p>Growth Rate</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="completionRate">0%</h2>
+
+<p>Quiz Completion</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="topConcern">-</h2>
+
+<p>Top Skin Concern</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="emailOpenRate">0%</h2>
+
+<p>Email Open Rate</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="clickRate">0%</h2>
+
+<p>Click Rate</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="conversionRate">0%</h2>
+
+<p>Product Conversion</p>
+
+</div>
+
+<div class="card">
+
+<h2 id="revenue">₦0</h2>
+
+<p>Revenue</p>
+
+</div>
+
+</div>
+
+<div id="growthChart"></div>
+
+</div>
+
+</div>
+
+<div class="card">
+<h2 id="emailsSent">0</h2>
+<p>Emails Sent</p>
+</div>
+
+<div class="card">
+<h2 id="emailsOpened">0</h2>
+<p>Emails Opened</p>
+</div>
+
+<div class="card">
+<h2 id="emailsClicked">0</h2>
+<p>Link Clicks</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const SUPABASE_URL="https://ioeulnjrozkbetaongbv.supabase.co";
+
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc";
+
+</script>
+
+<script src="analytics.js"></script>
+
+</body>
+
+</html>

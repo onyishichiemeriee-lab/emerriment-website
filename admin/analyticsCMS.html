@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment CMS - Analytics</title>
+
+<link rel="stylesheet" href="css/adminCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="../js/supabase.js"></script>
+
+<script src="js/analyticsCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="logo">
+
+🌿 <span>EMerriment CMS</span>
+
+</div>
+
+<button id="logoutBtn" class="logout-btn">
+
+Logout
+
+</button>
+
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<a href="dashboardCMS.html">🏠 Dashboard</a>
+
+<a href="articlesCMS.html">📚 Articles</a>
+
+<a href="usersCMS.html">👥 Users</a>
+
+<a href="analyticsCMS.html" class="active">📊 Analytics</a>
+
+<a href="productsCMS.html">🛍️ Products</a>
+
+</aside>
+
+<main class="content">
+
+<h1>Analytics Dashboard</h1>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h3>Total Users</h3>
+
+<h2 id="totalUsers">0</h2>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Total Articles</h3>
+
+<h2 id="totalArticles">0</h2>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Total Quiz Results</h3>
+
+<h2 id="totalQuizzes">0</h2>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Average Skin Score</h3>
+
+<h2 id="averageScore">0</h2>
+
+</div>
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>User Growth</h2>
+
+<canvas id="userGrowthChart"></canvas>
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>Quiz Performance</h2>
+
+<canvas id="quizChart"></canvas>
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>Article Performance</h2>
+
+<canvas id="articleChart"></canvas>
+
+</div>
+
+</main>
+
+</div>
+
+</body>
+
+</html>

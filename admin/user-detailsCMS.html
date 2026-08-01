@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EMerriment CMS - User Details</title>
+
+    <link rel="stylesheet" href="css/adminCMS.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="js/user-detailsCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="logo">
+        🌿 <span>EMerriment CMS</span>
+    </div>
+
+    <button id="logoutBtn" class="logout-btn">
+        Logout
+    </button>
+
+</header>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <a href="dashboardCMS.html">🏠 Dashboard</a>
+        <a href="articlesCMS.html">📚 Articles</a>
+        <a href="usersCMS.html" class="active">👥 Users</a>
+        <a href="analyticsCMS.html">📊 Analytics</a>
+        <a href="productsCMS.html">🛍️ Products</a>
+
+    </aside>
+
+    <main class="content">
+
+        <a href="usersCMS.html">← Back to Users</a>
+
+        <h1>User Details</h1>
+
+        <div class="stat-card">
+
+            <h2 id="userName">Loading...</h2>
+
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+
+            <p><strong>Date Joined:</strong> <span id="joinedDate"></span></p>
+
+            <p><strong>Skin Type:</strong> <span id="skinType"></span></p>
+
+            <p><strong>Skin Concern:</strong> <span id="skinConcern"></span></p>
+
+            <p><strong>Skin Score:</strong> <span id="skinScore"></span></p>
+
+            <p><strong>Admin:</strong> <span id="adminStatus"></span></p>
+
+        </div>
+
+        <br>
+
+        <div class="stat-card">
+
+            <h2>Quiz History</h2>
+
+            <table style="width:100%;border-collapse:collapse;">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date</th>
+                        <th>Score</th>
+                        <th>Skin Type</th>
+                        <th>Concern</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="quizHistory">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <br>
+
+        <button id="toggleAdminBtn" class="logout-btn">
+
+            Toggle Admin Access
+
+        </button>
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

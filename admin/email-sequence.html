@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Email Sequence | EMerriment Admin</title>
+
+<link rel="stylesheet" href="dashboard.css">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<div class="sidebar">
+
+<h2>🌿 EMerriment</h2>
+
+<a href="dashboard.html">Dashboard</a>
+
+<a href="subscribers.html">Subscribers</a>
+
+<a class="active" href="email-sequence.html">Email Sequence</a>
+
+<a href="products.html">Products</a>
+
+<a href="analytics.html">Analytics</a>
+
+<a href="settings.html">Settings</a>
+
+<button id="logoutBtn">🚪 Logout</button>
+
+</div>
+
+<div class="main">
+
+<h1>Email Automation</h1>
+
+<div id="emailList"></div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const SUPABASE_URL="https://ioeulnjrozkbetaongbv.supabase.co";
+
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc";
+
+</script>
+
+<script src="email-sequence.js"></script>
+
+</body>
+
+</html>

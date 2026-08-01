@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment CMS - Website Settings</title>
+
+<link rel="stylesheet" href="css/adminCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="../js/supabase.js"></script>
+
+<script src="js/settingsCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="logo">
+
+🌿 <span>EMerriment CMS</span>
+
+</div>
+
+<button id="logoutBtn" class="logout-btn">
+
+Logout
+
+</button>
+
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<a href="dashboardCMS.html">🏠 Dashboard</a>
+
+<a href="articlesCMS.html">📚 Articles</a>
+
+<a href="usersCMS.html">👥 Users</a>
+
+<a href="analyticsCMS.html">📊 Analytics</a>
+
+<a href="productsCMS.html">🛍 Products</a>
+
+<a href="settingsCMS.html" class="active">⚙ Website Settings</a>
+
+</aside>
+
+<main class="content">
+
+<h1>Website Settings</h1>
+
+<form id="settingsForm">
+
+<div class="stat-card">
+
+<h2>🏠 Site Identity</h2>
+
+<label>Website Name</label>
+
+<input
+type="text"
+id="site_name">
+
+<label>Tagline</label>
+
+<input
+type="text"
+id="tagline">
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>🎯 Hero Section</h2>
+
+<label>Hero Title</label>
+
+<input
+type="text"
+id="hero_title">
+
+<label>Hero Subtitle</label>
+
+<textarea
+id="hero_subtitle"
+rows="4"></textarea>
+
+<label>Button Text</label>
+
+<input
+type="text"
+id="hero_button_text">
+
+<label>Button Link</label>
+
+<input
+type="text"
+id="hero_button_link">
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>🖼 Homepage Banner</h2>
+
+<label>Banner Image URL</label>
+
+<input
+type="url"
+id="homepage_banner">
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>📞 Contact Information</h2>
+
+<label>Email</label>
+
+<input
+type="email"
+id="contact_email">
+
+<label>Phone</label>
+
+<input
+type="text"
+id="contact_phone">
+
+<label>Address</label>
+
+<textarea
+id="address"
+rows="3"></textarea>
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>🌍 Social Media</h2>
+
+<input placeholder="Facebook" id="facebook">
+
+<input placeholder="Instagram" id="instagram">
+
+<input placeholder="TikTok" id="tiktok">
+
+<input placeholder="YouTube" id="youtube">
+
+<input placeholder="X (Twitter)" id="x">
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>🎨 Brand Colors</h2>
+
+<label>Primary Color</label>
+
+<input
+type="color"
+id="primary_color">
+
+<label>Secondary Color</label>
+
+<input
+type="color"
+id="secondary_color">
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>📝 Footer</h2>
+
+<textarea
+id="footer_text"
+rows="4"></textarea>
+
+</div>
+
+<br>
+
+<div class="stat-card">
+
+<h2>🔍 SEO</h2>
+
+<label>SEO Title</label>
+
+<input
+type="text"
+id="seo_title">
+
+<label>SEO Description</label>
+
+<textarea
+id="seo_description"
+rows="4"></textarea>
+
+<label>SEO Keywords (comma separated)</label>
+
+<input
+type="text"
+id="seo_keywords">
+
+</div>
+
+<br>
+
+<button
+class="logout-btn">
+
+💾 Save Website Settings
+
+</button>
+
+</form>
+
+<div
+id="message"
+style="margin-top:20px;font-weight:bold;"></div>
+
+</main>
+
+</div>
+
+</body>
+
+</html>

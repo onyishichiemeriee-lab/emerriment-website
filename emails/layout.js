@@ -1,4 +1,4 @@
-module.exports = ({ title, content }) => {
+module.exports = ({ title, content, email }) => {
 
 return `
 
@@ -169,6 +169,14 @@ Helping people understand their skin naturally.
 </tr>
 
 </table>
+
+<img
+src="https://emerriment216.netlify.app/.netlify/functions/email-open?email=${encodeURIComponent(email)}"
+width="1"
+height="1"
+style="display:none;"
+alt=""
+>
 
 </body>
 

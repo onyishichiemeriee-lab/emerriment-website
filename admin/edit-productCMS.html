@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment CMS - Edit Product</title>
+
+<link rel="stylesheet"
+href="css/adminCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="../js/supabase.js"></script>
+
+<script src="js/edit-productCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="logo">
+
+🌿 <span>EMerriment CMS</span>
+
+</div>
+
+<button
+id="logoutBtn"
+class="logout-btn">
+
+Logout
+
+</button>
+
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<a href="dashboardCMS.html">🏠 Dashboard</a>
+
+<a href="productsCMS.html"
+class="active">
+
+🛍 Products
+
+</a>
+
+</aside>
+
+<main class="content">
+
+<h1>Edit Product</h1>
+
+<form id="productForm">
+
+<input id="name" required>
+
+<input id="slug" required>
+
+<textarea id="description"></textarea>
+
+<input id="category">
+
+<input type="number" id="price">
+
+<input id="image_url">
+
+<input id="affiliate_link">
+
+<select id="stock_status">
+
+<option>In Stock</option>
+
+<option>Out of Stock</option>
+
+<option>Coming Soon</option>
+
+</select>
+
+<label>
+
+<input
+type="checkbox"
+id="is_featured">
+
+Featured Product
+
+</label>
+
+<br><br>
+
+<button class="logout-btn">
+
+Save Changes
+
+</button>
+
+<button
+type="button"
+id="deleteBtn"
+class="logout-btn"
+style="background:#d9534f;">
+
+Delete Product
+
+</button>
+
+</form>
+
+<div id="message"></div>
+
+</main>
+
+</div>
+
+</body>
+
+</html>

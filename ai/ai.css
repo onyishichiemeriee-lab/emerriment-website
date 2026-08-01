@@ -1,0 +1,1951 @@
+/* =========================================
+   EMerriment AI Assistant
+   Global Styles
+========================================= */
+
+
+/* Google Font fallback */
+
+* {
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+}
+
+
+html {
+
+    scroll-behavior: smooth;
+
+}
+
+
+body {
+
+    font-family: "Poppins", Arial, sans-serif;
+
+    background: #f8f6f1;
+
+    color: #2d2d2d;
+
+    min-height: 100vh;
+
+    line-height: 1.6;
+
+}
+
+
+/* Remove default link styling */
+
+a {
+
+    text-decoration: none;
+
+    color: inherit;
+
+}
+
+
+/* Images */
+
+img {
+
+    max-width: 100%;
+
+    display: block;
+
+}
+
+
+/* Buttons */
+
+button {
+
+    font-family: inherit;
+
+    cursor: pointer;
+
+    border: none;
+
+    outline: none;
+
+}
+
+
+/* Text areas and inputs */
+
+textarea,
+input {
+
+    font-family: inherit;
+
+    outline: none;
+
+}
+
+
+/* Main container spacing */
+
+section {
+
+    width: 100%;
+
+}
+
+
+/* Smooth card transitions */
+
+.card,
+button,
+.ai-message,
+.user-message {
+
+    transition:
+
+        transform .3s ease,
+
+        box-shadow .3s ease,
+
+        background .3s ease;
+
+}
+
+
+/* Hidden utility class */
+
+.hidden {
+
+    display: none !important;
+
+}
+
+
+/* EMerriment Brand Variables */
+
+:root {
+
+    --primary-green: #2f7d4a;
+
+    --dark-green: #205c35;
+
+    --light-green: #e8f5ec;
+
+    --cream: #f8f6f1;
+
+    --white: #ffffff;
+
+    --text-dark: #2d2d2d;
+
+    --text-light: #6b6b6b;
+
+    --border-color: #e5e5e5;
+
+    --shadow:
+
+        0 8px 25px rgba(0,0,0,0.08);
+
+    --radius:
+
+        18px;
+
+}
+
+
+/* Page wrapper */
+
+.ai-page {
+
+    width: 100%;
+
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    padding: 20px;
+
+}
+
+
+/* Mobile text selection */
+
+::selection {
+
+    background: var(--primary-green);
+
+    color: white;
+
+}
+
+/* =========================================
+   AI HEADER
+========================================= */
+
+
+.ai-header {
+
+    width: 100%;
+
+    max-width: 1200px;
+
+    margin: 20px auto;
+
+    padding: 25px 30px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 25px;
+
+    background: var(--white);
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+
+}
+
+
+/* Back Button */
+
+.back-btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 12px 18px;
+
+    background: var(--light-green);
+
+    color: var(--primary-green);
+
+    border-radius: 12px;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    transition: .3s ease;
+
+}
+
+
+.back-btn:hover {
+
+    background: var(--primary-green);
+
+    color: var(--white);
+
+    transform: translateY(-2px);
+
+}
+
+
+/* Header Text Container */
+
+.ai-header div {
+
+    flex: 1;
+
+}
+
+
+.ai-header h1 {
+
+    font-size: 32px;
+
+    font-weight: 700;
+
+    color: var(--dark-green);
+
+    margin-bottom: 5px;
+
+}
+
+
+.ai-header p {
+
+    color: var(--text-light);
+
+    font-size: 15px;
+
+}
+
+
+/* AI Icon Style */
+
+.ai-header h1:first-letter {
+
+    font-size: 38px;
+
+}
+
+
+/* Header Accent */
+
+.ai-header::after {
+
+    content: "";
+
+    width: 70px;
+
+    height: 70px;
+
+    border-radius: 50%;
+
+    background: var(--light-green);
+
+    position: absolute;
+
+    opacity: .5;
+
+}
+
+
+/* =========================================
+   Mobile Header
+========================================= */
+
+
+@media(max-width:768px){
+
+
+    .ai-header {
+
+        margin: 15px;
+
+        padding: 20px;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+
+    }
+
+
+    .ai-header h1 {
+
+        font-size: 25px;
+
+    }
+
+
+    .ai-header p {
+
+        font-size: 14px;
+
+    }
+
+
+    .back-btn {
+
+        width: fit-content;
+
+    }
+
+
+}
+
+/* =========================================
+   AI PROFILE CARD
+========================================= */
+
+
+.profile-card {
+
+    width: 100%;
+
+    max-width: 1200px;
+
+    margin: 20px auto;
+
+    padding: 25px;
+
+    background: var(--white);
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+
+}
+
+
+/* Profile Heading */
+
+.profile-card h2 {
+
+    color: var(--dark-green);
+
+    font-size: 22px;
+
+    margin-bottom: 20px;
+
+    font-weight: 600;
+
+}
+
+
+/* Profile Grid */
+
+.profile-grid {
+
+    display: grid;
+
+    grid-template-columns:
+
+        repeat(4, 1fr);
+
+    gap: 15px;
+
+}
+
+
+/* Individual Profile Item */
+
+.profile-item {
+
+    background: var(--light-green);
+
+    padding: 18px;
+
+    border-radius: 14px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    border: 1px solid transparent;
+
+    transition: .3s ease;
+
+}
+
+
+.profile-item:hover {
+
+    border-color: var(--primary-green);
+
+    transform: translateY(-3px);
+
+}
+
+
+/* Label */
+
+.profile-item span {
+
+    color: var(--text-light);
+
+    font-size: 13px;
+
+    font-weight: 500;
+
+}
+
+
+/* Value */
+
+.profile-item strong {
+
+    color: var(--dark-green);
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+}
+
+
+/* Skin Score Highlight */
+
+#skinScore {
+
+    color: var(--primary-green);
+
+}
+
+
+/* Loading State */
+
+.profile-item strong:empty::after {
+
+    content: "Loading...";
+
+    color: var(--text-light);
+
+    font-size: 14px;
+
+}
+
+
+/* =========================================
+   Mobile Profile Layout
+========================================= */
+
+
+@media(max-width:900px){
+
+
+    .profile-grid {
+
+        grid-template-columns:
+
+        repeat(2, 1fr);
+
+    }
+
+
+}
+
+
+@media(max-width:500px){
+
+
+    .profile-card {
+
+        padding: 20px;
+
+    }
+
+
+    .profile-grid {
+
+        grid-template-columns:
+
+        1fr;
+
+    }
+
+
+    .profile-card h2 {
+
+        font-size: 20px;
+
+    }
+
+
+    .profile-item strong {
+
+        font-size: 16px;
+
+    }
+
+
+}
+
+/* =========================================
+   CHAT MESSAGES
+========================================= */
+
+
+.chat-wrapper {
+
+    width: 100%;
+
+    max-width: 1200px;
+
+    margin: 25px auto;
+
+    background: var(--white);
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+
+    padding: 25px;
+
+}
+
+
+/* Chat Container */
+
+.chat-container {
+
+    width: 100%;
+
+    height: 520px;
+
+    overflow-y: auto;
+
+    padding: 10px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+    scroll-behavior: smooth;
+
+}
+
+
+/* Custom Scrollbar */
+
+.chat-container::-webkit-scrollbar {
+
+    width: 6px;
+
+}
+
+
+.chat-container::-webkit-scrollbar-thumb {
+
+    background: #c8dccc;
+
+    border-radius: 20px;
+
+}
+
+
+/* =========================================
+   AI MESSAGE
+========================================= */
+
+
+.ai-message {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 12px;
+
+    max-width: 80%;
+
+    animation: messageAppear .3s ease;
+
+}
+
+
+.message-avatar {
+
+    width: 42px;
+
+    height: 42px;
+
+    background: var(--light-green);
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 22px;
+
+    flex-shrink: 0;
+
+}
+
+
+/* AI Message Content */
+
+.message-content {
+
+    background: #f5f7f2;
+
+    padding: 16px 18px;
+
+    border-radius: 18px 18px 18px 5px;
+
+}
+
+
+.message-content h4 {
+
+    color: var(--dark-green);
+
+    font-size: 14px;
+
+    margin-bottom: 6px;
+
+}
+
+
+.message-content p {
+
+    color: var(--text-dark);
+
+    font-size: 15px;
+
+    line-height: 1.7;
+
+}
+
+
+/* =========================================
+   USER MESSAGE
+========================================= */
+
+
+.user-message {
+
+    align-self: flex-end;
+
+    max-width: 75%;
+
+    background: var(--primary-green);
+
+    color: white;
+
+    padding: 15px 18px;
+
+    border-radius: 18px 18px 5px 18px;
+
+    animation: messageAppear .3s ease;
+
+}
+
+
+.user-message p {
+
+    font-size: 15px;
+
+    line-height: 1.6;
+
+}
+
+
+/* Message Time */
+
+.message-time {
+
+    display: block;
+
+    margin-top: 6px;
+
+    font-size: 11px;
+
+    opacity: .65;
+
+}
+
+
+/* =========================================
+   Message Animation
+========================================= */
+
+
+@keyframes messageAppear {
+
+
+    from {
+
+        opacity:0;
+
+        transform:translateY(10px);
+
+    }
+
+
+    to {
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+
+}
+
+
+/* =========================================
+   Mobile Chat
+========================================= */
+
+
+@media(max-width:768px){
+
+
+    .chat-wrapper {
+
+        margin:15px;
+
+        padding:15px;
+
+    }
+
+
+    .chat-container {
+
+        height:450px;
+
+    }
+
+
+    .ai-message {
+
+        max-width:95%;
+
+    }
+
+
+    .user-message {
+
+        max-width:90%;
+
+    }
+
+
+    .message-content p,
+    .user-message p {
+
+        font-size:14px;
+
+    }
+
+
+}
+
+/* =========================================
+   SUGGESTED PROMPTS
+========================================= */
+
+
+.suggested-prompts {
+
+    width:100%;
+
+    max-width:1200px;
+
+    margin:25px auto;
+
+    padding:25px;
+
+    background:var(--white);
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+}
+
+
+/* Heading */
+
+.suggested-prompts h3 {
+
+    color:var(--dark-green);
+
+    font-size:22px;
+
+    font-weight:600;
+
+    margin-bottom:20px;
+
+}
+
+
+/* Prompt Grid */
+
+.prompt-grid {
+
+    display:grid;
+
+    grid-template-columns:
+
+    repeat(3,1fr);
+
+    gap:15px;
+
+}
+
+
+/* Prompt Button */
+
+.prompt-btn {
+
+    background:var(--light-green);
+
+    color:var(--dark-green);
+
+    padding:16px 18px;
+
+    border-radius:14px;
+
+    text-align:left;
+
+    font-size:14px;
+
+    font-weight:500;
+
+    border:1px solid transparent;
+
+    transition:.3s ease;
+
+}
+
+
+/* Hover Effect */
+
+.prompt-btn:hover {
+
+    background:var(--primary-green);
+
+    color:var(--white);
+
+    transform:translateY(-3px);
+
+    box-shadow:
+
+    0 8px 18px rgba(47,125,74,.2);
+
+}
+
+
+/* Active Click Effect */
+
+.prompt-btn:active {
+
+    transform:scale(.97);
+
+}
+
+
+/* =========================================
+   Mobile Prompt Layout
+========================================= */
+
+
+@media(max-width:900px){
+
+
+    .prompt-grid {
+
+        grid-template-columns:
+
+        repeat(2,1fr);
+
+    }
+
+
+}
+
+
+@media(max-width:500px){
+
+
+    .suggested-prompts {
+
+        padding:20px;
+
+    }
+
+
+    .suggested-prompts h3 {
+
+        font-size:20px;
+
+    }
+
+
+    .prompt-grid {
+
+        grid-template-columns:
+
+        1fr;
+
+    }
+
+
+    .prompt-btn {
+
+        padding:14px;
+
+    }
+
+
+}
+
+/* =========================================
+   CHAT INPUT AREA
+========================================= */
+
+
+.chat-input-area {
+
+    width:100%;
+
+    max-width:1200px;
+
+    margin:25px auto 40px;
+
+    padding:18px;
+
+    background:var(--white);
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+    display:flex;
+
+    align-items:flex-end;
+
+    gap:15px;
+
+}
+
+
+/* Message Textarea */
+
+#messageInput {
+
+    flex:1;
+
+    min-height:55px;
+
+    max-height:140px;
+
+    resize:none;
+
+    padding:16px 18px;
+
+    border-radius:16px;
+
+    border:1px solid var(--border-color);
+
+    background:#fafafa;
+
+    color:var(--text-dark);
+
+    font-size:15px;
+
+    line-height:1.5;
+
+    transition:.3s ease;
+
+}
+
+
+/* Input Focus */
+
+#messageInput:focus {
+
+    border-color:var(--primary-green);
+
+    background:var(--white);
+
+    box-shadow:
+
+    0 0 0 3px rgba(47,125,74,.12);
+
+}
+
+
+/* Placeholder */
+
+#messageInput::placeholder {
+
+    color:#999;
+
+}
+
+
+/* Send Button */
+
+#sendButton {
+
+    height:55px;
+
+    padding:0 28px;
+
+    background:var(--primary-green);
+
+    color:var(--white);
+
+    border-radius:16px;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.3s ease;
+
+}
+
+
+/* Send Button Hover */
+
+#sendButton:hover {
+
+    background:var(--dark-green);
+
+    transform:translateY(-2px);
+
+    box-shadow:
+
+    0 8px 18px rgba(47,125,74,.25);
+
+}
+
+
+/* Send Button Click */
+
+#sendButton:active {
+
+    transform:scale(.96);
+
+}
+
+
+/* Disabled State */
+
+#sendButton:disabled {
+
+    opacity:.6;
+
+    cursor:not-allowed;
+
+    transform:none;
+
+}
+
+
+/* =========================================
+   Mobile Input Layout
+========================================= */
+
+
+@media(max-width:600px){
+
+
+    .chat-input-area {
+
+        margin:15px;
+
+        padding:15px;
+
+        flex-direction:column;
+
+        align-items:stretch;
+
+    }
+
+
+    #messageInput {
+
+        width:100%;
+
+        min-height:50px;
+
+        font-size:14px;
+
+    }
+
+
+    #sendButton {
+
+        width:100%;
+
+        height:50px;
+
+    }
+
+
+}
+
+/* =========================================
+   TYPING INDICATOR
+========================================= */
+
+
+.typing-indicator {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    width:fit-content;
+
+    margin-top:10px;
+
+    padding:12px 18px;
+
+    background:#f5f7f2;
+
+    color:var(--text-light);
+
+    border-radius:18px;
+
+    font-size:14px;
+
+    animation:typingAppear .3s ease;
+
+}
+
+
+/* Animated dots */
+
+.typing-indicator::after {
+
+    content:"";
+
+    width:20px;
+
+    text-align:left;
+
+    animation:typingDots 1.5s infinite;
+
+}
+
+
+/* Hide class controlled by JS */
+
+.typing-indicator.hidden {
+
+    display:none;
+
+}
+
+
+/* Appearance Animation */
+
+@keyframes typingAppear {
+
+
+    from {
+
+        opacity:0;
+
+        transform:translateY(10px);
+
+    }
+
+
+    to {
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+
+}
+
+
+/* Dots Animation */
+
+@keyframes typingDots {
+
+
+    0% {
+
+        content:"";
+
+    }
+
+
+    25% {
+
+        content:".";
+
+    }
+
+
+    50% {
+
+        content:"..";
+
+    }
+
+
+    75% {
+
+        content:"...";
+
+    }
+
+
+    100% {
+
+        content:"";
+
+    }
+
+
+}
+
+
+/* =========================================
+   Mobile Typing Indicator
+========================================= */
+
+
+@media(max-width:600px){
+
+
+    .typing-indicator {
+
+        font-size:13px;
+
+        padding:10px 14px;
+
+    }
+
+
+}
+
+/* =========================================
+   EMerriment AI ANIMATIONS
+========================================= */
+
+
+/* Page Entrance */
+
+.ai-header,
+.profile-card,
+.chat-wrapper,
+.suggested-prompts,
+.chat-input-area {
+
+    animation:fadeUp .6s ease forwards;
+
+}
+
+
+/* Different entrance timing */
+
+.profile-card {
+
+    animation-delay:.1s;
+
+}
+
+
+.chat-wrapper {
+
+    animation-delay:.2s;
+
+}
+
+
+.suggested-prompts {
+
+    animation-delay:.3s;
+
+}
+
+
+.chat-input-area {
+
+    animation-delay:.4s;
+
+}
+
+
+
+/* Fade Up Animation */
+
+@keyframes fadeUp {
+
+
+    from {
+
+        opacity:0;
+
+        transform:translateY(25px);
+
+    }
+
+
+    to {
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   AI Avatar Floating Animation
+========================================= */
+
+
+.message-avatar {
+
+    animation:floatAvatar 3s ease-in-out infinite;
+
+}
+
+
+@keyframes floatAvatar {
+
+
+    0% {
+
+        transform:translateY(0);
+
+    }
+
+
+    50% {
+
+        transform:translateY(-5px);
+
+    }
+
+
+    100% {
+
+        transform:translateY(0);
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   New Message Animation
+========================================= */
+
+
+.ai-message,
+.user-message {
+
+    animation:
+
+    messageSlide .35s ease forwards;
+
+}
+
+
+@keyframes messageSlide {
+
+
+    from {
+
+        opacity:0;
+
+        transform:translateY(15px)
+        scale(.98);
+
+    }
+
+
+    to {
+
+        opacity:1;
+
+        transform:translateY(0)
+        scale(1);
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   Button Pulse Effect
+========================================= */
+
+
+#sendButton {
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+
+#sendButton::after {
+
+    content:"";
+
+    position:absolute;
+
+    width:0;
+
+    height:0;
+
+    background:rgba(255,255,255,.3);
+
+    border-radius:50%;
+
+    transform:translate(-50%,-50%);
+
+    transition:.5s;
+
+}
+
+
+#sendButton:active::after {
+
+    width:250px;
+
+    height:250px;
+
+}
+
+
+
+/* =========================================
+   Prompt Card Animation
+========================================= */
+
+
+.prompt-btn {
+
+    animation:
+
+    promptAppear .4s ease forwards;
+
+}
+
+
+.prompt-btn:nth-child(1){
+
+    animation-delay:.1s;
+
+}
+
+.prompt-btn:nth-child(2){
+
+    animation-delay:.2s;
+
+}
+
+.prompt-btn:nth-child(3){
+
+    animation-delay:.3s;
+
+}
+
+.prompt-btn:nth-child(4){
+
+    animation-delay:.4s;
+
+}
+
+.prompt-btn:nth-child(5){
+
+    animation-delay:.5s;
+
+}
+
+.prompt-btn:nth-child(6){
+
+    animation-delay:.6s;
+
+}
+
+
+
+@keyframes promptAppear {
+
+
+    from {
+
+        opacity:0;
+
+        transform:translateY(15px);
+
+    }
+
+
+    to {
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   Loading Shimmer Effect
+========================================= */
+
+
+.ai-loading {
+
+    background:
+
+    linear-gradient(
+
+        90deg,
+
+        #f5f7f2,
+
+        #ffffff,
+
+        #f5f7f2
+
+    );
+
+
+    background-size:200% 100%;
+
+    animation:
+
+    shimmer 1.5s infinite;
+
+}
+
+
+
+@keyframes shimmer {
+
+
+    from {
+
+        background-position:
+
+        200% 0;
+
+    }
+
+
+    to {
+
+        background-position:
+
+        -200% 0;
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   Reduce Motion Accessibility
+========================================= */
+
+
+@media(prefers-reduced-motion:reduce){
+
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration:.01ms !important;
+
+        animation-iteration-count:1 !important;
+
+        scroll-behavior:auto !important;
+
+    }
+
+
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
+
+
+/* Large Desktop Screens */
+
+@media(min-width:1200px){
+
+
+    .ai-page,
+    .ai-header,
+    .profile-card,
+    .chat-wrapper,
+    .suggested-prompts,
+    .chat-input-area {
+
+        max-width:1200px;
+
+    }
+
+
+    .chat-container {
+
+        height:600px;
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   Tablets
+========================================= */
+
+
+@media(max-width:1024px){
+
+
+    .ai-header {
+
+        padding:22px;
+
+    }
+
+
+    .ai-header h1 {
+
+        font-size:28px;
+
+    }
+
+
+    .profile-grid {
+
+        grid-template-columns:
+
+        repeat(2,1fr);
+
+    }
+
+
+    .chat-container {
+
+        height:500px;
+
+    }
+
+
+    .prompt-grid {
+
+        grid-template-columns:
+
+        repeat(2,1fr);
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   Mobile Landscape
+========================================= */
+
+
+@media(max-width:768px){
+
+
+    body {
+
+        overflow-x:hidden;
+
+    }
+
+
+    .ai-page {
+
+        padding:10px;
+
+    }
+
+
+    .ai-header,
+    .profile-card,
+    .chat-wrapper,
+    .suggested-prompts,
+    .chat-input-area {
+
+        width:calc(100% - 20px);
+
+    }
+
+
+    .ai-header h1 {
+
+        font-size:24px;
+
+    }
+
+
+    .chat-container {
+
+        height:420px;
+
+    }
+
+
+    .message-avatar {
+
+        width:36px;
+
+        height:36px;
+
+        font-size:18px;
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   Small Phones
+========================================= */
+
+
+@media(max-width:480px){
+
+
+    .ai-header {
+
+        padding:18px;
+
+        border-radius:14px;
+
+    }
+
+
+    .back-btn {
+
+        font-size:13px;
+
+        padding:10px 14px;
+
+    }
+
+
+    .profile-card {
+
+        padding:18px;
+
+    }
+
+
+    .profile-card h2 {
+
+        font-size:18px;
+
+    }
+
+
+    .profile-grid {
+
+        grid-template-columns:
+
+        1fr;
+
+    }
+
+
+    .chat-wrapper {
+
+        padding:12px;
+
+    }
+
+
+    .chat-container {
+
+        height:380px;
+
+    }
+
+
+    .ai-message,
+    .user-message {
+
+        max-width:95%;
+
+    }
+
+
+    .message-content {
+
+        padding:13px;
+
+    }
+
+
+    .message-content p,
+    .user-message p {
+
+        font-size:13px;
+
+    }
+
+
+    .suggested-prompts {
+
+        padding:18px;
+
+    }
+
+
+    .prompt-btn {
+
+        font-size:13px;
+
+    }
+
+
+}
+
+
+
+/* =========================================
+   Very Small Screens
+========================================= */
+
+
+@media(max-width:360px){
+
+
+    .ai-header h1 {
+
+        font-size:21px;
+
+    }
+
+
+    .ai-header p {
+
+        font-size:12px;
+
+    }
+
+
+    .chat-container {
+
+        height:350px;
+
+    }
+
+
+    #messageInput {
+
+        font-size:13px;
+
+    }
+
+
+}

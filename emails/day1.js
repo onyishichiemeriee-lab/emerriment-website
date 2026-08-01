@@ -1,6 +1,6 @@
 const layout = require("./layout");
 
-module.exports = ({ name }) => {
+module.exports = ({ name, email }) => {
 
 return {
 
@@ -11,6 +11,8 @@ html: layout({
 
 title:
 "🌿 The Truth About Your Skin Type",
+
+email,
 
 content: `
 

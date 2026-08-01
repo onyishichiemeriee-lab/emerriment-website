@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EMerriment Admin Dashboard</title>
+
+    <link rel="stylesheet" href="css/adminCMS.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="js/dashboardCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="logo">
+        🌿 <span>EMerriment Admin</span>
+    </div>
+
+    <button id="logoutBtn" class="logout-btn">
+        Logout
+    </button>
+
+</header>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <a href="dashboardCMS.html" class="active">🏠 Dashboard</a>
+
+        <a href="articlesCMS.html">📚 Articles</a>
+
+        <a href="usersCMS.html">👥 Users</a>
+
+        <a href="analyticsCMS.html">📊 Analytics</a>
+
+        <a href="productsCMS.html">🛍️ Products</a>
+
+    </aside>
+
+    <main class="content">
+
+        <h1>Welcome, Admin 👋</h1>
+
+        <p>Manage the EMerriment platform from one place.</p>
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+                <h3>Total Articles</h3>
+                <h2 id="articleCount">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <h2 id="userCount">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <h3>Quiz Results</h3>
+                <h2 id="quizCount">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <h3>Saved Articles</h3>
+                <h2 id="favoriteCount">0</h2>
+            </div>
+
+        </section>
+
+        <section class="quick-actions">
+
+            <h2>Quick Actions</h2>
+
+            <div class="action-grid">
+
+                <a href="new-articleCMS.html" class="action-card">
+
+                    ➕ New Article
+
+                </a>
+
+                <a href="articlesCMS.html" class="action-card">
+
+                    📚 Manage Articles
+
+                </a>
+
+                <a href="usersCMS.html" class="action-card">
+
+                    👥 View Users
+
+                </a>
+
+                <a href="analyticsCMS.html" class="action-card">
+
+                    📈 View Analytics
+
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

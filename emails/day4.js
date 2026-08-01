@@ -1,6 +1,6 @@
 const layout = require("./layout");
 
-module.exports = ({ name }) => {
+module.exports = ({ name, email }) => {
 
 return {
 
