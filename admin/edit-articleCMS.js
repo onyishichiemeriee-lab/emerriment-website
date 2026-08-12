@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 const articleId = new URLSearchParams(window.location.search).get("id");
 

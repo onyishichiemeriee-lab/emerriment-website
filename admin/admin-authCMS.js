@@ -2,7 +2,7 @@
 // EMerriment Admin Authentication
 // ==========================================
 
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 const form = document.getElementById("adminLoginForm");
 const message = document.getElementById("message");

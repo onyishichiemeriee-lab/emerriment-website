@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 const articlesContainer = document.getElementById("articlesContainer");
 const featuredContainer = document.getElementById("featuredContainer");

@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 const form = document.getElementById("settingsForm");
 const message = document.getElementById("message");
@@ -10,7 +10,7 @@ const message = document.getElementById("message");
 async function checkAdmin(){
 
 const { data:{ user } } =
-await supabase.auth.getUser();
+await supabaseClient.auth.getUser();
 
 if(!user){
 

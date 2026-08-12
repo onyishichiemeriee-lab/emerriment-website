@@ -5,15 +5,13 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>
 EMerriment Admin Dashboard
 </title>
 
-<link rel="stylesheet"
-href="dashboard.css">
+<link rel="stylesheet" href="dashboard.css">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
@@ -23,10 +21,18 @@ const SUPABASE_URL = "https://ioeulnjrozkbetaongbv.supabase.co";
 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc";
 
+window.supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
 </script>
+
 </head>
 
+
 <body>
+
 
 <div class="sidebar">
 
@@ -48,97 +54,200 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 </ul>
 
-<button id="logoutBtn">🚪 Logout</button>
+
+<button id="logoutBtn">
+🚪 Logout
+</button>
+
 
 </div>
 
+
+
 <div class="main">
 
-<h1>Dashboard</h1>
+
+<h1>
+Dashboard
+</h1>
+
+
+<!-- SYSTEM STATUS -->
+
+<div id="systemStatus">
+
+System Status: Checking...
+
+</div>
+
+
+
+<!-- DASHBOARD CARDS -->
 
 <div class="cards">
+
 
 <div class="card">
 
 <h3>Total Subscribers</h3>
 
-<p id="totalSubscribers">0</p>
+<div id="totalSubscribers">
+0
+</div>
 
 </div>
+
+
 
 <div class="card">
 
 <h3>Pending Emails</h3>
 
-<p id="pendingEmails">0</p>
+<div id="pendingEmails">
+0
+</div>
 
 </div>
+
+
 
 <div class="card">
 
 <h3>Completed Journey</h3>
 
-<p id="completedJourney">0</p>
+<div id="completedJourney">
+0
+</div>
 
 </div>
+
+
 
 <div class="card">
 
 <h3>Most Common Concern</h3>
 
-<p id="topConcern">-</p>
-
+<div id="topConcern">
+-
 </div>
 
 </div>
+
+
+</div>
+
+
+
+
+
+<!-- CHART SECTION -->
+
 
 <div class="charts">
 
-  <div class="chart-card">
-    <h3>Subscribers by Skin Concern</h3>
-    <canvas id="concernChart"></canvas>
-  </div>
 
-  <div class="chart-card">
-    <h3>Email Journey Progress</h3>
-    <canvas id="journeyChart"></canvas>
-  </div>
+<div class="chart-card">
+
+<h3>
+Subscribers By Skin Concern
+</h3>
+
+<canvas id="concernChart"></canvas>
+
 
 </div>
+
+
+
+
+<div class="chart-card">
+
+<h3>
+Email Journey Progress
+</h3>
+
+<canvas id="journeyChart"></canvas>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
 
 <div class="charts">
 
-  <div class="chart-card">
-    <h3>Subscriber Growth</h3>
-    <canvas id="growthChart"></canvas>
-  </div>
 
-  <div class="chart-card">
-    <h3>Email Status</h3>
-    <canvas id="emailChart"></canvas>
-  </div>
+<div class="chart-card">
+
+<h3>
+Subscriber Growth
+</h3>
+
+<canvas id="growthChart"></canvas>
+
 
 </div>
+
+
+
+
+<div class="chart-card">
+
+<h3>
+Email Status
+</h3>
+
+<canvas id="emailChart"></canvas>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- COMPLETION -->
+
 
 <div class="stats-panel">
 
+
 <div>
 
-<h3>Journey Completion</h3>
+<h3>
+Journey Completion
+</h3>
+
 
 <div class="progress">
 
-<div
-id="completionBar"
+
+<div id="completionBar"
 class="progress-fill">
 
 </div>
 
-</div>
-
-<p id="completionText">0%</p>
 
 </div>
+
+
+<div id="completionText">
+0%
+</div>
+
+
+</div>
+
+
+
 
 <button id="exportCSV">
 
@@ -146,24 +255,45 @@ class="progress-fill">
 
 </button>
 
+
+
 <button id="toggleTheme">
 
 🌙 Dark Mode
 
 </button>
 
+
+
 </div>
+
+
+
+
+
+<!-- SEARCH -->
+
 
 <div class="toolbar">
 
+
 <input
-type="text"
 id="search"
+type="text"
 placeholder="🔍 Search by name, email or concern...">
+
 
 </div>
 
+
+
+
+
+<!-- SUBSCRIBERS TABLE -->
+
+
 <table>
+
 
 <thead>
 
@@ -181,35 +311,76 @@ placeholder="🔍 Search by name, email or concern...">
 
 <th>Status</th>
 
+
 </tr>
 
 </thead>
+
+
 
 <tbody id="subscriberTable">
 
 </tbody>
 
+
+
 </table>
 
-<div id="subscriberModal" class="modal">
+
+
+
+
+<!-- MODAL -->
+
+
+<div id="subscriberModal"
+class="modal">
+
 
 <div class="modal-content">
 
-<span id="closeModal">&times;</span>
 
-<h2>Subscriber Details</h2>
+<button id="closeModal">
 
-<div id="subscriberDetails"></div>
+× Close
+
+</button>
+
+
+
+<h2>
+Subscriber Details
+</h2>
+
+
+
+<div id="subscriberDetails">
 
 </div>
 
-</div>
+
 
 </div>
+
+
+</div>
+
+
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+  // create supabaseClient here
+</script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script src="dashboard.js"></script>
+
 
 </body>
 

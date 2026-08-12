@@ -1,12 +1,6 @@
 // SUPABASE CONNECTION
 
-const supabaseUrl = "https://ioeulnjrozkbetaongbv.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc";
-
-const supabaseClient = supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
+const supabaseClient = window.supabaseClient;
 
 const skincareKnowledge = {
   acne: {

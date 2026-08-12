@@ -2,7 +2,7 @@
 // EMerriment Authentication
 // ======================================
 
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 // Display messages
 function showMessage(message, type = "success") {

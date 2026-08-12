@@ -2,8 +2,7 @@
 // EMerriment Dashboard
 // =========================================
 
-const supabase = window.supabaseClient;
-
+const supabaseClient = window.supabaseClient;
 // -----------------------------
 // Check Authentication
 // -----------------------------

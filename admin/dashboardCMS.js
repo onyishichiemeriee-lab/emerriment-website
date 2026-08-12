@@ -1,9 +1,9 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 // Verify admin
 async function checkAdmin(){
 
-    const { data:{ user } } = await supabase.auth.getUser();
+    const { data:{ user } } = await supabaseClient.auth.getUser();
 
     if(!user){
 
@@ -12,7 +12,7 @@ async function checkAdmin(){
 
     }
 
-    const { data:profile } = await supabase
+    const { data:profile } = await supabaseClient
 
         .from("profiles")
 

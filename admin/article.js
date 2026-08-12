@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 const slug = new URLSearchParams(window.location.search).get("slug");
 
@@ -11,7 +11,7 @@ let allArticles = [];
 
 async function loadArticle() {
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from("encyclopedia_articles")
         .select("*")
         .eq("slug", slug)

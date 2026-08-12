@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 const form = document.getElementById("productForm");
 const message = document.getElementById("message");
@@ -23,7 +23,7 @@ form.addEventListener("submit", async e=>{
 
 e.preventDefault();
 
-const { error } = await supabase
+const { error } = await supabaseClient
 
 .from("products")
 

@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 let products = [];
 
@@ -16,7 +16,7 @@ return;
 }
 
 const { data:profile } =
-await supabase
+await supabaseClient
 
 .from("profiles")
 

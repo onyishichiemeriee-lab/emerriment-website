@@ -2,8 +2,7 @@
 // EMerriment - My Skin Journey
 // ==========================================
 
-const supabase = window.supabaseClient;
-
+const supabaseClient = window.supabaseClient;
 // ------------------------------
 // Check Authentication
 // ------------------------------
@@ -13,7 +12,7 @@ async function checkUser() {
     const {
         data: { user },
         error
-    } = await supabase.auth.getUser();
+    } = await supabaseClient.auth.getUser();
 
     if (error || !user) {
 
@@ -35,7 +34,7 @@ async function loadJourney(user) {
     document.getElementById("welcomeMessage").textContent =
         `Welcome back, ${user.user_metadata?.full_name || "Beautiful"} 🌿`;
 
-    const { data: quizzes, error } = await supabase
+    const { data: quizzes, error } = await supabaseClient
 
         .from("quiz_results")
 
@@ -167,26 +166,6 @@ function displayTimeline(quizzes) {
 // ------------------------------
 // Logout
 // ------------------------------
-
-const logoutBtn = document.getElementById("logoutBtn");
-
-if (logoutBtn) {
-
-    logoutBtn.addEventListener("click", async () => {
-
-        const confirmLogout = confirm(
-            "Do you want to logout?"
-        );
-
-        if (!confirmLogout) return;
-
-        await supabase.auth.signOut();
-
-        window.location.href = "../login.html";
-
-    });
-
-}
 
 // ------------------------------
 // Initialize

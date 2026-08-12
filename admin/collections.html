@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Collections | EMerriment</title>
+
+    <link rel="stylesheet" href="collections.css">
+
+</head>
+
+<body>
+
+<header class="page-header">
+
+    <h1>📚 My Collections</h1>
+
+    <p>Organize your favorite encyclopedia articles into collections.</p>
+
+</header>
+
+<main class="collections-page">
+
+    <!-- Create Collection -->
+
+    <section class="create-collection">
+
+        <h2>Create Collection</h2>
+
+        <input
+            type="text"
+            id="collectionName"
+            placeholder="Collection name"
+        >
+
+        <textarea
+            id="collectionDescription"
+            placeholder="Description (optional)"
+        ></textarea>
+
+        <button id="createCollectionBtn">
+            Create Collection
+        </button>
+
+    </section>
+
+    <!-- Collections List -->
+
+    <section>
+
+        <h2>Your Collections</h2>
+
+        <div id="collectionsContainer">
+
+            <p>No collections yet.</p>
+
+        </div>
+
+    </section>
+
+    <!-- Collection Articles -->
+
+    <section>
+
+        <h2>Collection Articles</h2>
+
+        <div id="collectionArticles">
+
+            <p>Select a collection to view its articles.</p>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script src="../js/supabase.js"></script>
+
+<script src="collections.js"></script>
+
+<script>
+
+document
+.getElementById("createCollectionBtn")
+.addEventListener("click", () => {
+
+    const name =
+    document.getElementById("collectionName").value.trim();
+
+    const description =
+    document.getElementById("collectionDescription").value.trim();
+
+    if (!name) {
+
+        alert("Please enter a collection name.");
+
+        return;
+
+    }
+
+    createCollection(name, description);
+
+    document.getElementById("collectionName").value = "";
+
+    document.getElementById("collectionDescription").value = "";
+
+});
+
+loadCollections();
+
+</script>
+
+</body>
+
+</html>

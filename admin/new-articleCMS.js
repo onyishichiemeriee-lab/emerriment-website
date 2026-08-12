@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 // Auto-generate slug
 document.getElementById("title").addEventListener("input", (e) => {

@@ -9,8 +9,18 @@
     <link rel="stylesheet" href="css/dashboardD.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js" defer></script>
-    <script src="js/dashboardD.js" defer></script>
+<script src="js/supabase.js"></script>
+
+<script src="dashboard/dashboard-ui.js"></script>
+<script src="dashboard/dashboard-auth.js"></script>
+<script src="dashboard/dashboard-profile.js"></script>
+<script src="dashboard/dashboard-stats.js"></script>
+<script src="dashboard/dashboard-reading.js"></script>
+<script src="dashboard/dashboard-history.js"></script>
+<script src="dashboard/dashboard-recommendations.js"></script>
+<script src="dashboard/dashboard-products.js"></script>
+<script src="dashboard/dashboard-topics.js"></script>
+<script src="dashboard/dashboard.js"></script>
 </head>
 
 <body>
@@ -22,8 +32,11 @@
     </div>
 
     <button id="logoutBtn" class="logout-btn">
-        Logout
-    </button>
+        <a href="login.html" style="text-decoration: none; color: white;">
+            Logout
+        </a>
+        
+  </button>
 
 </header>
 
@@ -200,6 +213,8 @@
 <h2>💾 Saved Articles</h2>
 
 <div id="savedArticles" class="article-grid"></div>
+
+<div id="savedArticlesContainer"></div>
 
 </section>
 
