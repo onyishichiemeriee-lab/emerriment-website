@@ -1,19 +1,17 @@
-const supabaseClient = window.supabaseClient;
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-(async()=>{
-
-const {data}=await supabaseClient.auth.getSession();
-
-if(!data.session){
-
-window.location.href="login.html";
-
-return;
-
-}
-
-loadProducts();
-
+(async () => {
+    // The existing check will now pass
+    if (!supabaseClient) {
+        console.error("Supabase client failed to initialize.");
+        return;
+    }
+    const { data } = await supabaseClient.auth.getSession();
+    if (!data.session) {
+        window.location.href = "login.html";
+        return;
+    }
+    loadProducts(); 
 })();
 
 async function loadProducts(){

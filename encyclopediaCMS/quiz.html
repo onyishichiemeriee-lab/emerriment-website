@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Take the EMerriment Skin Quiz and discover your skin type, concerns, and personalized skincare recommendations."
+    >
+
+    <title>Skin Quiz | EMerriment</title>
+
+    <!-- Main favicon -->
+    <link
+        rel="icon"
+        type="image/png"
+        href="images/favicon.png"
+    >
+
+    <!-- Quiz Styles -->
+    <link
+        rel="stylesheet"
+        href="css/quiz.css"
+    >
+
+</head>
+
+<body>
+
+    <!-- ========================================
+         HEADER
+    ========================================= -->
+
+    <header class="quiz-header">
+
+        <div class="quiz-header-inner">
+
+            <a
+                href="index.html"
+                class="brand"
+            >
+
+                <span class="brand-icon">🌸</span>
+
+                <span class="brand-name">
+                    EMerriment
+                </span>
+
+            </a>
+
+            <nav class="quiz-navigation">
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="encyclopedia.html">
+                    Encyclopedia
+                </a>
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+
+    <!-- ========================================
+         MAIN QUIZ AREA
+    ========================================= -->
+
+    <main class="quiz-page">
+
+        <section class="quiz-container">
+
+            <!-- ==================================
+                 INTRO SCREEN
+            ================================== -->
+
+            <div
+                id="quizIntro"
+                class="quiz-screen active"
+            >
+
+                <div class="quiz-icon">
+                    ✨
+                </div>
+
+                <span class="eyebrow">
+                    EMERRIMENT SKIN ANALYSIS
+                </span>
+
+                <h1>
+                    Discover What Your Skin
+                    Really Needs
+                </h1>
+
+                <p class="intro-text">
+
+                    Your skin is unique.
+
+                    <br>
+
+                    Answer a few simple questions and
+                    we'll help you understand your skin
+                    type, concerns, and the best next
+                    steps for your skincare journey.
+
+                </p>
+
+                <div class="quiz-benefits">
+
+                    <div class="benefit">
+
+                        <span>🔬</span>
+
+                        <div>
+                            <strong>
+                                Personalized Analysis
+                            </strong>
+
+                            <p>
+                                Understand your skin better.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="benefit">
+
+                        <span>🌿</span>
+
+                        <div>
+                            <strong>
+                                Skin-Friendly Guidance
+                            </strong>
+
+                            <p>
+                                Get practical skincare advice.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="benefit">
+
+                        <span>💛</span>
+
+                        <div>
+                            <strong>
+                                Built For Your Journey
+                            </strong>
+
+                            <p>
+                                Your results can follow you
+                                across EMerriment.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="startQuizBtn"
+                    class="primary-btn"
+                >
+
+                    Start My Skin Analysis
+                    <span>→</span>
+
+                </button>
+
+                <p class="privacy-note">
+
+                    🔒 Your information is kept private
+                    and is used to personalize your
+                    EMerriment experience.
+
+                </p>
+
+            </div>
+
+
+            <!-- ==================================
+                 QUIZ FORM
+            ================================== -->
+
+            <div
+                id="quizFormScreen"
+                class="quiz-screen"
+            >
+
+                <!-- Progress -->
+
+                <div class="quiz-progress">
+
+                    <div class="progress-info">
+
+                        <span id="questionCounter">
+                            Question 1 of 7
+                        </span>
+
+                        <span id="progressPercentage">
+                            14%
+                        </span>
+
+                    </div>
+
+                    <div class="progress-track">
+
+                        <div
+                            id="progressBar"
+                            class="progress-bar"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Question Area -->
+
+                <form
+                    id="skinQuizForm"
+                    novalidate
+                >
+
+                    <!-- ==========================
+                         QUESTION 1
+                    =========================== -->
+
+                    <div
+                        class="question active"
+                        data-question="1"
+                    >
+
+                        <span class="question-number">
+                            01
+                        </span>
+
+                        <h2>
+                            What should we call you?
+                        </h2>
+
+                        <p>
+                            Let's make your skin journey
+                            a little more personal.
+                        </p>
+
+                        <div class="input-group">
+
+                            <label for="name">
+                                Your name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                placeholder="Enter your name"
+                                autocomplete="name"
+                            >
+
+                        </div>
+
+                        <div class="input-group">
+
+                            <label for="email">
+                                Email address
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="you@example.com"
+                                autocomplete="email"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==========================
+                         QUESTION 2
+                    =========================== -->
+
+                    <div
+                        class="question"
+                        data-question="2"
+                    >
+
+                        <span class="question-number">
+                            02
+                        </span>
+
+                        <h2>
+                            How would you describe
+                            your skin?
+                        </h2>
+
+                        <p>
+                            Choose the option that feels
+                            most like your skin.
+                        </p>
+
+                        <div class="option-grid">
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="skinType"
+                                    value="Oily"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        💧
+                                    </span>
+
+                                    <strong>
+                                        Oily
+                                    </strong>
+
+                                    <small>
+                                        Often shiny or produces
+                                        excess oil.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="skinType"
+                                    value="Dry"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🏜️
+                                    </span>
+
+                                    <strong>
+                                        Dry
+                                    </strong>
+
+                                    <small>
+                                        Often feels tight,
+                                        rough or flaky.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="skinType"
+                                    value="Combination"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        ⚖️
+                                    </span>
+
+                                    <strong>
+                                        Combination
+                                    </strong>
+
+                                    <small>
+                                        Oily in some areas
+                                        and dry in others.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="skinType"
+                                    value="Normal"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🌿
+                                    </span>
+
+                                    <strong>
+                                        Normal
+                                    </strong>
+
+                                    <small>
+                                        Generally balanced
+                                        and comfortable.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="skinType"
+                                    value="Sensitive"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🌸
+                                    </span>
+
+                                    <strong>
+                                        Sensitive
+                                    </strong>
+
+                                    <small>
+                                        Easily irritated or
+                                        reactive.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==========================
+                         QUESTION 3
+                    =========================== -->
+
+                    <div
+                        class="question"
+                        data-question="3"
+                    >
+
+                        <span class="question-number">
+                            03
+                        </span>
+
+                        <h2>
+                            What is your biggest
+                            skin concern?
+                        </h2>
+
+                        <p>
+                            Choose the concern you'd most
+                            like help understanding.
+                        </p>
+
+                        <div class="option-grid">
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Acne"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🔴
+                                    </span>
+
+                                    <strong>
+                                        Acne
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Hyperpigmentation"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        ✨
+                                    </span>
+
+                                    <strong>
+                                        Hyperpigmentation
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Dryness"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🏜️
+                                    </span>
+
+                                    <strong>
+                                        Dryness
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Eczema"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🌿
+                                    </span>
+
+                                    <strong>
+                                        Eczema
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Dark Spots"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🌑
+                                    </span>
+
+                                    <strong>
+                                        Dark Spots
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Uneven Skin Tone"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🎨
+                                    </span>
+
+                                    <strong>
+                                        Uneven Skin Tone
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Aging"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🌸
+                                    </span>
+
+                                    <strong>
+                                        Aging
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="concern"
+                                    value="Sensitivity"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        💗
+                                    </span>
+
+                                    <strong>
+                                        Sensitivity
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==========================
+                         QUESTION 4
+                    =========================== -->
+
+                    <div
+                        class="question"
+                        data-question="4"
+                    >
+
+                        <span class="question-number">
+                            04
+                        </span>
+
+                        <h2>
+                            How oily does your skin
+                            usually feel?
+                        </h2>
+
+                        <p>
+                            Think about your skin during
+                            a normal day.
+                        </p>
+
+                        <div class="option-list">
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="oilLevel"
+                                    value="Low"
+                                >
+
+                                <span>
+                                    Low — rarely oily
+                                </span>
+
+                            </label>
+
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="oilLevel"
+                                    value="Moderate"
+                                >
+
+                                <span>
+                                    Moderate — some shine
+                                </span>
+
+                            </label>
+
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="oilLevel"
+                                    value="High"
+                                >
+
+                                <span>
+                                    High — frequently oily
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==========================
+                         QUESTION 5
+                    =========================== -->
+
+                    <div
+                        class="question"
+                        data-question="5"
+                    >
+
+                        <span class="question-number">
+                            05
+                        </span>
+
+                        <h2>
+                            How sensitive is your skin?
+                        </h2>
+
+                        <p>
+                            How often does your skin react
+                            to products or environmental
+                            changes?
+                        </p>
+
+                        <div class="option-list">
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="sensitivity"
+                                    value="Low"
+                                >
+
+                                <span>
+                                    Low — rarely reacts
+                                </span>
+
+                            </label>
+
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="sensitivity"
+                                    value="Moderate"
+                                >
+
+                                <span>
+                                    Moderate — sometimes reacts
+                                </span>
+
+                            </label>
+
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="sensitivity"
+                                    value="High"
+                                >
+
+                                <span>
+                                    High — reacts easily
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==========================
+                         QUESTION 6
+                    =========================== -->
+
+                    <div
+                        class="question"
+                        data-question="6"
+                    >
+
+                        <span class="question-number">
+                            06
+                        </span>
+
+                        <h2>
+                            What would you most like
+                            to achieve?
+                        </h2>
+
+                        <p>
+                            Choose the goal that matters
+                            most to you right now.
+                        </p>
+
+                        <div class="option-grid">
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="goal"
+                                    value="Clearer Skin"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        ✨
+                                    </span>
+
+                                    <strong>
+                                        Clearer Skin
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="goal"
+                                    value="Even Skin Tone"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🌟
+                                    </span>
+
+                                    <strong>
+                                        Even Skin Tone
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="goal"
+                                    value="Healthy Skin Barrier"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🛡️
+                                    </span>
+
+                                    <strong>
+                                        Healthy Skin Barrier
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+
+                            <label class="option-card">
+
+                                <input
+                                    type="radio"
+                                    name="goal"
+                                    value="Natural Glow"
+                                >
+
+                                <span class="option-content">
+
+                                    <span class="option-icon">
+                                        🌸
+                                    </span>
+
+                                    <strong>
+                                        Natural Glow
+                                    </strong>
+
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==========================
+                         QUESTION 7
+                    =========================== -->
+
+                    <div
+                        class="question"
+                        data-question="7"
+                    >
+
+                        <span class="question-number">
+                            07
+                        </span>
+
+                        <h2>
+                            How consistent is your
+                            current skincare routine?
+                        </h2>
+
+                        <p>
+                            Be honest — there's no wrong
+                            answer.
+                        </p>
+
+                        <div class="option-list">
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="routine"
+                                    value="None"
+                                >
+
+                                <span>
+                                    I don't have a routine yet
+                                </span>
+
+                            </label>
+
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="routine"
+                                    value="Sometimes"
+                                >
+
+                                <span>
+                                    I have a routine, but I'm
+                                    not always consistent
+                                </span>
+
+                            </label>
+
+
+                            <label class="list-option">
+
+                                <input
+                                    type="radio"
+                                    name="routine"
+                                    value="Consistent"
+                                >
+
+                                <span>
+                                    I follow my routine
+                                    consistently
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==========================
+                         NAVIGATION BUTTONS
+                    =========================== -->
+
+                    <div class="quiz-navigation-buttons">
+
+                        <button
+                            type="button"
+                            id="previousBtn"
+                            class="secondary-btn"
+                        >
+                            ← Back
+                        </button>
+
+                        <button
+                            type="button"
+                            id="nextBtn"
+                            class="primary-btn"
+                        >
+                            Continue →
+                        </button>
+
+                        <button
+                            type="submit"
+                            id="submitQuizBtn"
+                            class="primary-btn"
+                        >
+                            Analyze My Skin ✨
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <!-- ==================================
+                 ANALYZING SCREEN
+            ================================== -->
+
+            <div
+                id="analysisScreen"
+                class="quiz-screen"
+            >
+
+                <div class="analysis-animation">
+
+                    <div class="analysis-circle">
+                        ✨
+                    </div>
+
+                </div>
+
+                <span class="eyebrow">
+                    EMERRIMENT AI ANALYSIS
+                </span>
+
+                <h2>
+                    Analyzing Your Skin Profile...
+                </h2>
+
+                <p>
+                    We're putting your answers
+                    together to create a more
+                    personalized skincare journey.
+                </p>
+
+                <div class="analysis-status">
+
+                    <span id="analysisStatus">
+                        Reviewing your skin type...
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================
+                 RESULTS SCREEN
+            ================================== -->
+
+            <div
+                id="quizResults"
+                class="quiz-screen"
+            >
+
+                <div class="results-header">
+
+                    <span class="eyebrow">
+                        YOUR EMERRIMENT SKIN PROFILE
+                    </span>
+
+                    <h2>
+                        Your Skin Journey Starts Here 🌸
+                    </h2>
+
+                    <p id="resultGreeting">
+                        We've analyzed your answers.
+                    </p>
+
+                </div>
+
+
+                <!-- Skin Score -->
+
+                <div class="skin-score-card">
+
+                    <div class="score-circle">
+
+                        <span id="skinScore">
+                            --
+                        </span>
+
+                        <small>
+                            /100
+                        </small>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            EMerriment Skin Score
+                        </span>
+
+                        <p id="scoreMessage">
+                            Your personalized score
+                            will appear here.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Profile Cards -->
+
+                <div class="result-grid">
+
+                    <div class="result-card">
+
+                        <span>
+                            🧴
+                        </span>
+
+                        <small>
+                            Skin Type
+                        </small>
+
+                        <strong id="resultSkinType">
+                            --
+                        </strong>
+
+                    </div>
+
+
+                    <div class="result-card">
+
+                        <span>
+                            🎯
+                        </span>
+
+                        <small>
+                            Main Concern
+                        </small>
+
+                        <strong id="resultConcern">
+                            --
+                        </strong>
+
+                    </div>
+
+
+                    <div class="result-card">
+
+                        <span>
+                            💧
+                        </span>
+
+                        <small>
+                            Oil Level
+                        </small>
+
+                        <strong id="resultOilLevel">
+                            --
+                        </strong>
+
+                    </div>
+
+
+                    <div class="result-card">
+
+                        <span>
+                            🌸
+                        </span>
+
+                        <small>
+                            Sensitivity
+                        </small>
+
+                        <strong id="resultSensitivity">
+                            --
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Recommendation -->
+
+                <div class="recommendation-card">
+
+                    <span class="eyebrow">
+                        PERSONALIZED GUIDANCE
+                    </span>
+
+                    <h3>
+                        Your Starting Point
+                    </h3>
+
+                    <p id="resultRecommendation">
+                        Your personalized skincare
+                        guidance will appear here.
+                    </p>
+
+                </div>
+
+
+                <!-- Results Actions -->
+
+                <div class="result-actions">
+
+                    <a
+                        href="dashboard.html"
+                        class="primary-btn"
+                    >
+                        Go To My Dashboard →
+                    </a>
+
+                    <a
+                        href="encyclopedia.html"
+                        class="secondary-btn"
+                    >
+                        Explore Skin Encyclopedia
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ========================================
+         FOOTER
+    ========================================= -->
+
+    <footer class="quiz-footer">
+
+        <p>
+            © 2026 EMerriment. Helping the world glow naturally.
+
+        </p>
+
+    </footer>
+
+
+    <!-- ========================================
+         JAVASCRIPT
+    ========================================= -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ></script>
+
+    <script src="js/supabase.js"></script>
+
+    <script src="js/quiz.js"></script>
+
+</body>
+</html>

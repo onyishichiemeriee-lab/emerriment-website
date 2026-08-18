@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | EMerriment</title>
+
+    <link rel="stylesheet" href="css/dashboardD.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+
+<script src="dashboard/dashboard-ui.js"></script>
+<script src="dashboard/dashboard-auth.js"></script>
+<script src="dashboard/dashboard-profile.js"></script>
+<script src="dashboard/dashboard-stats.js"></script>
+<script src="dashboard/dashboard-reading.js"></script>
+<script src="dashboard/dashboard-history.js"></script>
+<script src="dashboard/dashboard-recommendations.js"></script>
+<script src="dashboard/dashboard-products.js"></script>
+<script src="dashboard/dashboard-topics.js"></script>
+<script src="dashboard/dashboard.js"></script>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+        🌿 <span>EMerriment</span>
+    </div>
+
+</header>
+
+<main class="dashboard">
+
+    <!-- Welcome -->
+
+    <section class="welcome-card">
+
+        <h1 id="welcomeMessage">
+            Welcome Back!
+        </h1>
+
+        <p>
+            Continue your skincare journey with personalized insights and recommendations.
+        </p>
+
+    </section>
+
+    <section class="continue-reading-section">
+
+    <h2>📖 Continue Reading</h2>
+
+    <div id="continueReadingContainer" class="article-grid"></div>
+
+</section>
+
+<section class="recently-viewed-section">
+
+    <h2>🕒 Recently Viewed</h2>
+
+    <div id="recentlyViewedContainer" class="article-grid"></div>
+
+</section>
+
+    <!-- Statistics -->
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <h2>Skin Score</h2>
+            <p id="skinScore">--</p>
+        </div>
+
+        <div class="stat-card">
+            <h2>Quiz Results</h2>
+            <p id="quizCount">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h2>Saved Articles</h2>
+            <p id="savedArticles">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h2>Products</h2>
+            <p id="recommendedProducts">0</p>
+        </div>
+
+    </section>
+
+    <!-- Dashboard Menu -->
+
+    <section class="features-grid">
+
+        <a href="#" class="feature-card">
+
+            <div class="icon">📊</div>
+
+            <h3>My Skin Journey</h3>
+
+            <p>
+                View your previous quiz results and track your skin progress.
+            </p>
+
+        </a>
+
+        <a href="skin-journey.html" class="feature-card">
+
+            <div class="icon">📚</div>
+
+            <h3>Skin Encyclopedia</h3>
+
+            <p>
+                Learn about skin conditions and skincare ingredients.
+            </p>
+
+        </a>
+
+        <a href="#" class="feature-card">
+
+            <div class="icon">❤️</div>
+
+            <h3>Saved Articles</h3>
+
+            <p>
+                Read your favorite skincare articles anytime.
+            </p>
+
+        </a>
+
+        <a href="#" class="feature-card">
+
+            <div class="icon">🛍️</div>
+
+            <h3>Recommendations</h3>
+
+            <p>
+                Discover products selected for your skin type.
+            </p>
+
+        </a>
+
+        <a href="#" class="feature-card">
+
+            <div class="icon">🤖</div>
+
+            <h3>EMerriment AI</h3>
+
+            <p>
+                Ask skincare questions and receive helpful guidance.
+            </p>
+
+        </a>
+
+        <a href="#" class="feature-card">
+
+            <div class="icon">⚙️</div>
+
+            <h3>Settings</h3>
+
+            <p>
+                Manage your profile, password, and account preferences.
+            </p>
+
+        </a>
+
+    </section>
+
+    <!-- Recent Activity -->
+
+    <section class="activity-card">
+
+        <h2>Recent Activity</h2>
+
+        <div id="recentActivity">
+
+            <p>
+                No recent activity yet.
+            </p>
+
+        </div>
+
+    </section>
+
+    <section>
+
+<h2>❤️ Recommended For You</h2>
+
+<div id="recommendedArticles" class="article-grid"></div>
+
+</section>
+
+<section>
+
+<h2>🔥 Trending Articles</h2>
+
+<div id="trendingArticles" class="article-grid"></div>
+
+</section>
+
+<section>
+
+<h2>💾 Saved Articles</h2>
+
+<div id="savedArticles" class="article-grid"></div>
+
+<div id="savedArticlesContainer"></div>
+
+</section>
+
+<section>
+
+<h2>🛍 Recommended Products</h2>
+
+<div id="recommendedProducts" class="article-grid"></div>
+
+</section>
+
+<section>
+
+<h2>📚 Latest Articles</h2>
+
+<div id="latestArticles" class="article-grid"></div>
+
+</section>
+
+<section class="popular-topics-section">
+
+    <h2>🔥 Popular Topics</h2>
+
+    <div id="popularTopicsContainer"
+         class="topics-grid">
+    </div>
+
+</section>
+
+<button id="clearHistoryBtn">
+
+    Clear Reading History
+
+</button>
+
+</main>
+
+<footer>
+
+    <p>
+        © 2026 EMerriment. Helping the world glow naturally.
+
+    </p>
+
+</footer>
+
+</body>
+</html>

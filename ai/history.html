@@ -1,230 +1,369 @@
-<!-- =========================================
-     EMerriment AI Conversation History
-     Header
-========================================= -->
+<!DOCTYPE html>
+<html lang="en">
 
-<header class="history-header">
+<head>
 
-    <div class="header-left">
+    <meta charset="UTF-8">
 
-        <a href="index.html" class="back-button">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-            ← Back to AI
+    <meta
+        name="description"
+        content="View your EMerriment AI skincare conversation history."
+    >
 
-        </a>
-
-
-        <div class="brand-area">
-
-            <div class="ai-logo">
-
-                🤖
-
-            </div>
+    <title>Conversation History | EMerriment AI</title>
 
 
-            <div>
+    <!-- =========================================
+         FAVICON
+    ========================================== -->
 
-                <h1>
-                    EMerriment AI
-                </h1>
+    <link
+        rel="icon"
+        type="image/png"
+        href="../images/favicon.png"
+    >
 
 
-                <p>
-                    Conversation History
-                </p>
+    <!-- =========================================
+         HISTORY STYLES
+    ========================================== -->
+
+    <link
+        rel="stylesheet"
+        href="./ai/css/history.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         EMERRIMENT AI HISTORY HEADER
+    ========================================== -->
+
+    <header class="history-header">
+
+        <div class="header-left">
+
+
+            <!-- Back to AI -->
+
+            <a
+                href="index.html"
+                class="back-button"
+            >
+
+                ← Back to AI
+
+            </a>
+
+
+            <!-- Brand -->
+
+            <div class="brand-area">
+
+                <div class="ai-logo">
+
+                    🤖
+
+                </div>
+
+
+                <div>
+
+                    <h1>
+                        EMerriment AI
+                    </h1>
+
+
+                    <p>
+                        Conversation History
+                    </p>
+
+                </div>
 
             </div>
 
         </div>
 
 
-    </div>
+        <!-- New Chat -->
 
-
-
-    <button 
-        class="new-chat-btn"
-        id="newChatButton"
-    >
-
-        ＋ New Chat
-
-    </button>
-
-
-</header>
-
-<!-- =========================================
-     Conversation Search
-========================================= -->
-
-<section class="history-search">
-
-    <div class="search-wrapper">
-
-        <span class="search-icon">
-            🔍
-        </span>
-
-
-        <input 
-            type="search"
-            id="conversationSearch"
-            placeholder="Search conversations..."
+        <button
+            type="button"
+            class="new-chat-btn"
+            id="newChatButton"
         >
 
-    </div>
+            ＋ New Chat
 
-</section>
+        </button>
 
-<!-- =========================================
-     Conversation List
-========================================= -->
-
-<section class="conversation-section">
-
-
-    <div class="section-title">
-
-        <h2>
-            Your Conversations
-        </h2>
-
-
-        <span id="conversationCount">
-
-            0 chats
-
-        </span>
-
-    </div>
+    </header>
 
 
 
-    <div 
-        id="conversationList"
-        class="conversation-list"
+    <!-- =========================================
+         MAIN CONTENT
+    ========================================== -->
+
+    <main class="history-main">
+
+
+        <!-- =====================================
+             SEARCH
+        ====================================== -->
+
+        <section class="history-search">
+
+            <div class="search-wrapper">
+
+                <span
+                    class="search-icon"
+                    aria-hidden="true"
+                >
+
+                    🔍
+
+                </span>
+
+
+                <input
+                    type="search"
+                    id="conversationSearch"
+                    placeholder="Search conversations..."
+                    autocomplete="off"
+                    aria-label="Search conversations"
+                >
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             CONVERSATIONS
+        ====================================== -->
+
+        <section class="conversation-section">
+
+
+            <div class="section-title">
+
+                <div>
+
+                    <h2>
+                        Your Conversations
+                    </h2>
+
+                </div>
+
+
+                <span id="conversationCount">
+
+                    0 chats
+
+                </span>
+
+            </div>
+
+
+            <!-- Conversation list -->
+
+            <div
+                id="conversationList"
+                class="conversation-list"
+            >
+
+                <!--
+                    Conversations are loaded
+                    dynamically by history.js.
+                -->
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             EMPTY STATE
+        ====================================== -->
+
+        <section
+            id="emptyState"
+            class="empty-state hidden"
+        >
+
+
+            <div class="empty-icon">
+
+                💬
+
+            </div>
+
+
+            <h3>
+                No conversations yet
+            </h3>
+
+
+            <p>
+
+                Start chatting with EMerriment AI
+                and your skincare journey will
+                appear here.
+
+            </p>
+
+
+            <a
+                href="index.html"
+                class="start-chat-btn"
+            >
+
+                Start Your First Chat
+
+            </a>
+
+        </section>
+
+
+
+        <!-- =====================================
+             LOADING STATE
+        ====================================== -->
+
+        <section
+            id="loadingState"
+            class="loading-state"
+            aria-live="polite"
+        >
+
+
+            <div
+                class="loader"
+                aria-hidden="true"
+            ></div>
+
+
+            <p>
+                Loading your conversations...
+            </p>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =========================================
+         CONVERSATION ACTION MENU
+    ========================================== -->
+
+    <div
+        id="conversationMenu"
+        class="conversation-menu hidden"
+        role="menu"
     >
 
-        <!-- Conversation cards
-             will be generated by history.js -->
+
+        <button
+            type="button"
+            id="renameConversation"
+            role="menuitem"
+        >
+
+            ✏️ Rename
+
+        </button>
+
+
+
+        <button
+            type="button"
+            id="pinConversation"
+            role="menuitem"
+        >
+
+            ⭐ Pin
+
+        </button>
+
+
+
+        <button
+            type="button"
+            id="archiveConversation"
+            role="menuitem"
+        >
+
+            📦 Archive
+
+        </button>
+
+
+
+        <button
+            type="button"
+            id="deleteConversation"
+            class="danger-action"
+            role="menuitem"
+        >
+
+            🗑️ Delete
+
+        </button>
 
     </div>
 
 
-</section>
 
-<!-- =========================================
-     Empty State
-========================================= -->
+    <!-- =========================================
+         SUPABASE
+    ========================================== -->
 
-<div 
-    id="emptyState"
-    class="empty-state hidden"
->
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ></script>
 
 
-    <div class="empty-icon">
+    <!--
+        IMPORTANT:
 
-        💬
+        history.html is inside /ai/
 
-    </div>
+        Therefore ../js/ points to the
+        main website JavaScript folder.
+    -->
 
-
-    <h3>
-        No conversations yet
-    </h3>
-
-
-    <p>
-
-        Start chatting with EMerriment AI
-        and your skincare journey will appear here.
-
-    </p>
-
-
-    <a 
-        href="index.html"
-        class="start-chat-btn"
-    >
-
-        Start Your First Chat
-
-    </a>
-
-
-</div>
-
-<!-- =========================================
-     Loading State
-========================================= -->
-
-<div 
-    id="loadingState"
-    class="loading-state"
->
-
-
-    <div class="loader"></div>
-
-
-    <p>
-        Loading your conversations...
-    </p>
-
-
-</div>
-
-<!-- =========================================
-     Conversation Menu
-========================================= -->
-
-<div 
-    id="conversationMenu"
-    class="conversation-menu hidden"
->
-
-
-    <button id="renameConversation">
-
-        ✏️ Rename
-
-    </button>
+    <script src="../js/supabase.js"></script>
 
 
 
-    <button id="pinConversation">
+    <!-- =========================================
+         AI DATABASE
+    ========================================== -->
 
-        ⭐ Pin
-
-    </button>
-
-
-
-    <button id="archiveConversation">
-
-        📦 Archive
-
-    </button>
+    <script src="js/ai-database.js"></script>
 
 
 
-    <button 
-        id="deleteConversation"
-        class="danger-action"
-    >
+    <!-- =========================================
+         HISTORY CONTROLLER
+    ========================================== -->
 
-        🗑️ Delete
-
-    </button>
+    <script src="js/history.js"></script>
 
 
-</div>
+</body>
 
-<script src="../js/supabase.js"></script>
-
-<script src="js/ai-database.js"></script>
-
-<script src="js/history.js"></script>
+</html>

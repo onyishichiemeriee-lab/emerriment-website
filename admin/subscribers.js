@@ -1,20 +1,17 @@
-const supabaseClient = window.supabaseClient;
+// Replace placeholders with your actual Supabase credentials
+const supabaseClient = window.supabase.createClient('https://ioeulnjrozkbetaongbv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc');
 
-(async () => {
+(async()=>{
+  // Now supabaseClient.auth will be defined
+  const { data: { session } } = await supabaseClient.auth.getSession();
 
-const { data: session } =
-await supabaseClient.auth.getSession();
+  // Note the destructuring change above and the check below
+  if (!session) {
+    window.location.href = "login.html";
+    return;
+  }
 
-if (!session.session) {
-
-window.location.href = "login.html";
-
-return;
-
-}
-
-loadSubscribers();
-
+  loadSubscribers();
 })();
 
 async function loadSubscribers(){

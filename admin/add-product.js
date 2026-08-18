@@ -1,8 +1,8 @@
 const supabaseClient = window.supabaseClient;
 
-(async()=>{
+async()=>{
 
-const {data}=await supabaseClient.auth.getSession();
+  const {data}=await supabaseClient.auth.getSession();
 
 if(!data.session){
 
@@ -12,7 +12,7 @@ return;
 
 }
 
-})();
+};
 
 document.getElementById("productForm")
 

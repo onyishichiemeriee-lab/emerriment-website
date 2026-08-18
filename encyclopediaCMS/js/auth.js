@@ -1,0 +1,301 @@
+const authStyles = `
+/* ===========================
+   EMerriment Authentication
+=========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f8f6f1;
+    color:#333;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px;
+}
+
+/* Container */
+
+.auth-container{
+    width:100%;
+    max-width:450px;
+}
+
+/* Card */
+
+.auth-card{
+
+    background:#ffffff;
+
+    border-radius:20px;
+
+    padding:40px;
+
+    box-shadow:0 12px 35px rgba(0,0,0,.08);
+
+}
+
+/* Logo */
+
+.logo{
+
+    width:80px;
+    height:80px;
+
+    background:#d4af37;
+
+    color:#fff;
+
+    margin:0 auto 20px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:36px;
+
+}
+
+/* Headings */
+
+h1{
+
+    text-align:center;
+
+    margin-bottom:10px;
+
+    color:#222;
+
+}
+
+.subtitle{
+
+    text-align:center;
+
+    color:#777;
+
+    margin-bottom:30px;
+
+    line-height:1.6;
+
+}
+
+/* Form */
+
+.input-group{
+
+    margin-bottom:20px;
+
+}
+
+.input-group label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    font-weight:600;
+
+}
+
+.input-group input{
+
+    width:100%;
+
+    padding:14px;
+
+    border:1px solid #ddd;
+
+    border-radius:10px;
+
+    outline:none;
+    font-size:16px;
+    transition:.3s;
+}
+
+.input-group input:focus{
+
+    border-color:#d4af37;
+
+    box-shadow:0 0 0 4px rgba(212,175,55,.15);
+
+}
+
+/* Login Extras */
+
+.remember-forgot{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+    font-size:14px;
+
+}
+
+.remember-me{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+.remember-forgot a{
+
+    color:#b8860b;
+
+    text-decoration:none;
+
+}
+
+.remember-forgot a:hover{
+
+    text-decoration:underline;
+
+}
+
+/* Button */
+
+.btn-primary{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#d4af37;
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.btn-primary:hover{
+
+    background:#b8860b;
+
+    transform:translateY(-2px);
+
+}
+
+/* Messages */
+
+.message{
+
+    margin-top:20px;
+
+    text-align:center;
+
+    font-weight:600;
+
+    min-height:20px;
+
+}
+
+.message.success{
+
+    color:#198754;
+
+}
+
+.message.error{
+
+    color:#dc3545;
+
+}
+
+/* Footer */
+
+.auth-footer{
+
+    margin-top:30px;
+
+    text-align:center;
+
+}
+
+.auth-footer p{
+
+    margin-top:12px;
+
+}
+
+.auth-footer a{
+
+    color:#b8860b;
+
+    text-decoration:none;
+
+    font-weight:bold;
+
+}
+
+.auth-footer a:hover{
+
+    text-decoration:underline;
+
+}
+
+/* Responsive */
+
+@media(max-width:600px){
+
+    body{
+
+        padding:15px;
+
+    }
+
+    .auth-card{
+
+        padding:30px 22px;
+
+    }
+
+    .logo{
+
+        width:70px;
+        height:70px;
+        font-size:30px;
+
+    }
+
+    h1{
+
+        font-size:26px;
+
+    }
+
+}
+`;
+
+const styleTag = document.createElement("style");
+styleTag.textContent = authStyles;
+document.head.appendChild(styleTag);

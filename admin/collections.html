@@ -78,42 +78,72 @@
 
 </main>
 
+<!-- =========================================
+     JAVASCRIPT
+========================================= -->
+
+<!-- Supabase Library — MUST LOAD FIRST -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- EMerriment Supabase Client -->
 <script src="../js/supabase.js"></script>
 
+<!-- Collections Controller -->
 <script src="collections.js"></script>
 
 <script>
 
 document
-.getElementById("createCollectionBtn")
-.addEventListener("click", () => {
+    .getElementById("createCollectionBtn")
+    .addEventListener("click", () => {
 
-    const name =
-    document.getElementById("collectionName").value.trim();
+        const name =
+            document
+                .getElementById("collectionName")
+                .value
+                .trim();
 
-    const description =
-    document.getElementById("collectionDescription").value.trim();
+        const description =
+            document
+                .getElementById("collectionDescription")
+                .value
+                .trim();
 
-    if (!name) {
 
-        alert("Please enter a collection name.");
+        if (!name) {
 
-        return;
+            alert(
+                "Please enter a collection name."
+            );
 
-    }
+            return;
 
-    createCollection(name, description);
+        }
 
-    document.getElementById("collectionName").value = "";
 
-    document.getElementById("collectionDescription").value = "";
+        createCollection(
+            name,
+            description
+        );
 
-});
+
+        document
+            .getElementById("collectionName")
+            .value = "";
+
+
+        document
+            .getElementById("collectionDescription")
+            .value = "";
+
+    });
+
+
+/* Load collections when page opens */
 
 loadCollections();
 
 </script>
-
 </body>
 
 </html>

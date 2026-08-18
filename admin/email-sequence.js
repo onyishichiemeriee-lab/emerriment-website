@@ -106,9 +106,11 @@ window.location.href="login.html";
 
 };
 
-await supabase
-  .from("leads")
-  .update({
-    emails_sent: (subscriber.emails_sent || 0) + 1
-  })
-  .eq("id", subscriber.id);
+async function updateEmailCount(subscriber) {
+  await supabaseClient
+    .from("leads")
+    .update({
+      emails_sent: (subscriber.emails_sent || 0) + 1
+    })
+    .eq("id", subscriber.id);
+}

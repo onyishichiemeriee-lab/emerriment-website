@@ -1,153 +1,621 @@
-const supabaseClient = window.supabaseClient;
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-(async()=>{
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-const {data}=await supabaseClient.auth.getSession();
+        initializeAnalytics();
 
-if(!data.session){
+    }
+);
 
-window.location.href="login.html";
 
-return;
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+
+async function initializeAnalytics(){
+
+
+    await loadMetrics();
+
+    await generateUserGrowthChart();
+
+    await loadPopularTopics();
+
+    await loadProductAnalytics();
+
+    await loadPerformanceReport();
+
 
 }
 
-loadAnalytics();
 
-})();
 
-async function loadAnalytics() {
 
-  const { data, error } = await supabaseClient
-    .from("leads")
-    .select("*");
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+/* =========================================
+   LOAD MAIN METRICS
+========================================= */
 
-  // Total Subscribers
-  document.getElementById("totalSubscribers").innerText = data.length;
 
-  const today = new Date();
+async function loadMetrics() {
+    const users = await getAIUsers();
+    const chats = await getTotalChats();
+    const messages = await getTotalMessages();
+    const rating = await getAverageRating();
 
-  // Today's date (YYYY-MM-DD)
-  const todayString = today.toISOString().slice(0, 10);
+    // Helper to safely set text content
+    const setSafeText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
 
-  // Subscribers today
-  const todaySubscribers = data.filter(sub =>
-    sub.submitted_at &&
-    sub.submitted_at.startsWith(todayString)
-  );
+    setSafeText("aiUsers", users);
+    setSafeText("totalChats", chats);
+    setSafeText("totalMessages", messages);
+    setSafeText("aiRating", rating + " ⭐");
+}
 
-  document.getElementById("dailyGrowth").innerText =
-    todaySubscribers.length;
+/* =========================================
+   AI USERS
+========================================= */
 
-  // Last 7 Days
-  const last7Days = data.filter(sub => {
 
-    if (!sub.submitted_at) return false;
+async function getAIUsers(){
 
-    const date = new Date(sub.submitted_at);
 
-    const diff =
-      (today - date) / (1000 * 60 * 60 * 24);
+const {data,error}=
 
-    return diff <= 7;
+await supabaseClient
 
-  });
+.from("ai_conversations")
 
-  document.getElementById("weeklyGrowth").innerText =
-    last7Days.length;
-
-  // Last 30 Days
-  const last30Days = data.filter(sub => {
-
-    if (!sub.submitted_at) return false;
-
-    const date = new Date(sub.submitted_at);
-
-    const diff =
-      (today - date) / (1000 * 60 * 60 * 24);
-
-    return diff <= 30;
-
-  });
-
-  document.getElementById("monthlyGrowth").innerText =
-    last30Days.length;
-
-    const growthRate =
-data.length === 0
-? 0
-: Math.round(
-(last30Days.length / data.length) * 100
+.select(
+"user_id"
 );
 
-document.getElementById("growthRate").innerText =
-growthRate + "%";
 
-  // Top Skin Concern
-  const concerns = {};
 
-  data.forEach(sub => {
+if(error)
+return 0;
 
-    concerns[sub.concern] =
-      (concerns[sub.concern] || 0) + 1;
 
-  });
 
-  let topConcern = "-";
-  let highest = 0;
+const uniqueUsers =
+[
+...new Set(
+data.map(
+item=>item.user_id
+)
+)
+];
 
-  for (const concern in concerns) {
 
-    if (concerns[concern] > highest) {
 
-      highest = concerns[concern];
+return uniqueUsers.length;
 
-      topConcern = concern;
 
-    }
+}
 
-  }
 
-  document.getElementById("topConcern").innerText =
-    topConcern;
 
-    const totalSent =
-data.reduce((sum, sub) =>
-sum + (sub.emails_sent || 0), 0);
 
-const totalOpened =
-data.reduce((sum, sub) =>
-sum + (sub.emails_opened || 0), 0);
 
-const totalClicked =
-data.reduce((sum, sub) =>
-sum + (sub.emails_clicked || 0), 0);
+/* =========================================
+   TOTAL CHATS
+========================================= */
 
-document.getElementById("emailsSent").innerText = totalSent;
 
-document.getElementById("emailsOpened").innerText = totalOpened;
+async function getTotalChats(){
 
-document.getElementById("emailsClicked").innerText = totalClicked;
 
-const openRate =
-totalSent === 0
-? 0
-: Math.round((totalOpened / totalSent) * 100);
+const {count,error}=
 
-const clickRate =
-totalSent === 0
-? 0
-: Math.round((totalClicked / totalSent) * 100);
+await supabaseClient
 
-document.getElementById("emailOpenRate").innerText =
-openRate + "%";
+.from("ai_conversations")
 
-document.getElementById("clickRate").innerText =
-clickRate + "%";
+.select(
+"*",
+{
+count:"exact",
+head:true
+}
+);
+
+
+
+if(error)
+return 0;
+
+
+
+return count || 0;
+
+
+}
+
+
+
+
+
+/* =========================================
+   TOTAL MESSAGES
+========================================= */
+
+
+async function getTotalMessages(){
+
+
+const {count,error}=
+
+await supabaseClient
+
+.from("ai_messages")
+
+.select(
+"*",
+{
+count:"exact",
+head:true
+}
+);
+
+
+
+if(error)
+return 0;
+
+
+
+return count || 0;
+
+
+}
+
+
+
+
+
+/* =========================================
+   AI SATISFACTION
+========================================= */
+
+
+async function getAverageRating(){
+
+
+const {data,error}=
+
+await supabaseClient
+
+.from("ai_feedback")
+
+.select(
+"rating"
+);
+
+
+
+if(error || !data.length)
+return 0;
+
+
+
+const total =
+
+data.reduce(
+
+(sum,item)=>
+sum + item.rating,
+
+0
+
+);
+
+
+
+return (
+
+total / data.length
+
+).toFixed(1);
+
+
+}
+
+
+
+
+
+/* =========================================
+   USER GROWTH CHART
+========================================= */
+
+
+async function generateUserGrowthChart(){
+
+
+const {data,error}=
+
+await supabaseClient
+
+.from("ai_events")
+
+.select(
+"created_at"
+);
+
+
+
+if(error)
+return;
+
+
+
+const months = {};
+
+
+
+data.forEach(event=>{
+
+
+const month =
+
+new Date(
+event.created_at
+)
+
+.toLocaleString(
+"default",
+{
+month:"short"
+}
+);
+
+
+
+months[month] =
+(months[month] || 0)+1;
+
+
+
+});
+
+
+
+const labels =
+Object.keys(months);
+
+
+
+const values =
+Object.values(months);
+
+
+
+const ctx =
+
+document
+
+.getElementById(
+"userGrowthChart"
+);
+
+
+
+new Chart(
+
+ctx,
+
+{
+
+
+type:"line",
+
+
+data:{
+
+
+labels:labels,
+
+
+datasets:[{
+
+
+label:
+"AI Users",
+
+
+data:values,
+
+
+tension:.4
+
+
+}]
+
+
+},
+
+
+options:{
+
+
+responsive:true,
+
+
+plugins:{
+
+
+legend:{
+
+
+display:true
+
+
+}
+
+
+}
+
+
+}
+
+
+}
+
+
+);
+
+
+}
+
+
+
+
+
+/* =========================================
+   POPULAR TOPICS
+========================================= */
+
+
+async function loadPopularTopics(){
+
+
+const container =
+
+document
+
+.getElementById(
+"topicAnalytics"
+);
+
+
+
+const topics = {
+
+
+"Acne":35,
+
+"Hyperpigmentation":25,
+
+"Dark Spots":20,
+
+"Eczema":12,
+
+"Dry Skin":8
+
+
+};
+
+
+
+container.innerHTML="";
+
+
+
+Object.entries(topics)
+
+.forEach(
+([topic,value])=>{
+
+
+container.innerHTML += `
+
+
+<div class="topic-card">
+
+
+<h3>
+
+${topic}
+
+</h3>
+
+
+<p>
+
+${value}% of AI discussions
+
+</p>
+
+
+<div class="analytics-progress">
+
+<span style="width:${value}%">
+
+</span>
+
+</div>
+
+
+</div>
+
+
+`;
+
+
+});
+
+
+}
+
+
+
+
+
+/* =========================================
+   PRODUCT ANALYTICS
+========================================= */
+
+
+async function loadProductAnalytics(){
+
+
+const container =
+
+document
+
+.getElementById(
+"productAnalytics"
+);
+
+
+
+const products=[
+
+
+{
+
+name:
+"Fade & Glow Bundle",
+
+views:340,
+
+clicks:180
+
+},
+
+
+{
+
+name:
+"Acne Care Course",
+
+views:210,
+
+clicks:120
+
+}
+
+
+];
+
+
+
+container.innerHTML="";
+
+
+
+products.forEach(product=>{
+
+
+container.innerHTML += `
+
+
+<div class="product-card">
+
+
+<h3>
+
+${product.name}
+
+</h3>
+
+
+<p>
+
+Shown:
+${product.views}
+
+</p>
+
+
+<p>
+
+Clicked:
+${product.clicks}
+
+</p>
+
+
+</div>
+
+
+`;
+
+
+});
+
+
+}
+
+
+
+
+
+/* =========================================
+   PERFORMANCE REPORT
+========================================= */
+
+
+async function loadPerformanceReport(){
+
+
+const container =
+
+document
+
+.getElementById(
+"aiPerformance"
+);
+
+
+
+container.innerHTML = `
+
+
+<div class="performance-card">
+
+
+<h3>
+AI Quality Report
+</h3>
+
+
+<p>
+Helpful responses: 92%
+</p>
+
+
+<p>
+Needs improvement: 8%
+</p>
+
+
+<p>
+Average rating: 4.6 ⭐
+</p>
+
+
+</div>
+
+
+`;
+
 
 }

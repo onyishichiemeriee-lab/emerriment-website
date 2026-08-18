@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment | Skin Encyclopedia</title>
+
+<link rel="stylesheet" href="css/encyclopediaCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/supabase.js"></script>
+
+<script src="js/encyclopediaCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+
+<header class="header">
+
+<div class="logo">
+
+🌿 <span>EMerriment</span>
+
+</div>
+
+<nav>
+
+<a href="index.html">Home</a>
+
+<a href="quiz.html">Skin Quiz</a>
+
+<a href="dashboardCMS.html">Dashboard</a>
+
+<a href="encyclopediaCMS.html" class="active">Encyclopedia</a>
+
+</nav>
+
+</header>
+
+<!-- ================= HERO ================= -->
+
+<section class="hero">
+
+<h1>EMerriment Skin Encyclopedia</h1>
+
+<p>
+
+Learn about skin diseases, ingredients, skincare routines,
+
+natural remedies, and expert-backed skincare education.
+
+</p>
+
+</section>
+
+<!-- ================= SEARCH ================= -->
+
+<section class="search-section">
+
+<input
+
+type="text"
+
+id="searchInput"
+
+placeholder="🔍 Search articles, skin diseases, ingredients...">
+
+</section>
+
+<!-- ================= CATEGORIES ================= -->
+
+<section class="categories">
+
+<button class="category-btn active" data-category="All">
+
+All
+
+</button>
+
+<button class="category-btn" data-category="Skin Diseases">
+
+Skin Diseases
+
+</button>
+
+<button class="category-btn" data-category="Skin Concerns">
+
+Skin Concerns
+
+</button>
+
+<button class="category-btn" data-category="Ingredients">
+
+Ingredients
+
+</button>
+
+<button class="category-btn" data-category="Natural Remedies">
+
+Natural Remedies
+
+</button>
+
+<button class="category-btn" data-category="Routines">
+
+Routines
+
+</button>
+
+<button class="category-btn" data-category="Product Reviews">
+
+Product Reviews
+
+</button>
+
+<button class="category-btn" data-category="Myths & Facts">
+
+Myths & Facts
+
+</button>
+
+</section>
+
+<!-- ================= RECOMMENDED ================= -->
+
+<section class="recommended">
+
+<h2>❤️ Recommended For You</h2>
+
+<div
+
+id="recommendedContainer"
+
+class="article-grid">
+
+</div>
+
+</section>
+
+<section>
+
+<h2>🔥 Trending Articles</h2>
+
+<div
+id="trendingContainer"
+class="article-grid">
+
+</div>
+
+</section>
+
+<!-- ================= FEATURED ================= -->
+
+<section>
+
+<h2>⭐ Featured Articles</h2>
+
+<div
+
+id="featuredContainer"
+
+class="article-grid">
+
+</div>
+
+</section>
+
+<!-- ================= LATEST ================= -->
+
+<section>
+
+<h2>📚 Latest Articles</h2>
+
+<div
+
+id="articlesContainer"
+
+class="article-grid">
+
+</div>
+
+</section>
+
+<!-- ================= LOAD MORE ================= -->
+
+<div class="load-more">
+
+<button id="loadMoreBtn">
+
+Load More Articles
+
+</button>
+
+</div>
+
+<section>
+
+<h2>📖 Continue Reading</h2>
+
+<div id="continueReadingContainer"></div>
+
+</section>
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+<p>
+
+© 2026 EMerriment.
+
+Helping the world glow naturally.
+
+</p>
+
+</footer>
+
+</body>
+
+</html>

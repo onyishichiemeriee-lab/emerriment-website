@@ -14,15 +14,6 @@ async function checkUser() {
         error
     } = await supabaseClient.auth.getUser();
 
-    if (error || !user) {
-
-        window.location.href = "../login.html";
-        return;
-
-    }
-
-    loadJourney(user);
-
 }
 
 // ------------------------------

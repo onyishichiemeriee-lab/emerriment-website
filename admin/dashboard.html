@@ -42,15 +42,15 @@ window.supabaseClient = supabase.createClient(
 
 <li class="active">Dashboard</li>
 
-<li>Subscribers</li>
+<li><a href="subscribers.html">Subscribers</a></li>
 
-<li>Email Sequence</li>
+<li><a href="email-sequences.html">Email Sequence</a></li>
 
-<li>Products</li>
+<li><a href="products.html">Products</a></li>
 
-<li>Analytics</li>
+<li><a href="analytics.html">Analytics</a></li>
 
-<li>Settings</li>
+<li><a href="settings.html">Settings</a></li>
 
 </ul>
 
@@ -281,8 +281,8 @@ class="progress-fill">
 id="search"
 type="text"
 placeholder="🔍 Search by name, email or concern...">
-
-
+<div id="searchResults">
+</div>
 </div>
 
 
@@ -371,11 +371,6 @@ Subscriber Details
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-<script>
-  // create supabaseClient here
-</script>
-
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
