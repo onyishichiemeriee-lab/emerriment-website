@@ -10,7 +10,7 @@ subject:
 html: layout({
 
 title:
-"🌿 Congratulations, ${name}!",
+`🌿 Congratulations, ${name}!`,
 
 email,
 

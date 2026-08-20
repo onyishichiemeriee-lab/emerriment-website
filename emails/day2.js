@@ -2,18 +2,20 @@ const layout = require("./layout");
 
 module.exports = ({ name, email }) => {
 
-return {
+    return {
 
-subject:
-"🌿 The Truth About Your Skin Type (Most People Get This Wrong)",
+        subject:
+        "🌿 Understanding Your Skin Type: The Foundation of Better Skincare",
 
-html: layout({
+        html: layout({
 
-title:
-"🌿 Understanding Your Skin Type",
+            title:
+            "🌿 Understanding Your Skin Type",
 
-content: `
+            email,
 
+            content: `
+            
 <p>Hello <strong>${name}</strong> 👋🏽</p>
 
 <p>
@@ -214,7 +216,7 @@ Likely normal.
 
 <p>
 
-Tomorrow we'll reveal the biggest skincare mistakes people make every day without realizing it.
+Tomorrow we'll reveal the biggest "🚨 5 Skincare Mistakes That Are Secretly Damaging Your Skin",
 
 One of them may surprise you.
 

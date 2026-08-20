@@ -110,7 +110,7 @@ Tomorrow we'll reveal...
 
 <strong>
 
-5 skincare mistakes silently damaging your skin every single day.
+"🌿 Understanding Your Skin Type: The Foundation of Better Skincare",
 
 </strong>
 
