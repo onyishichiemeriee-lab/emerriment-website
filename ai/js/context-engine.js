@@ -1,118 +1,61 @@
-/* =========================================
-   EMerriment Context Engine
-   ========================================= */
+// =========================================
+// EMerriment Context Engine
+// =========================================
 
-(function () {
+const ContextEngine = {
 
-    "use strict";
+    // -----------------------------------------
+    // Build AI Context
+    // -----------------------------------------
 
-    const ContextEngine = {
+    async buildContext(userId) {
 
-        /* -----------------------------------------
-           Get current authenticated user
-        ----------------------------------------- */
+        try {
 
-        async getCurrentUser() {
+            if (!userId) {
 
-            try {
-
-                const client = window.supabaseClient;
-
-                if (!client) {
-
-                    console.warn(
-                        "ContextEngine: Supabase client not available."
-                    );
-
-                    return null;
-                }
-
-                const {
-                    data,
-                    error
-                } = await client.auth.getUser();
-
-                if (error) {
-
-                    console.warn(
-                        "ContextEngine auth error:",
-                        error
-                    );
-
-                    return null;
-                }
-
-                return data?.user || null;
-
-            } catch (error) {
-
-                console.error(
-                    "ContextEngine getCurrentUser error:",
-                    error
+                console.warn(
+                    "ContextEngine: No user ID provided."
                 );
 
-                return null;
+                return {
+
+                    userId: null,
+
+                    user: null,
+
+                    profile: null,
+
+                    skinProfile: null,
+
+                    quizResults: [],
+
+                    savedArticles: [],
+
+                    readingHistory: [],
+
+                    conversationHistory: [],
+
+                    encyclopediaArticles: [],
+
+                    recentlyViewed: [],
+
+                    recommendedProducts: []
+
+                };
+
             }
-        },
 
 
-        /* -----------------------------------------
-           Build user context
-        ----------------------------------------- */
+            // -----------------------------------------
+            // USER PROFILE
+            // -----------------------------------------
 
-        async buildContext(userId) {
-
-            const emptyContext = {
-
-                userId: userId || null,
-
-                profile: null,
-
-                skinProfile: null,
-
-                quizResults: [],
-
-                savedArticles: [],
-
-                readingHistory: []
-
-            };
-
-
-            try {
-
-                const client =
-                    window.supabaseClient;
-
-
-                if (!client) {
-
-                    console.warn(
-                        "ContextEngine: Supabase client unavailable."
-                    );
-
-                    return emptyContext;
-                }
-
-
-                if (!userId) {
-
-                    console.warn(
-                        "ContextEngine: No authenticated user."
-                    );
-
-                    return emptyContext;
-                }
-
-
-                /* -----------------------------------------
-                   USER PROFILE
-                ----------------------------------------- */
-
-                const {
-                    data: profile,
-                    error: profileError
-                } = await client
+            const {
+                data: profile,
+                error: profileError
+            } =
+                await supabaseClient
 
                     .from("profiles")
 
@@ -123,24 +66,25 @@
                     .maybeSingle();
 
 
-                if (profileError) {
+            if (profileError) {
 
-                    console.warn(
-                        "ContextEngine profile error:",
-                        profileError
-                    );
+                console.warn(
+                    "ContextEngine profile error:",
+                    profileError
+                );
 
-                }
+            }
 
 
-                /* -----------------------------------------
-                   QUIZ RESULTS
-                ----------------------------------------- */
+            // -----------------------------------------
+            // QUIZ RESULTS
+            // -----------------------------------------
 
-                const {
-                    data: quizResults,
-                    error: quizError
-                } = await client
+            const {
+                data: quizResults,
+                error: quizError
+            } =
+                await supabaseClient
 
                     .from("quiz_results")
 
@@ -155,24 +99,80 @@
                     .limit(5);
 
 
-                if (quizError) {
+            if (quizError) {
 
-                    console.warn(
-                        "ContextEngine quiz error:",
-                        quizError
-                    );
+                console.warn(
+                    "ContextEngine quiz error:",
+                    quizError
+                );
 
-                }
+            }
 
 
-                /* -----------------------------------------
-                   SAVED ARTICLES
-                ----------------------------------------- */
+            // -----------------------------------------
+            // BUILD SKIN PROFILE
+            // -----------------------------------------
 
-                const {
-                    data: savedArticles,
-                    error: savedError
-                } = await client
+            const latestQuiz =
+                quizResults &&
+                quizResults.length > 0
+
+                    ? quizResults[0]
+
+                    : null;
+
+
+            let skinProfile = null;
+
+
+            if (latestQuiz) {
+
+                skinProfile = {
+
+                    skinType:
+                        latestQuiz.skin_type ||
+                        latestQuiz.skinType ||
+                        null,
+
+                    concern:
+                        latestQuiz.concern ||
+                        null,
+
+                    oilLevel:
+                        latestQuiz.oil_level ||
+                        latestQuiz.oilLevel ||
+                        null,
+
+                    sensitivity:
+                        latestQuiz.sensitivity ||
+                        null,
+
+                    score:
+                        latestQuiz.score ??
+                        null,
+
+                    recommendation:
+                        latestQuiz.recommendation ||
+                        null,
+
+                    createdAt:
+                        latestQuiz.created_at ||
+                        null
+
+                };
+
+            }
+
+
+            // -----------------------------------------
+            // SAVED ARTICLES
+            // -----------------------------------------
+
+            const {
+                data: savedArticles,
+                error: savedError
+            } =
+                await supabaseClient
 
                     .from("saved_articles")
 
@@ -181,27 +181,31 @@
                         encyclopedia_articles(*)
                     `)
 
-                    .eq("user_id", userId);
-
-
-                if (savedError) {
-
-                    console.warn(
-                        "ContextEngine saved articles error:",
-                        savedError
+                    .eq(
+                        "user_id",
+                        userId
                     );
 
-                }
+
+            if (savedError) {
+
+                console.warn(
+                    "ContextEngine saved article error:",
+                    savedError
+                );
+
+            }
 
 
-                /* -----------------------------------------
-                   READING HISTORY
-                ----------------------------------------- */
+            // -----------------------------------------
+            // READING HISTORY
+            // -----------------------------------------
 
-                const {
-                    data: readingHistory,
-                    error: historyError
-                } = await client
+            const {
+                data: readingHistory,
+                error: historyError
+            } =
+                await supabaseClient
 
                     .from("reading_history")
 
@@ -210,75 +214,112 @@
                         encyclopedia_articles(*)
                     `)
 
-                    .eq("user_id", userId)
+                    .eq(
+                        "user_id",
+                        userId
+                    )
 
-                    .order("read_at", {
-                        ascending: false
-                    })
+                    .order(
+                        "read_at",
+                        {
+                            ascending: false
+                        }
+                    )
 
                     .limit(10);
 
 
-                if (historyError) {
+            if (historyError) {
 
-                    console.warn(
-                        "ContextEngine reading history error:",
-                        historyError
-                    );
-
-                }
-
-
-                /* -----------------------------------------
-                   RETURN CONTEXT
-                ----------------------------------------- */
-
-                return {
-
-                    userId,
-
-                    profile:
-                        profile || null,
-
-                    skinProfile:
-                        Profile || null,
-
-                    quizResults:
-                        quizResults || [],
-
-                    savedArticles:
-                        savedArticles || [],
-
-                    readingHistory:
-                        readingHistory || []
-
-                };
-
-
-            } catch (error) {
-
-                console.error(
-                    "ContextEngine Error:",
-                    error
+                console.warn(
+                    "ContextEngine history error:",
+                    historyError
                 );
 
-                return emptyContext;
             }
+
+
+            // -----------------------------------------
+            // RETURN COMPLETE AI CONTEXT
+            // -----------------------------------------
+
+            return {
+
+                userId,
+
+                user:
+                    profile || null,
+
+                profile:
+                    profile || null,
+
+                skinProfile,
+
+                quizResults:
+                    quizResults || [],
+
+                savedArticles:
+                    savedArticles || [],
+
+                readingHistory:
+                    readingHistory || [],
+
+                conversationHistory:
+                    [],
+
+                encyclopediaArticles:
+                    [],
+
+                recentlyViewed:
+                    [],
+
+                recommendedProducts:
+                    []
+
+            };
+
+
+        } catch (error) {
+
+            console.error(
+                "ContextEngine Error:",
+                error
+            );
+
+
+            return {
+
+                userId,
+
+                user: null,
+
+                profile: null,
+
+                skinProfile: null,
+
+                quizResults: [],
+
+                savedArticles: [],
+
+                readingHistory: [],
+
+                conversationHistory: [],
+
+                encyclopediaArticles: [],
+
+                recentlyViewed: [],
+
+                recommendedProducts: []
+
+            };
 
         }
 
-    };
+    }
+
+};
 
 
-    /* -----------------------------------------
-       Make globally available
-    ----------------------------------------- */
-
-    window.ContextEngine = ContextEngine;
-
-
-    console.log(
-        "✅ EMerriment Context Engine initialized."
-    );
-
-})();
+console.log(
+    "✅ EMerriment Context Engine initialized."
+);

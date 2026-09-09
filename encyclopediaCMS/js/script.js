@@ -1,6 +1,7 @@
 // SUPABASE CONNECTION
 
-const supabaseClient = window.supabaseClient;
+window.supabaseClient =
+    supabaseClient;
 
 const skincareKnowledge = {
   acne: {

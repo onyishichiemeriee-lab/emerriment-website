@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+<title>Login | EMerriment</title>
+
+<link
+    rel="stylesheet"
+    href="css/auth.css">
+
+<script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
+
+<script
+    src="js/supabase.js">
+</script>
+
+<script
+    src="js/auth.js"
+    defer>
+</script>
+
+</head>
+
+<body>
+
+<main class="auth-container">
+
+    <!-- =====================================
+         BRAND SECTION
+    ====================================== -->
+
+    <section class="auth-brand">
+
+        <div class="brand-logo">
+            🌿 <span>EMerriment</span>
+        </div>
+
+        <h1>
+            Welcome back.
+        </h1>
+
+        <p>
+            Your skincare journey is waiting
+            for you. Sign in to continue learning,
+            tracking your progress, and discovering
+            what works for your skin.
+        </p>
+
+        <div class="brand-message">
+
+            Your skin doesn't have to be perfect
+            for you to feel confident in it.
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         LOGIN FORM
+    ====================================== -->
+
+    <section class="auth-form-panel">
+
+        <h2>
+            Welcome Back
+        </h2>
+
+        <p class="auth-subtitle">
+
+            Sign in to your EMerriment account.
+
+        </p>
+
+
+        <div
+            id="loginMessage"
+            class="auth-message">
+        </div>
+
+
+        <form id="loginForm">
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email address
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email address"
+                    autocomplete="email"
+                    required>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required>
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        data-target="password">
+
+                        Show
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <a
+                href="forgot-password.html"
+                class="forgot-password">
+
+                Forgot your password?
+
+            </a>
+
+
+            <button
+                type="submit"
+                class="auth-button"
+                id="loginButton">
+
+                Log In
+
+            </button>
+
+        </form>
+
+
+        <div class="auth-links">
+
+            Don't have an account?
+
+            <a href="signup.html">
+                Create one
+            </a>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =====================================
+     LOGIN LOGIC
+====================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const loginForm =
+        document.getElementById("loginForm");
+
+    const loginMessage =
+        document.getElementById("loginMessage");
+
+    const loginButton =
+        document.getElementById("loginButton");
+
+
+    if (!loginForm) {
+
+        console.error(
+            "❌ Login form not found."
+        );
+
+        return;
+
+    }
+
+
+    loginForm.addEventListener(
+        "submit",
+        async (event) => {
+
+            event.preventDefault();
+
+            console.log(
+                "🔥 LOGIN FORM SUBMIT EVENT FIRED"
+            );
+
+
+            const email =
+                document
+                    .getElementById("email")
+                    .value
+                    .trim();
+
+
+            const password =
+                document
+                    .getElementById("password")
+                    .value;
+
+
+            if (!email || !password) {
+
+                loginMessage.textContent =
+                    "Please enter your email and password.";
+
+                return;
+
+            }
+
+
+            loginButton.disabled = true;
+
+            loginButton.textContent =
+                "Signing in...";
+
+
+            loginMessage.textContent =
+                "Signing you in...";
+
+
+            try {
+
+                const result =
+                    await EMAuth.login(
+                        email,
+                        password
+                    );
+
+
+                console.log(
+                    "🔐 Login result:",
+                    result
+                );
+
+
+                if (!result.success) {
+
+                    loginMessage.textContent =
+                        result.error ||
+                        "Login failed.";
+
+                    loginButton.disabled = false;
+
+                    loginButton.textContent =
+                        "Log In";
+
+                    return;
+
+                }
+
+
+                loginMessage.textContent =
+                    "✅ Login successful!";
+
+
+                console.log(
+                    "✅ User authenticated:",
+                    result.user
+                );
+
+
+                /*
+                 * Give Supabase a moment to
+                 * persist the session before
+                 * moving to the dashboard.
+                 */
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "dashboard.html";
+
+                }, 500);
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "❌ Login handler error:",
+                    error
+                );
+
+
+                loginMessage.textContent =
+                    error.message ||
+                    "Unable to log in. Please try again.";
+
+
+                loginButton.disabled = false;
+
+                loginButton.textContent =
+                    "Log In";
+
+            }
+
+        }
+    );
+
+});
+
+</script>
+
+<script>
+document
+    .querySelectorAll(".toggle-password")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            const targetId =
+                button.dataset.target;
+
+            const input =
+                document.getElementById(targetId);
+
+            if (!input) return;
+
+            if (input.type === "password") {
+
+                input.type = "text";
+                button.textContent = "Hide";
+
+            } else {
+
+                input.type = "password";
+                button.textContent = "Show";
+
+            }
+
+        });
+
+    });
+</script>
+
+</body>
+
+</html>

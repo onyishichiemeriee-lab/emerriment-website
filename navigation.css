@@ -1,0 +1,689 @@
+/* =========================================
+   EMERRIMENT GLOBAL NAVIGATION
+   BLACK + WHITE SYSTEM
+========================================= */
+
+
+/* -----------------------------------------
+   ROOT
+----------------------------------------- */
+
+:root {
+
+    --nav-black: #000000;
+    --nav-white: #ffffff;
+
+    --nav-gray-50: #fafafa;
+    --nav-gray-100: #f3f3f3;
+    --nav-gray-200: #e5e5e5;
+    --nav-gray-400: #999999;
+    --nav-gray-600: #555555;
+
+    --nav-border: rgba(0, 0, 0, 0.10);
+
+    --nav-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.06);
+
+}
+
+
+/* -----------------------------------------
+   MAIN HEADER
+----------------------------------------- */
+
+.em-nav {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 9999;
+
+    width: 100%;
+
+    background: rgba(255, 255, 255, 0.96);
+
+    border-bottom: 1px solid var(--nav-border);
+
+    backdrop-filter: blur(14px);
+
+    -webkit-backdrop-filter: blur(14px);
+
+}
+
+
+.em-nav-container {
+
+    width: min(1400px, 94%);
+
+    min-height: 76px;
+
+    margin: 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 25px;
+
+}
+
+
+/* -----------------------------------------
+   LOGO
+----------------------------------------- */
+
+.em-logo {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    text-decoration: none;
+
+    color: var(--nav-black);
+
+    flex-shrink: 0;
+
+}
+
+
+.em-logo-mark {
+
+    font-size: 24px;
+
+    line-height: 1;
+
+}
+
+
+.em-logo-text {
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+    letter-spacing: -0.5px;
+
+}
+
+
+/* -----------------------------------------
+   DESKTOP NAV
+----------------------------------------- */
+
+.em-desktop-nav {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 4px;
+
+    flex: 1;
+
+}
+
+
+.em-nav-link {
+
+    position: relative;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    min-height: 44px;
+
+    padding: 0 13px;
+
+    color: #444;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+
+    border-radius: 8px;
+
+}
+
+
+.em-nav-link:hover {
+
+    color: #000;
+
+    background: #f5f5f5;
+
+}
+
+
+/* Active navigation */
+
+.em-nav-link.active {
+
+    color: #000;
+
+    font-weight: 800;
+
+}
+
+
+.em-nav-link.active::after {
+
+    content: "";
+
+    position: absolute;
+
+    left: 13px;
+
+    right: 13px;
+
+    bottom: 4px;
+
+    height: 2px;
+
+    background: #000;
+
+    border-radius: 999px;
+
+}
+
+
+/* -----------------------------------------
+   NAV ACTIONS
+----------------------------------------- */
+
+.em-nav-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    flex-shrink: 0;
+
+}
+
+
+.em-login-btn,
+.em-signup-btn,
+.em-dashboard-btn,
+.em-quiz-btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 42px;
+
+    padding: 0 16px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+
+}
+
+
+/* Login */
+
+.em-login-btn {
+
+    color: #000;
+
+    border: 1px solid #ddd;
+
+    background: #fff;
+
+}
+
+
+.em-login-btn:hover {
+
+    background: #f5f5f5;
+
+}
+
+
+/* Sign Up */
+
+.em-signup-btn {
+
+    color: #fff;
+
+    background: #000;
+
+    border: 1px solid #000;
+
+}
+
+
+.em-signup-btn:hover {
+
+    background: #222;
+
+    transform: translateY(-1px);
+
+}
+
+
+/* Dashboard */
+
+.em-dashboard-btn {
+
+    display: none;
+
+    color: #000;
+
+    background: #fff;
+
+    border: 1px solid #000;
+
+}
+
+
+.em-dashboard-btn:hover {
+
+    background: #000;
+
+    color: #fff;
+
+}
+
+
+/* Skin Quiz */
+
+.em-quiz-btn {
+
+    color: #fff;
+
+    background: #000;
+
+    border: 1px solid #000;
+
+}
+
+
+.em-quiz-btn:hover {
+
+    background: #222;
+
+    transform: translateY(-1px);
+
+}
+
+
+/* -----------------------------------------
+   MOBILE MENU BUTTON
+----------------------------------------- */
+
+.em-menu-toggle {
+
+    display: none;
+
+    width: 44px;
+
+    height: 44px;
+
+    padding: 9px;
+
+    border: 1px solid #ddd;
+
+    background: #fff;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+
+}
+
+
+.em-menu-toggle span {
+
+    display: block;
+
+    width: 21px;
+
+    height: 2px;
+
+    background: #000;
+
+    border-radius: 999px;
+
+    transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
+
+}
+
+
+/* Hamburger animation */
+
+.em-menu-toggle.active span:nth-child(1) {
+
+    transform:
+        translateY(7px)
+        rotate(45deg);
+
+}
+
+
+.em-menu-toggle.active span:nth-child(2) {
+
+    opacity: 0;
+
+}
+
+
+.em-menu-toggle.active span:nth-child(3) {
+
+    transform:
+        translateY(-7px)
+        rotate(-45deg);
+
+}
+
+
+/* -----------------------------------------
+   MOBILE MENU
+----------------------------------------- */
+
+.em-mobile-menu {
+
+    display: none;
+
+    width: 100%;
+
+    background: #fff;
+
+    border-top: 1px solid #eee;
+
+    box-shadow: var(--nav-shadow);
+
+}
+
+
+.em-mobile-menu.open {
+
+    display: block;
+
+}
+
+
+.em-mobile-menu nav {
+
+    width: min(600px, 92%);
+
+    margin: 0 auto;
+
+    padding: 15px 0 25px;
+
+}
+
+
+.em-mobile-link {
+
+    display: block;
+
+    padding: 15px 12px;
+
+    color: #222;
+
+    text-decoration: none;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    border-radius: 8px;
+
+}
+
+
+.em-mobile-link:hover,
+.em-mobile-link.active {
+
+    color: #000;
+
+    background: #f5f5f5;
+
+}
+
+
+.em-mobile-divider {
+
+    height: 1px;
+
+    background: #e5e5e5;
+
+    margin: 12px 0;
+
+}
+
+
+/* -----------------------------------------
+   MOBILE QUIZ
+----------------------------------------- */
+
+.em-mobile-quiz {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 50px;
+
+    margin-top: 10px;
+
+    color: #fff;
+
+    background: #000;
+
+    text-decoration: none;
+
+    border-radius: 8px;
+
+    font-weight: 800;
+
+}
+
+
+.em-mobile-quiz:hover {
+
+    background: #222;
+
+}
+
+
+/* -----------------------------------------
+   MOBILE AUTH
+----------------------------------------- */
+
+.em-mobile-auth {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 12px;
+
+}
+
+
+.em-mobile-auth a {
+
+    flex: 1;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 46px;
+
+    padding: 0 10px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+}
+
+
+.em-mobile-auth a:first-child {
+
+    color: #000;
+
+    background: #fff;
+
+    border: 1px solid #ccc;
+
+}
+
+
+.em-mobile-auth a:last-child {
+
+    color: #fff;
+
+    background: #000;
+
+    border: 1px solid #000;
+
+}
+
+
+/* -----------------------------------------
+   RESPONSIVE
+----------------------------------------- */
+
+@media (max-width: 1150px) {
+
+    .em-nav-link {
+
+        padding-left: 9px;
+
+        padding-right: 9px;
+
+        font-size: 13px;
+
+    }
+
+    .em-nav-link.active::after {
+
+        left: 9px;
+
+        right: 9px;
+
+    }
+
+    .em-login-btn,
+    .em-signup-btn,
+    .em-quiz-btn {
+
+        padding-left: 12px;
+
+        padding-right: 12px;
+
+    }
+
+}
+
+
+@media (max-width: 950px) {
+
+    .em-desktop-nav,
+    .em-nav-actions {
+
+        display: none;
+
+    }
+
+    .em-menu-toggle {
+
+        display: flex;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .em-nav-container {
+
+        min-height: 66px;
+
+        width: 92%;
+
+    }
+
+    .em-logo-text {
+
+        font-size: 20px;
+
+    }
+
+    .em-logo-mark {
+
+        font-size: 21px;
+
+    }
+
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+    .em-nav *,
+    .em-nav *::before,
+    .em-nav *::after {
+
+        transition: none !important;
+
+    }
+
+}

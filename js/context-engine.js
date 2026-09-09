@@ -19,11 +19,29 @@ const ContextEngine = {
                 );
 
                 return {
+
+                    userId: null,
+
                     user: null,
+
+                    profile: null,
+
                     skinProfile: null,
+
                     quizResults: [],
+
                     savedArticles: [],
-                    readingHistory: []
+
+                    readingHistory: [],
+
+                    conversationHistory: [],
+
+                    encyclopediaArticles: [],
+
+                    recentlyViewed: [],
+
+                    recommendedProducts: []
+
                 };
 
             }
@@ -33,11 +51,18 @@ const ContextEngine = {
             // USER PROFILE
             // -----------------------------------------
 
-            const { data: profile, error: profileError } =
+            const {
+                data: profile,
+                error: profileError
+            } =
                 await supabaseClient
+
                     .from("profiles")
+
                     .select("*")
+
                     .eq("id", userId)
+
                     .maybeSingle();
 
 
@@ -52,17 +77,25 @@ const ContextEngine = {
 
 
             // -----------------------------------------
-            // LATEST QUIZ RESULT
+            // QUIZ RESULTS
             // -----------------------------------------
 
-            const { data: quizResults, error: quizError } =
+            const {
+                data: quizResults,
+                error: quizError
+            } =
                 await supabaseClient
+
                     .from("quiz_results")
+
                     .select("*")
+
                     .eq("user_id", userId)
+
                     .order("created_at", {
                         ascending: false
                     })
+
                     .limit(5);
 
 
@@ -77,17 +110,81 @@ const ContextEngine = {
 
 
             // -----------------------------------------
+            // BUILD SKIN PROFILE
+            // -----------------------------------------
+
+            const latestQuiz =
+                quizResults &&
+                quizResults.length > 0
+
+                    ? quizResults[0]
+
+                    : null;
+
+
+            let skinProfile = null;
+
+
+            if (latestQuiz) {
+
+                skinProfile = {
+
+                    skinType:
+                        latestQuiz.skin_type ||
+                        latestQuiz.skinType ||
+                        null,
+
+                    concern:
+                        latestQuiz.concern ||
+                        null,
+
+                    oilLevel:
+                        latestQuiz.oil_level ||
+                        latestQuiz.oilLevel ||
+                        null,
+
+                    sensitivity:
+                        latestQuiz.sensitivity ||
+                        null,
+
+                    score:
+                        latestQuiz.score ??
+                        null,
+
+                    recommendation:
+                        latestQuiz.recommendation ||
+                        null,
+
+                    createdAt:
+                        latestQuiz.created_at ||
+                        null
+
+                };
+
+            }
+
+
+            // -----------------------------------------
             // SAVED ARTICLES
             // -----------------------------------------
 
-            const { data: savedArticles, error: savedError } =
+            const {
+                data: savedArticles,
+                error: savedError
+            } =
                 await supabaseClient
+
                     .from("saved_articles")
+
                     .select(`
                         *,
                         encyclopedia_articles(*)
                     `)
-                    .eq("user_id", userId);
+
+                    .eq(
+                        "user_id",
+                        userId
+                    );
 
 
             if (savedError) {
@@ -104,17 +201,31 @@ const ContextEngine = {
             // READING HISTORY
             // -----------------------------------------
 
-            const { data: readingHistory, error: historyError } =
+            const {
+                data: readingHistory,
+                error: historyError
+            } =
                 await supabaseClient
+
                     .from("reading_history")
+
                     .select(`
                         *,
                         encyclopedia_articles(*)
                     `)
-                    .eq("user_id", userId)
-                    .order("read_at", {
-                        ascending: false
-                    })
+
+                    .eq(
+                        "user_id",
+                        userId
+                    )
+
+                    .order(
+                        "read_at",
+                        {
+                            ascending: false
+                        }
+                    )
+
                     .limit(10);
 
 
@@ -129,18 +240,20 @@ const ContextEngine = {
 
 
             // -----------------------------------------
-            // RETURN CONTEXT
+            // RETURN COMPLETE AI CONTEXT
             // -----------------------------------------
 
             return {
 
                 userId,
 
+                user:
+                    profile || null,
+
                 profile:
                     profile || null,
 
-                skinProfile:
-                    profile || null,
+                skinProfile,
 
                 quizResults:
                     quizResults || [],
@@ -149,9 +262,22 @@ const ContextEngine = {
                     savedArticles || [],
 
                 readingHistory:
-                    readingHistory || []
+                    readingHistory || [],
+
+                conversationHistory:
+                    [],
+
+                encyclopediaArticles:
+                    [],
+
+                recentlyViewed:
+                    [],
+
+                recommendedProducts:
+                    []
 
             };
+
 
         } catch (error) {
 
@@ -160,9 +286,12 @@ const ContextEngine = {
                 error
             );
 
+
             return {
 
                 userId,
+
+                user: null,
 
                 profile: null,
 
@@ -172,7 +301,15 @@ const ContextEngine = {
 
                 savedArticles: [],
 
-                readingHistory: []
+                readingHistory: [],
+
+                conversationHistory: [],
+
+                encyclopediaArticles: [],
+
+                recentlyViewed: [],
+
+                recommendedProducts: []
 
             };
 
@@ -181,6 +318,7 @@ const ContextEngine = {
     }
 
 };
+
 
 console.log(
     "✅ EMerriment Context Engine initialized."

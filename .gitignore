@@ -4,3 +4,8 @@ node_modules/
 .vscode/settings.json
 # Local Netlify folder
 .netlify
+
+# EMerriment authentication backups
+EMerriment Authentication V2/
+EMerriment Authentication V3 — VERIFIED BACKUP/
+ROOT AUTH BACKUP BEFORE V2/

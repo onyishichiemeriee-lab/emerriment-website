@@ -1,0 +1,362 @@
+/* =========================================
+   EMerriment
+   Legal Pages
+   Terms + Privacy
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+:root {
+    --em-beige: #f7f2e8;
+    --em-gold: #d4af37;
+    --em-dark-gold: #b8941f;
+    --em-dark: #29251f;
+    --em-text: #4a463f;
+    --em-muted: #777169;
+    --em-white: #ffffff;
+    --em-border: #e7dfd0;
+}
+
+
+body {
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        var(--em-beige);
+
+    color:
+        var(--em-text);
+
+    line-height:
+        1.7;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.legal-header {
+
+    width: 100%;
+
+    background:
+        var(--em-white);
+
+    border-bottom:
+        1px solid var(--em-border);
+
+    padding:
+        22px 6%;
+
+}
+
+
+.legal-logo {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    text-decoration: none;
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    color:
+        var(--em-dark);
+
+}
+
+
+.legal-logo span {
+
+    color:
+        var(--em-gold);
+
+}
+
+
+/* =========================================
+   MAIN
+========================================= */
+
+.legal-container {
+
+    width: 100%;
+
+    padding:
+        50px 20px 80px;
+
+}
+
+
+.legal-card {
+
+    width: 100%;
+
+    max-width: 900px;
+
+    margin:
+        0 auto;
+
+    background:
+        var(--em-white);
+
+    padding:
+        55px;
+
+    border-radius:
+        20px;
+
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.06);
+
+}
+
+
+/* =========================================
+   TITLE
+========================================= */
+
+.legal-label {
+
+    color:
+        var(--em-gold);
+
+    font-weight:
+        700;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        2px;
+
+    font-size:
+        13px;
+
+    margin-bottom:
+        8px;
+
+}
+
+
+h1 {
+
+    color:
+        var(--em-dark);
+
+    font-size:
+        clamp(32px, 5vw, 48px);
+
+    line-height:
+        1.2;
+
+    margin-bottom:
+        10px;
+
+}
+
+
+.updated {
+
+    color:
+        var(--em-muted);
+
+    font-size:
+        14px;
+
+    margin-bottom:
+        45px;
+
+}
+
+
+/* =========================================
+   SECTIONS
+========================================= */
+
+section {
+
+    margin-bottom:
+        38px;
+
+}
+
+
+section h2 {
+
+    color:
+        var(--em-dark);
+
+    font-size:
+        22px;
+
+    margin-bottom:
+        12px;
+
+}
+
+
+section p {
+
+    margin-bottom:
+        14px;
+
+}
+
+
+section ul {
+
+    margin:
+        12px 0 18px 25px;
+
+}
+
+
+section li {
+
+    margin-bottom:
+        8px;
+
+}
+
+
+/* =========================================
+   LINKS
+========================================= */
+
+a {
+
+    color:
+        var(--em-dark-gold);
+
+}
+
+
+a:hover {
+
+    color:
+        var(--em-gold);
+
+}
+
+
+/* =========================================
+   BOTTOM LINKS
+========================================= */
+
+.legal-footer-links {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        18px;
+
+    padding-top:
+        30px;
+
+    margin-top:
+        20px;
+
+    border-top:
+        1px solid var(--em-border);
+
+}
+
+
+.legal-footer-links a {
+
+    text-decoration:
+        none;
+
+    font-weight:
+        600;
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+
+    .legal-header {
+
+        padding:
+            18px 20px;
+
+    }
+
+
+    .legal-container {
+
+        padding:
+            25px 12px 50px;
+
+    }
+
+
+    .legal-card {
+
+        padding:
+            30px 22px;
+
+        border-radius:
+            15px;
+
+    }
+
+
+    h1 {
+
+        font-size:
+            32px;
+
+    }
+
+
+    section h2 {
+
+        font-size:
+            20px;
+
+    }
+
+
+    .updated {
+
+        margin-bottom:
+            30px;
+
+    }
+
+
+    .legal-footer-links {
+
+        flex-direction:
+            column;
+
+        gap:
+            12px;
+
+    }
+
+}

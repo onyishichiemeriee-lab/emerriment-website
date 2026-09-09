@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>EMerriment CMS - Products</title>
+
+<link rel="stylesheet"
+href="css/adminCMS.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="../js/supabase.js"></script>
+
+<script src="js/productsCMS.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="logo">
+
+🌿 <span>EMerriment CMS</span>
+
+</div>
+
+<button
+id="logoutBtn"
+class="logout-btn">
+
+Logout
+
+</button>
+
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<a href="dashboardCMS.html">🏠 Dashboard</a>
+
+<a href="articlesCMS.html">📚 Articles</a>
+
+<a href="usersCMS.html">👥 Users</a>
+
+<a href="analyticsCMS.html">📊 Analytics</a>
+
+<a href="productsCMS.html"
+class="active">
+
+🛍️ Products
+
+</a>
+
+</aside>
+
+<main class="content">
+
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;">
+
+<h1>Products</h1>
+
+<a href="new-productCMS.html"
+class="action-card">
+
+➕ New Product
+
+</a>
+
+</div>
+
+<input
+type="text"
+id="searchInput"
+placeholder="Search products..."
+style="width:100%;padding:12px;margin:20px 0;">
+
+<table
+style="width:100%;border-collapse:collapse;">
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Category</th>
+
+<th>Price</th>
+
+<th>Status</th>
+
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="productsBody">
+
+</tbody>
+
+</table>
+
+</main>
+
+</div>
+
+</body>
+
+</html>

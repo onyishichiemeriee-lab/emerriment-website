@@ -5,21 +5,34 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-<title>EMerriment CMS - Website Settings</title>
+<title>
+EMerriment CMS - Website Settings
+</title>
 
-<link rel="stylesheet" href="css/adminCMS.css">
+<link rel="stylesheet"
+href="css/adminCMS.css">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script
+src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
 
-<script src="../js/supabase.js"></script>
+<script
+src="../js/supabase.js">
+</script>
 
-<script src="js/settingsCMS.js" defer></script>
+<script
+src="js/settingsCMS.js"
+defer>
+</script>
 
 </head>
 
+
 <body>
+
 
 <header class="topbar">
 
@@ -29,7 +42,11 @@
 
 </div>
 
-<button id="logoutBtn" class="logout-btn">
+
+<button
+type="button"
+id="logoutBtn"
+class="logout-btn">
 
 Logout
 
@@ -37,214 +54,461 @@ Logout
 
 </header>
 
+
+
 <div class="layout">
+
 
 <aside class="sidebar">
 
-<a href="dashboardCMS.html">🏠 Dashboard</a>
+<a href="dashboardCMS.html">
+🏠 Dashboard
+</a>
 
-<a href="articlesCMS.html">📚 Articles</a>
+<a href="articlesCMS.html">
+📚 Articles
+</a>
 
-<a href="usersCMS.html">👥 Users</a>
+<a href="usersCMS.html">
+👥 Users
+</a>
 
-<a href="analyticsCMS.html">📊 Analytics</a>
+<a href="analyticsCMS.html">
+📊 Analytics
+</a>
 
-<a href="productsCMS.html">🛍 Products</a>
+<a href="productsCMS.html">
+🛍 Products
+</a>
 
-<a href="settingsCMS.html" class="active">⚙ Website Settings</a>
+<a href="settingsCMS.html"
+class="active">
+
+⚙ Website Settings
+
+</a>
 
 </aside>
 
+
+
 <main class="content">
 
-<h1>Website Settings</h1>
+
+<h1>
+Website Settings
+</h1>
+
+
+<p>
+Manage the public EMerriment website from one place.
+</p>
+
+
 
 <form id="settingsForm">
 
+
+<!-- =====================================
+     SITE IDENTITY
+===================================== -->
+
 <div class="stat-card">
 
-<h2>🏠 Site Identity</h2>
+<h2>
+🏠 Site Identity
+</h2>
 
-<label>Website Name</label>
+
+<label for="site_name">
+Website Name
+</label>
 
 <input
 type="text"
-id="site_name">
+id="site_name"
+name="site_name"
+placeholder="EMerriment">
 
-<label>Tagline</label>
+
+<label for="tagline">
+Tagline
+</label>
 
 <input
 type="text"
-id="tagline">
+id="tagline"
+name="tagline"
+placeholder="Beauty, skincare and healing education">
 
 </div>
 
+
+
 <br>
+
+
+
+<!-- =====================================
+     HERO SECTION
+===================================== -->
 
 <div class="stat-card">
 
-<h2>🎯 Hero Section</h2>
+<h2>
+🎯 Hero Section
+</h2>
 
-<label>Hero Title</label>
+
+<label for="hero_title">
+Hero Title
+</label>
 
 <input
 type="text"
-id="hero_title">
+id="hero_title"
+name="hero_title">
 
-<label>Hero Subtitle</label>
+
+<label for="hero_subtitle">
+Hero Subtitle
+</label>
 
 <textarea
 id="hero_subtitle"
-rows="4"></textarea>
+name="hero_subtitle"
+rows="4">
+</textarea>
 
-<label>Button Text</label>
+
+<label for="hero_button_text">
+Button Text
+</label>
 
 <input
 type="text"
-id="hero_button_text">
+id="hero_button_text"
+name="hero_button_text">
 
-<label>Button Link</label>
+
+<label for="hero_button_link">
+Button Link
+</label>
 
 <input
 type="text"
-id="hero_button_link">
+id="hero_button_link"
+name="hero_button_link">
 
 </div>
 
+
+
 <br>
+
+
+
+<!-- =====================================
+     HOMEPAGE BANNER
+===================================== -->
 
 <div class="stat-card">
 
-<h2>🖼 Homepage Banner</h2>
+<h2>
+🖼 Homepage Banner
+</h2>
 
-<label>Banner Image URL</label>
+
+<label for="homepage_banner">
+Banner Image URL
+</label>
 
 <input
 type="url"
-id="homepage_banner">
+id="homepage_banner"
+name="homepage_banner"
+placeholder="https://...">
 
 </div>
 
+
+
 <br>
+
+
+
+<!-- =====================================
+     CONTACT
+===================================== -->
 
 <div class="stat-card">
 
-<h2>📞 Contact Information</h2>
+<h2>
+📞 Contact Information
+</h2>
 
-<label>Email</label>
+
+<label for="contact_email">
+Email
+</label>
 
 <input
 type="email"
-id="contact_email">
+id="contact_email"
+name="contact_email">
 
-<label>Phone</label>
+
+<label for="contact_phone">
+Phone
+</label>
 
 <input
 type="text"
-id="contact_phone">
+id="contact_phone"
+name="contact_phone">
 
-<label>Address</label>
+
+<label for="address">
+Address
+</label>
 
 <textarea
 id="address"
-rows="3"></textarea>
+name="address"
+rows="3">
+</textarea>
 
 </div>
 
+
+
 <br>
+
+
+
+<!-- =====================================
+     SOCIAL MEDIA
+===================================== -->
 
 <div class="stat-card">
 
-<h2>🌍 Social Media</h2>
+<h2>
+🌍 Social Media
+</h2>
 
-<input placeholder="Facebook" id="facebook">
 
-<input placeholder="Instagram" id="instagram">
+<label for="facebook">
+Facebook
+</label>
 
-<input placeholder="TikTok" id="tiktok">
+<input
+type="url"
+id="facebook"
+name="facebook"
+placeholder="Facebook URL">
 
-<input placeholder="YouTube" id="youtube">
 
-<input placeholder="X (Twitter)" id="x">
+<label for="instagram">
+Instagram
+</label>
+
+<input
+type="url"
+id="instagram"
+name="instagram"
+placeholder="Instagram URL">
+
+
+<label for="tiktok">
+TikTok
+</label>
+
+<input
+type="url"
+id="tiktok"
+name="tiktok"
+placeholder="TikTok URL">
+
+
+<label for="youtube">
+YouTube
+</label>
+
+<input
+type="url"
+id="youtube"
+name="youtube"
+placeholder="YouTube URL">
+
+
+<label for="x">
+X (Twitter)
+</label>
+
+<input
+type="url"
+id="x"
+name="x"
+placeholder="X URL">
 
 </div>
 
+
+
 <br>
+
+
+
+<!-- =====================================
+     BRAND COLORS
+===================================== -->
 
 <div class="stat-card">
 
-<h2>🎨 Brand Colors</h2>
+<h2>
+🎨 Brand Colors
+</h2>
 
-<label>Primary Color</label>
+
+<label for="primary_color">
+Primary Color
+</label>
 
 <input
 type="color"
-id="primary_color">
+id="primary_color"
+name="primary_color"
+value="#B08D57">
 
-<label>Secondary Color</label>
+
+<label for="secondary_color">
+Secondary Color
+</label>
 
 <input
 type="color"
-id="secondary_color">
+id="secondary_color"
+name="secondary_color"
+value="#F8F3EC">
 
 </div>
 
+
+
 <br>
+
+
+
+<!-- =====================================
+     FOOTER
+===================================== -->
 
 <div class="stat-card">
 
-<h2>📝 Footer</h2>
+<h2>
+📝 Footer
+</h2>
+
+
+<label for="footer_text">
+Footer Text
+</label>
 
 <textarea
 id="footer_text"
-rows="4"></textarea>
+name="footer_text"
+rows="4">
+</textarea>
 
 </div>
 
+
+
 <br>
+
+
+
+<!-- =====================================
+     SEO
+===================================== -->
 
 <div class="stat-card">
 
-<h2>🔍 SEO</h2>
+<h2>
+🔍 SEO
+</h2>
 
-<label>SEO Title</label>
+
+<label for="seo_title">
+SEO Title
+</label>
 
 <input
 type="text"
-id="seo_title">
+id="seo_title"
+name="seo_title">
 
-<label>SEO Description</label>
+
+<label for="seo_description">
+SEO Description
+</label>
 
 <textarea
 id="seo_description"
-rows="4"></textarea>
+name="seo_description"
+rows="4">
+</textarea>
 
-<label>SEO Keywords (comma separated)</label>
+
+<label for="seo_keywords">
+SEO Keywords
+</label>
 
 <input
 type="text"
-id="seo_keywords">
+id="seo_keywords"
+name="seo_keywords"
+placeholder="skincare, beauty, natural skincare, EMerriment">
 
 </div>
 
+
+
 <br>
 
+
+
+<!-- =====================================
+     SAVE
+===================================== -->
+
 <button
+type="submit"
+id="saveSettingsBtn"
 class="logout-btn">
 
 💾 Save Website Settings
 
 </button>
 
-</form>
+
 
 <div
 id="message"
-style="margin-top:20px;font-weight:bold;"></div>
+role="status"
+aria-live="polite"
+style="margin-top:20px;font-weight:bold;">
+</div>
+
+
+</form>
+
 
 </main>
 
+
 </div>
+
 
 </body>
 

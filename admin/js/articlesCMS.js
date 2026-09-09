@@ -1,4 +1,4 @@
-const supabaseClient = window.supabaseClient;
+const supabase = window.supabaseClient;
 
 let allArticles = [];
 
