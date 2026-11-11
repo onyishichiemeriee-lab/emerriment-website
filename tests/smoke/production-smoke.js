@@ -114,15 +114,26 @@ const HEADERS = [
     record("functions", "email-open: forged signature → 200 image/gif (nothing counted)",
         openBad.status === 200 && /image\/gif/.test(openBad.type), `${openBad.status} ${openBad.type}`);
 
+    // Where a redirect actually leads: its origin (scheme + host + port).
+    // Netlify appends the request's query string to a function redirect
+    // (observed 2026-11-11: /?url=...), so only the destination ORIGIN
+    // decides whether it is an open redirect.
+    const originOf = (loc) => {
+        try { return new URL(loc, BASE).origin; } catch (e) { return "invalid"; }
+    };
+    const SITE_ORIGIN = new URL(BASE).origin;
+
     const clickNone = await get("/.netlify/functions/track-click");
     const clickNoneLoc = clickNone.headers.get("location") || "";
     record("functions", "track-click: no params → 302 to the site",
-        clickNone.status === 302 && clickNoneLoc.startsWith("https://") && !/evil/.test(clickNoneLoc), `${clickNone.status} ${clickNoneLoc}`);
+        clickNone.status === 302 && originOf(clickNoneLoc) === SITE_ORIGIN, `${clickNone.status} ${clickNoneLoc}`);
 
-    const clickEvil = await get("/.netlify/functions/track-click?url=" + encodeURIComponent("https://evil.example/phish"));
-    const evilLoc = clickEvil.headers.get("location") || "";
-    record("functions", "track-click: foreign URL is NOT followed (no open redirect)",
-        clickEvil.status === 302 && !evilLoc.includes("evil.example"), `${clickEvil.status} ${evilLoc || "(no location)"}`);
+    for (const foreign of ["https://evil.example/phish", "//evil.example/x", "https://emerriment216.netlify.app.evil.example/"]) {
+        const r = await get("/.netlify/functions/track-click?url=" + encodeURIComponent(foreign));
+        const loc = r.headers.get("location") || "";
+        record("functions", `track-click: ${foreign} is NOT followed (lands on the site itself)`,
+            r.status === 302 && originOf(loc) === SITE_ORIGIN, `${r.status} → origin ${originOf(loc)}`);
+    }
 
     const unsubNone = await get("/.netlify/functions/unsubscribe");
     record("functions", "unsubscribe: no/invalid token → 400 page, nothing changed",
