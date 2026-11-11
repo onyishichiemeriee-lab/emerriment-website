@@ -4,10 +4,13 @@
 
 const layout = require("./layout");
 
+const escapeHtml = require("./escape-html");
 
-module.exports = ({ name, email }) => {
 
-    const safeName = name || "there";
+module.exports = ({ name, email, tracking }) => {
+
+    // The recipient's name is HTML-escaped once here.
+    const safeName = escapeHtml(name || "there");
 
 
     return {
@@ -17,6 +20,8 @@ module.exports = ({ name, email }) => {
 
 
         html: layout({
+
+            tracking,
 
             title:
                 "Welcome to EMerriment 🌿",

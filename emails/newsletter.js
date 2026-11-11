@@ -4,30 +4,62 @@
 
 const layout = require("./layout");
 
+const escapeHtml = require("./escape-html");
 
+
+// Plain-text subject: strip line breaks and
+// control characters, limit the length.
+function safeSubject(value) {
+
+    return String(value)
+        .replace(/[\u0000-\u001F\u007F]+/g, " ")
+        .trim()
+        .slice(0, 200);
+
+}
+
+
+/*
+   SECURITY NOTE
+   `content` is inserted as HTML on purpose so an
+   administrator can format a newsletter. It must
+   only ever come from a trusted, server-side
+   authorized administrator — never from a public
+   request. The public send-email function does
+   not allow the newsletter type.
+   `name` and `title` are escaped.
+*/
 module.exports = ({
     name,
     email,
     title,
     content,
-    subject
+    subject,
+    tracking
 }) => {
 
     const safeName =
-        name || "there";
+        escapeHtml(name || "there");
+
+    const safeTitle =
+        title ? escapeHtml(title) : null;
 
 
     return {
 
         subject:
-            subject ||
-            `🌿 ${title || "Your EMerriment Skin Education Update"}`,
+            safeSubject(
+                subject ||
+                `🌿 ${title || "Your EMerriment Skin Education Update"}`
+            ),
 
 
         html: layout({
 
+            tracking,
+
             title:
-                title ||
+                safeTitle ||
                 "Your EMerriment Skin Education Update 🌿",
 
             email,

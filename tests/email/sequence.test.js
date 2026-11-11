@@ -1,0 +1,220 @@
+/* Tests for netlify/functions/email-sequence.js */
+"use strict";
+
+const assert = require("assert");
+const H = require("./helpers");
+
+const suite = H.createSuite("email-sequence");
+const { test } = suite;
+
+const FN = "netlify/functions/email-sequence.js";
+const run = () => H.load(FN).handler({});
+
+const hoursAgo = (h) => new Date(Date.now() - h * 3600e3).toISOString();
+const hoursAhead = (h) => new Date(Date.now() + h * 3600e3).toISOString();
+
+function dueLead(over = {}) {
+    return H.addLead({
+        email_status: "Sent",
+        last_email_sent: hoursAgo(25),
+        email_sequence_day: 1,
+        next_email_due: hoursAgo(1),
+        ...over
+    });
+}
+
+test("schedule configuration is unchanged (@daily)", async () => {
+    assert.deepStrictEqual(H.load(FN).config, { schedule: "@daily" });
+});
+
+test("sends the lesson for the lead's current day and advances by one day", async () => {
+    const reportSentAt = hoursAgo(25);
+    const lead = dueLead({ email_sequence_day: 3, last_email_sent: reportSentAt });
+    const before = Date.now();
+    const r = await run();
+    assert.strictEqual(r.statusCode, 200, r.body);
+    assert.strictEqual(H.mail.sent.length, 1);
+    const lessons = H.load("emails/index.js");
+    assert.strictEqual(H.mail.sent[0].payload.subject, lessons[3]({ name: "Ada" }).subject);
+    assert(H.mail.sent[0].payload.html.includes("Hello <strong>Ada</strong>"));
+    assert.strictEqual(H.mail.sent[0].payload.to, "ada@example.com");
+    assert.strictEqual(lead.email_sequence_day, 4);
+    const due = new Date(lead.next_email_due).getTime();
+    assert(due >= before + 864e5 - 1000 && due <= Date.now() + 864e5 + 1000, "next lesson 24h later");
+    assert(lead.last_sequence_email_sent);
+    assert.strictEqual(lead.email_status, "Sent", "report status untouched");
+    assert.strictEqual(lead.last_email_sent, reportSentAt, "report timestamp untouched");
+});
+
+test("not-due leads are not emailed", async () => {
+    const lead = dueLead({ next_email_due: hoursAhead(2) });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 0);
+    assert.strictEqual(lead.email_sequence_day, 1);
+});
+
+test("a brand-new quiz lead (due 24h after the quiz) is not emailed yet", async () => {
+    H.addLead();
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 0);
+});
+
+test("full journey: 14 lessons in order, one per run, then nothing (no Day 15)", async () => {
+    const lead = dueLead();
+    const subjects = [];
+    for (let i = 0; i < 16; i++) {
+        lead.next_email_due = hoursAgo(1);
+        await run();
+        subjects.push(H.mail.sent.length);
+    }
+    assert.strictEqual(H.mail.sent.length, 14, "exactly 14 emails");
+    assert.strictEqual(lead.email_sequence_day, 15, "completed marker");
+    const lessons = H.load("emails/index.js");
+    H.mail.sent.forEach((s, i) => {
+        assert.strictEqual(s.payload.subject, lessons[i + 1]({ name: "Ada" }).subject, "day " + (i + 1));
+        assert.strictEqual(s.options.idempotencyKey, `sequence-lead-${lead.id}-day-${i + 1}`);
+    });
+});
+
+test("leads already past Day 14, or with no/invalid day, are not selected or emailed", async () => {
+    for (const day of [15, 16, 0, -1, null, 2.5, "abc"]) {
+        H.reset();
+        dueLead({ email_sequence_day: day });
+        await run();
+        assert.strictEqual(H.mail.attempts.length, 0, "day " + JSON.stringify(day));
+    }
+});
+
+test("Resend rejection: day not advanced, due time restored, retried successfully next run", async () => {
+    const due = hoursAgo(1);
+    const lead = dueLead({ email_sequence_day: 5, next_email_due: due });
+    H.mail.mode = "error";
+    const r = await run();
+    assert.strictEqual(r.statusCode, 200);
+    assert.strictEqual(lead.email_sequence_day, 5);
+    assert.strictEqual(lead.next_email_due, due, "due time restored for retry");
+    H.mail.mode = "ok";
+    await run();
+    assert.strictEqual(H.mail.sent.length, 1);
+    assert.strictEqual(lead.email_sequence_day, 6);
+});
+
+test("Resend exception: same safe behaviour, no leak", async () => {
+    const lead = dueLead();
+    H.mail.mode = "throw";
+    const r = await run();
+    assert.strictEqual(lead.email_sequence_day, 1);
+    H.assertNoLeak(assert, r.body, "response");
+    H.assertLogsClean(assert, ["ada@example.com"]);
+});
+
+test("duplicate scheduled invocation: two overlapping runs send each lesson once", async () => {
+    const leads = [dueLead({ email: "a@example.com" }), dueLead({ email: "b@example.com" }), dueLead({ email: "c@example.com" })];
+    H.mail.delayMs = 15;
+    const mod = H.load(FN);
+    await Promise.all([mod.handler({}), mod.handler({}), mod.handler({})]);
+    assert.strictEqual(H.mail.attempts.length, 3, "one email per lead");
+    for (const l of leads) assert.strictEqual(l.email_sequence_day, 2);
+});
+
+test("unsubscribed lead is skipped", async () => {
+    const lead = dueLead({ status: "Unsubscribed" });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 0);
+    assert.strictEqual(lead.email_sequence_day, 1);
+});
+
+test("a lead whose address unsubscribed on another lead is skipped (normalized match)", async () => {
+    H.addLead({ email: " ADA@example.com", status: "Unsubscribed", next_email_due: hoursAhead(5) });
+    dueLead({ email: "ada@example.com" });
+    dueLead({ email: "other@example.com" });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert.strictEqual(H.mail.attempts[0].payload.to, "other@example.com");
+});
+
+test("if the status column rejects 'Unsubscribed', the sequence still runs", async () => {
+    H.db.rejectValues = { status: ["Unsubscribed"] };
+    dueLead();
+    const r = await run();
+    assert.strictEqual(r.statusCode, 200);
+    assert.strictEqual(H.mail.attempts.length, 1);
+});
+
+test("unsubscribe list cannot be read: no marketing email is sent", async () => {
+    dueLead();
+    H.db.failWhen = (q) => q.mode === "select" && q.filters.some(([, c]) => c === "status");
+    const r = await run();
+    assert.strictEqual(r.statusCode, 500);
+    assert.strictEqual(H.mail.attempts.length, 0);
+});
+
+test("invalid or missing stored addresses are skipped without sending", async () => {
+    for (const email of ["", "not-an-address", null, "a@b", "x@example.com, y@example.com"]) {
+        dueLead({ email });
+    }
+    const good = dueLead({ email: "good@example.com" });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert.strictEqual(good.email_sequence_day, 2);
+});
+
+test("lesson emails are escaped and carry signed tracking + unsubscribe header", async () => {
+    const lead = dueLead({ name: "<script>alert(1)</script>" });
+    await run();
+    const sent = H.mail.sent[0];
+    assert(!sent.payload.html.includes("<script>alert(1)"));
+    assert(sent.payload.html.includes("&lt;script&gt;"));
+    assert(sent.payload.html.includes(`email-open?l=${lead.id}&amp;t=`));
+    assert(sent.payload.headers["List-Unsubscribe"].includes(`unsubscribe?l=${lead.id}&t=`));
+    assert.strictEqual(sent.payload.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
+});
+
+test("missing server configuration: 500, nothing sent", async () => {
+    H.setEnv({ RESEND_API_KEY: undefined });
+    dueLead();
+    const r = await run();
+    assert.strictEqual(r.statusCode, 500);
+    assert.strictEqual(H.mail.attempts.length, 0);
+    assert(!r.body.includes("RESEND"));
+});
+
+test("database failure on the due-lead query: 500, generic body", async () => {
+    dueLead();
+    H.db.failWhen = (q) => q.mode === "select";
+    const r = await run();
+    assert.strictEqual(r.statusCode, 500);
+    H.assertNoLeak(assert, r.body, "response");
+});
+
+test("progress update fails after delivery: lead stays claimed (not resent by the next run)", async () => {
+    const lead = dueLead();
+    H.db.failWhen = (q) => q.mode === "update" && q.changes && q.changes.email_sequence_day === 2;
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    H.db.failWhen = null;
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1, "lease prevents an immediate resend");
+    assert(new Date(lead.next_email_due).getTime() > Date.now(), "lease in the future");
+});
+
+test("batch size is bounded per run", async () => {
+    for (let i = 0; i < 60; i++) dueLead({ email: `p${i}@example.com` });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 50);
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 60);
+});
+
+test("existing in-progress leads keep their schedule (day and due time read as stored)", async () => {
+    const lead = dueLead({ email_sequence_day: 9, next_email_due: "2026-11-01T08:00:00+00:00" });
+    await run();
+    assert.strictEqual(H.mail.sent.length, 1);
+    assert.strictEqual(lead.email_sequence_day, 10);
+});
+
+module.exports = suite;
+
+if (require.main === module) {
+    suite.run().then(({ fail }) => process.exit(fail ? 1 : 0));
+}

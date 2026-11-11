@@ -4,6 +4,8 @@
 
 const layout = require("./layout");
 
+const escapeHtml = require("./escape-html");
+
 
 module.exports = ({
     name,
@@ -13,36 +15,42 @@ module.exports = ({
     oilLevel,
     sensitivity,
     score,
-    recommendation
+    recommendation,
+    tracking
 }) => {
 
+    // All user-supplied values are HTML-escaped
+    // before being inserted into the template.
+
     const safeName =
-        name || "there";
+        escapeHtml(name || "there");
 
 
     const safeScore =
-        score ?? "--";
+        escapeHtml(score ?? "--");
 
 
     const safeSkinType =
-        skinType || "Not determined";
+        escapeHtml(skinType || "Not determined");
 
 
     const safeConcern =
-        concern || "Not determined";
+        escapeHtml(concern || "Not determined");
 
 
     const safeOilLevel =
-        oilLevel || "Not determined";
+        escapeHtml(oilLevel || "Not determined");
 
 
     const safeSensitivity =
-        sensitivity || "Not determined";
+        escapeHtml(sensitivity || "Not determined");
 
 
     const safeRecommendation =
-        recommendation ||
-        "Start with a gentle, consistent skincare routine and focus on understanding your skin before adding multiple active products.";
+        escapeHtml(
+            recommendation ||
+            "Start with a gentle, consistent skincare routine and focus on understanding your skin before adding multiple active products."
+        );
 
 
     return {
@@ -52,6 +60,8 @@ module.exports = ({
 
 
         html: layout({
+
+            tracking,
 
             title:
                 "Your Personalized Skin Report 🌿",
