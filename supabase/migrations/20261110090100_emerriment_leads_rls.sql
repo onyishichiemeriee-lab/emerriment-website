@@ -23,28 +23,44 @@
 --     run as a signed-in administrator and keep working.
 --
 -- Abuse limits (server-side, cannot be bypassed from the browser):
---   * Max 3 leads per address per 10 minutes and 10 per 24 hours.
---   * Max 120 new leads per minute in total.
+--   * Max 3 leads per address per 10 minutes and 10 per 24 hours. Inserts
+--     for the same address are serialised with an advisory lock, so
+--     simultaneous submissions cannot slip past the count.
+--   * Max 120 new leads per minute in total (approximate under heavy
+--     concurrency; it is a flood brake, not an exact quota).
 --   * Initial email state is forced to "not yet emailed".
 --
 -- PENDING VERIFICATION against the audit output:
 --   * leads.submitted_at is a timestamp (timestamptz) column.
 --   * Columns email_status, last_email_sent, email_sequence_day, status
 --     and next_email_due exist (the homepage quiz writes all of them).
+--   * leads.email, name and recommendation are text columns.
+--
+-- Safe to re-run. Requires migration 1 (checked below).
 --
 -- Rollback: supabase/rollback/emerriment_security_rollback.sql
 -- =====================================================================
 
 begin;
 
-alter table public.leads enable row level security;
+do $$
+begin
+    if to_regprocedure('public.emerriment_is_admin()') is null
+       or to_regprocedure('emerriment_private.enable_rls(regclass)') is null then
+        raise exception 'EMerriment: apply migration 20261110090000 first.';
+    end if;
+end
+$$;
+
+select emerriment_private.enable_rls('public.leads');
 
 
 -- ---------------------------------------------------------------------
 -- Insert guard: normalise browser-supplied state and rate-limit.
 -- SECURITY DEFINER so it can count leads (visitors cannot read them).
--- The caller is identified with auth.role() (the request's JWT role),
--- because current_user inside a definer function is the owner.
+-- The caller is identified from the request's JWT role
+-- (emerriment_private.request_role()), because current_user inside a
+-- definer function is the owner.
 -- ---------------------------------------------------------------------
 create or replace function public.emerriment_guard_lead_insert()
 returns trigger
@@ -53,7 +69,7 @@ security definer
 set search_path = ''
 as $$
 declare
-    caller text := coalesce((select auth.role()), '');
+    caller text := emerriment_private.request_role();
     address text := lower(btrim(coalesce(new.email, '')));
 begin
 
@@ -85,7 +101,13 @@ begin
         new.status := 'New Lead';
     end if;
 
-    -- Rate limits
+    -- Rate limits. Serialise inserts for this address so concurrent
+    -- submissions see each other's rows (READ COMMITTED takes a fresh
+    -- snapshot for each statement after the lock is granted).
+    perform pg_catalog.pg_advisory_xact_lock(
+        pg_catalog.hashtextextended('emerriment_lead:' || address, 0)
+    );
+
     if (select count(*) from public.leads l
         where lower(btrim(l.email)) = address
           and l.submitted_at > now() - interval '10 minutes') >= 3

@@ -18,9 +18,10 @@
 --   ai_conversations    user_id
 --   ai_memory           user_id
 --   ai_messages         user_id, or via ai_conversations.conversation_id
---   article_ratings     user_id — ratings stay PUBLICLY READABLE because
---                       article pages show the average rating; only
---                       writing is limited to the owner.
+--   article_ratings     user_id — READING IS NOT CHANGED (article pages
+--                       show the average rating to everyone; whatever read
+--                       access exists today is kept exactly). Only writing
+--                       is limited to the owner.
 --
 -- Approach: restrictive policies (AND-combined with any existing
 -- policies, nothing dropped) + permissive policies for intended access.
@@ -30,15 +31,26 @@
 -- PENDING VERIFICATION against the audit output: the ownership columns
 -- above, and that no page needs to read another user's rows.
 --
+-- Safe to re-run. Requires migration 1 (checked below).
+--
 -- Rollback: supabase/rollback/emerriment_security_rollback.sql
 -- =====================================================================
 
 begin;
 
+do $$
+begin
+    if to_regprocedure('public.emerriment_is_admin()') is null
+       or to_regprocedure('emerriment_private.enable_rls(regclass)') is null then
+        raise exception 'EMerriment: apply migration 20261110090000 first.';
+    end if;
+end
+$$;
+
 -- ---------------------------------------------------------------------
 -- profiles
 -- ---------------------------------------------------------------------
-alter table public.profiles enable row level security;
+select emerriment_private.enable_rls('public.profiles');
 
 drop policy if exists emerriment_profiles_restrict_select on public.profiles;
 create policy emerriment_profiles_restrict_select
@@ -94,7 +106,8 @@ do $$
 declare
     t text;
     owner_expr text := '(user_id = (select auth.uid()) or (select public.emerriment_is_admin()))';
-    public_read text[] := array['article_ratings'];
+    -- Tables whose READ access is left exactly as it is today.
+    reads_unchanged text[] := array['article_ratings'];
 begin
     foreach t in array array[
         'quiz_results', 'reading_history', 'saved_articles', 'saved_products',
@@ -112,10 +125,10 @@ begin
             continue;
         end if;
 
-        execute format('alter table public.%I enable row level security', t);
+        perform emerriment_private.enable_rls(format('public.%I', t)::regclass);
 
         -- Restrictive boundary
-        if not (t = any (public_read)) then
+        if not (t = any (reads_unchanged)) then
             execute format('drop policy if exists %I on public.%I', 'emerriment_' || t || '_restrict_select', t);
             execute format('create policy %I on public.%I as restrictive for select to anon, authenticated using %s',
                            'emerriment_' || t || '_restrict_select', t, owner_expr);
@@ -138,10 +151,14 @@ begin
         execute format('create policy %I on public.%I for all to authenticated using %s with check %s',
                        'emerriment_' || t || '_owner_all', t, owner_expr, owner_expr);
 
-        if t = any (public_read) then
-            execute format('drop policy if exists %I on public.%I', 'emerriment_' || t || '_public_select', t);
+        -- RLS may have just been switched on for a table whose reads were
+        -- open before (no policies). Keep such reads working.
+        if t = any (reads_unchanged)
+           and not emerriment_private.rls_was_enabled(format('public.%I', t)::regclass) then
+            execute format('drop policy if exists %I on public.%I', 'emerriment_' || t || '_keep_open_read', t);
             execute format('create policy %I on public.%I for select to anon, authenticated using (true)',
-                           'emerriment_' || t || '_public_select', t);
+                           'emerriment_' || t || '_keep_open_read', t);
+            raise notice 'EMerriment: % had RLS off; its open read access is preserved.', t;
         end if;
 
         raise notice 'EMerriment: owner policies applied to %.', t;
@@ -169,13 +186,15 @@ begin
     elsif exists (select 1 from information_schema.columns
                   where table_schema = 'public' and table_name = 'ai_messages' and column_name = 'conversation_id')
           and to_regclass('public.ai_conversations') is not null then
-        expr := '(exists (select 1 from public.ai_conversations c where c.id = conversation_id and c.user_id = (select auth.uid())) or (select public.emerriment_is_admin()))';
+        -- ai_messages.conversation_id is fully qualified so it can never
+        -- bind to a column of ai_conversations by mistake.
+        expr := '(exists (select 1 from public.ai_conversations c where c.id = ai_messages.conversation_id and c.user_id = (select auth.uid())) or (select public.emerriment_is_admin()))';
     else
         raise notice 'EMerriment: ai_messages has no user_id or conversation_id; skipped — needs a manual policy.';
         return;
     end if;
 
-    alter table public.ai_messages enable row level security;
+    perform emerriment_private.enable_rls('public.ai_messages');
 
     drop policy if exists emerriment_ai_messages_restrict_select on public.ai_messages;
     execute format('create policy emerriment_ai_messages_restrict_select on public.ai_messages as restrictive for select to anon, authenticated using %s', expr);

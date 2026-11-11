@@ -120,4 +120,7 @@ revoke all on table public.email_deliveries from anon, authenticated;
 comment on table public.email_deliveries is
     'EMerriment: one row per email per lead, reserved before sending (at-most-once). Service role only.';
 
+-- Make the new table visible to the API (service role) immediately.
+notify pgrst, 'reload schema';
+
 commit;

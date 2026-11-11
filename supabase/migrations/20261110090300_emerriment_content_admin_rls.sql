@@ -12,7 +12,7 @@
 --      The public article page previously incremented `views` with a
 --      direct update, which required visitors to have UPDATE permission
 --      on articles (i.e. could rewrite article content). It now calls
---      public.increment_article_views(), defined below, instead.
+--      public.emerriment_increment_article_views(), defined below, instead.
 --
 -- Admin-only tables (only the CMS uses them):
 --   website_settings, ai_settings, ai_feedback, ai_events, ai_questions,
@@ -34,6 +34,15 @@
 begin;
 
 do $$
+begin
+    if to_regprocedure('public.emerriment_is_admin()') is null
+       or to_regprocedure('emerriment_private.enable_rls(regclass)') is null then
+        raise exception 'EMerriment: apply migration 20261110090000 first.';
+    end if;
+end
+$$;
+
+do $$
 declare
     t text;
     admin_expr text := '((select public.emerriment_is_admin()))';
@@ -49,7 +58,18 @@ begin
             continue;
         end if;
 
-        execute format('alter table public.%I enable row level security', t);
+        perform emerriment_private.enable_rls(format('public.%I', t)::regclass);
+
+        -- If RLS was OFF before, the public could read everything; switching
+        -- it on must not hide articles/products from the website. Keep that
+        -- read access exactly. (If RLS was already on, the existing read
+        -- policies are left as they are.)
+        if not emerriment_private.rls_was_enabled(format('public.%I', t)::regclass) then
+            execute format('drop policy if exists %I on public.%I', 'emerriment_' || t || '_keep_open_read', t);
+            execute format('create policy %I on public.%I for select to anon, authenticated using (true)',
+                           'emerriment_' || t || '_keep_open_read', t);
+            raise notice 'EMerriment: % had RLS off; its open read access is preserved.', t;
+        end if;
 
         execute format('drop policy if exists %I on public.%I', 'emerriment_' || t || '_restrict_insert', t);
         execute format('create policy %I on public.%I as restrictive for insert to anon, authenticated with check %s',
@@ -83,7 +103,7 @@ begin
             continue;
         end if;
 
-        execute format('alter table public.%I enable row level security', t);
+        perform emerriment_private.enable_rls(format('public.%I', t)::regclass);
 
         execute format('drop policy if exists %I on public.%I', 'emerriment_' || t || '_restrict_all', t);
         execute format('create policy %I on public.%I as restrictive for all to anon, authenticated using %s with check %s',
@@ -100,7 +120,7 @@ $$;
 
 
 -- ---------------------------------------------------------------------
--- increment_article_views(article_id)
+-- emerriment_increment_article_views(article_id)
 -- The only change visitors may make to an article: +1 view.
 -- Created with the same type as encyclopedia_articles.id.
 -- ---------------------------------------------------------------------
@@ -116,19 +136,19 @@ begin
        and not a.attisdropped;
 
     if id_type is null then
-        raise notice 'EMerriment: encyclopedia_articles.id not found; increment_article_views not created.';
+        raise notice 'EMerriment: encyclopedia_articles.id not found; emerriment_increment_article_views not created.';
         return;
     end if;
 
     if not exists (select 1 from information_schema.columns
                    where table_schema = 'public' and table_name = 'encyclopedia_articles'
                      and column_name = 'views') then
-        raise notice 'EMerriment: encyclopedia_articles.views not found; increment_article_views not created.';
+        raise notice 'EMerriment: encyclopedia_articles.views not found; emerriment_increment_article_views not created.';
         return;
     end if;
 
     execute format($f$
-        create or replace function public.increment_article_views(article_id %s)
+        create or replace function public.emerriment_increment_article_views(article_id %s)
         returns integer
         language sql
         volatile
@@ -142,11 +162,14 @@ begin
         $body$
     $f$, id_type);
 
-    execute format('revoke all on function public.increment_article_views(%s) from public', id_type);
-    execute format('grant execute on function public.increment_article_views(%s) to anon, authenticated', id_type);
+    execute format('revoke all on function public.emerriment_increment_article_views(%s) from public', id_type);
+    execute format('grant execute on function public.emerriment_increment_article_views(%s) to anon, authenticated', id_type);
 
-    raise notice 'EMerriment: increment_article_views(%) created.', id_type;
+    raise notice 'EMerriment: emerriment_increment_article_views(%) created.', id_type;
 end
 $$;
+
+-- Make the new function visible to the website API immediately.
+notify pgrst, 'reload schema';
 
 commit;

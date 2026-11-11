@@ -115,25 +115,90 @@ test("admin lock-out protection: aborts without an admin, and the last admin can
     assert(m1.includes("Cannot remove the last administrator."));
 });
 
-test("privilege escalation: only an admin (or trusted server roles) can change profiles.is_admin", async () => {
+test("last-admin protection covers DELETE and is serialised against concurrent demotions", async () => {
     const m1 = migrations[0].sql;
-    assert(/before insert or update on public\.profiles/.test(m1));
-    assert(/security invoker/.test(m1.split("emerriment_guard_profile_privileges()")[1]),
-        "guard must run as the caller so current_user identifies API requests");
-    assert(m1.includes("is_api_user boolean := current_user in ('anon', 'authenticated')"));
-    assert(m1.includes("if is_api_user and not public.emerriment_is_admin() then"));
-    assert(m1.includes("Not allowed to create an administrator profile."));
+    assert(/before insert or update or delete on public\.profiles/.test(m1), "DELETE not guarded");
+    const guard = m1.split("create or replace function public.emerriment_guard_profile_privileges()")[1].split("$$;")[0];
+    assert(guard.includes("pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext('emerriment_admin_change'))"), "no lock");
+    const lockAt = guard.indexOf("pg_advisory_xact_lock");
+    const countAt = guard.indexOf("where p.is_admin is true and p.id <> old.id");
+    assert(lockAt > 0 && countAt > lockAt, "the admin count must run AFTER the lock is taken");
+    assert(/tg_op = 'DELETE' or not coalesce\(new\.is_admin, false\)/.test(guard), "deleting an admin not covered");
+    assert(guard.includes("return old;"), "DELETE must return old");
 });
 
-test("lead insert guard identifies the caller from the JWT role (definer function)", async () => {
+test("privilege escalation: only an admin (or trusted server roles) can change profiles.is_admin", async () => {
+    const m1 = migrations[0].sql;
+    const guard = m1.split("create or replace function public.emerriment_guard_profile_privileges()")[1].split("$$;")[0];
+    assert(/security invoker/.test(guard), "guard must run as the caller so current_user identifies API requests");
+    assert(!/security definer/.test(guard));
+    assert(guard.includes("is_api_user boolean := current_user in ('anon', 'authenticated')"));
+    assert(/new\.is_admin is distinct from old\.is_admin\s+and is_api_user and not public\.emerriment_is_admin\(\)/.test(guard), "promotion check missing");
+    assert(guard.includes("Not allowed to create an administrator profile."));
+    assert(guard.includes("Not allowed to change a profile id."));
+});
+
+test("lead insert guard identifies the caller from the JWT role (definer function), not auth.role()", async () => {
     const m2 = migrations.find((m) => m.file.includes("leads_rls")).sql;
     const fn = m2.split("create or replace function public.emerriment_guard_lead_insert()")[1].split("$$;")[0];
     assert(/security definer/.test(fn));
-    assert(fn.includes("auth.role()"), "must not rely on current_user inside a definer function");
-    assert(!/current_user/.test(sqlCode(fn)));
+    assert(fn.includes("caller text := emerriment_private.request_role();"));
+    assert(!/auth\.role\(\)/.test(sqlCode(fn)), "deprecated auth.role() used");
+    assert(!/current_user/.test(sqlCode(fn)), "must not rely on current_user inside a definer function");
     for (const s of ["new.submitted_at := now()", "new.last_email_sent := null", "interval '10 minutes'", "interval '24 hours'", "interval '1 minute'"]) {
         assert(fn.includes(s), "missing " + s);
     }
+});
+
+test("lead rate limit is serialised per address (lock taken before counting)", async () => {
+    const m2 = migrations.find((m) => m.file.includes("leads_rls")).sql;
+    const fn = m2.split("create or replace function public.emerriment_guard_lead_insert()")[1].split("$$;")[0];
+    const lockAt = fn.indexOf("pg_catalog.pg_advisory_xact_lock(");
+    const countAt = fn.indexOf("interval '10 minutes'");
+    assert(lockAt > 0 && countAt > lockAt);
+    assert(fn.includes("hashtextextended('emerriment_lead:' || address, 0)"));
+});
+
+test("request_role reads the JWT claims (both PostgREST setting formats)", async () => {
+    const m1 = migrations[0].sql;
+    const fn = m1.split("create or replace function emerriment_private.request_role()")[1].split("$$;")[0];
+    assert(fn.includes("current_setting('request.jwt.claim.role', true)"));
+    assert(fn.includes("current_setting('request.jwt.claims', true)), '')::jsonb ->> 'role'") ||
+           fn.includes("nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'"));
+});
+
+test("migrations 2-4 refuse to run before migration 1", async () => {
+    for (const key of ["leads_rls", "user_data", "content_admin"]) {
+        const sql = migrations.find((m) => m.file.includes(key)).sql;
+        assert(sql.includes("to_regprocedure('public.emerriment_is_admin()') is null"), key);
+        assert(sql.includes("apply migration 20261110090000 first."), key);
+    }
+});
+
+test("every RLS change records the previous state first (rollback can restore it)", async () => {
+    const direct = [];
+    for (const m of migrations) {
+        for (const match of sqlCode(m.sql).matchAll(/alter table ([^\s;]+) enable row level security/g)) {
+            direct.push(m.file + ": " + match[1]);
+        }
+    }
+    // Only the helper itself (format-built) and the brand-new email_deliveries
+    // table may enable RLS directly.
+    // The helper builds its statement with format('... %s ...'), and the new
+    // email_deliveries table has no previous state to restore.
+    assert.deepStrictEqual(direct.filter((d) => !d.endsWith(": %s") && !d.endsWith(": public.email_deliveries")), []);
+    assert.strictEqual(direct.length, 2, "unexpected direct RLS changes: " + direct.join(", "));
+    const helper = migrations[0].sql.split("create or replace function emerriment_private.enable_rls(target regclass)")[1].split("$$;")[0];
+    assert(helper.indexOf("insert into emerriment_private.rls_baseline") < helper.indexOf("enable row level security"));
+    assert(helper.includes("on conflict (table_name) do nothing"), "re-runs must keep the ORIGINAL state");
+    const enableCalls = (allSql.match(/emerriment_private\.enable_rls\(/g) || []).length;
+    assert(enableCalls >= 6, "enable_rls used " + enableCalls + " times");
+});
+
+test("baseline names are schema-qualified independently of search_path", async () => {
+    const m1 = migrations[0].sql;
+    assert(m1.includes("pg_catalog.format('%I.%I', n.nspname, c.relname)"));
+    assert(!/regclass::text/.test(sqlCode(allSql)), "regclass::text depends on search_path");
 });
 
 test("leads: visitors can insert only; select/update/delete are admin-only (restrictive)", async () => {
@@ -166,19 +231,46 @@ test("every table used by the code is covered by a migration (or deliberately re
     assert.deepStrictEqual(missing, [], "tables without a policy migration: " + missing.join(", "));
 });
 
-test("public read of ratings is preserved; personal tables have no public read", async () => {
+test("ratings reads are left exactly as they are; no new public read is created", async () => {
     const m3 = migrations.find((m) => m.file.includes("user_data")).sql;
-    assert(m3.includes("public_read text[] := array['article_ratings']"));
-    const usingTrue = [...sqlCode(allSql).matchAll(/using \(true\)/g)].length;
-    assert.strictEqual(usingTrue, 1, "only the article_ratings public select may use (true)");
+    assert(m3.includes("reads_unchanged text[] := array['article_ratings']"));
+    assert(!/_public_select/.test(m3), "must not add a new public-read policy");
+    assert(/if not \(t = any \(reads_unchanged\)\) then\s+execute format\('drop policy if exists %I on public\.%I', 'emerriment_' \|\| t \|\| '_restrict_select'/.test(m3),
+        "ratings must be exempt from the restrictive SELECT");
 });
 
-test("content reads untouched; writes admin-only; view counter via a narrow function", async () => {
+test("open reads are only re-created where RLS was previously OFF (no new exposure)", async () => {
+    const code = sqlCode(allSql);
+    const usingTrue = [...code.matchAll(/using \(true\)/g)].length;
+    const keepOpen = [...code.matchAll(/'_keep_open_read', t\);?/g)].length;
+    // Every `using (true)` must be a _keep_open_read policy guarded by the baseline.
+    const guarded = [...code.matchAll(/not emerriment_private\.rls_was_enabled\(format\('public\.%I', t\)::regclass\)/g)].length;
+    assert.strictEqual(usingTrue, 2, "expected exactly the two keep-open-read policies (ratings, content)");
+    assert.strictEqual(guarded, 2, "each keep-open-read must be guarded by the RLS baseline");
+    assert(keepOpen >= 2);
+});
+
+test("content reads untouched; writes admin-only; view counter via a narrow, uniquely named function", async () => {
     const m4 = migrations.find((m) => m.file.includes("content_admin")).sql;
-    assert(!/restrictive for select/.test(m4.split("Admin-only tables")[0].split("begin;")[1] || ""), "content reads must not be restricted");
-    assert(m4.includes("create or replace function public.increment_article_views(article_id %s)"));
+    const contentPart = m4.split("-- Admin-only tables: no public access at all.")[0];
+    assert(!/restrictive for select/.test(contentPart), "content reads must not be restricted");
+    assert(m4.includes("create or replace function public.emerriment_increment_article_views(article_id %s)"));
+    assert(!/function public\.increment_article_views/.test(m4), "generic name could replace an existing function");
     assert(m4.includes("set views = coalesce(views, 0) + 1"));
-    assert(m4.includes("grant execute on function public.increment_article_views(%s) to anon, authenticated"));
+    assert(m4.includes("where id = $1"));
+    assert(m4.includes("grant execute on function public.emerriment_increment_article_views(%s) to anon, authenticated"));
+});
+
+test("new API objects are announced to PostgREST (schema cache reload)", async () => {
+    for (const key of ["content_admin", "email_delivery"]) {
+        assert(migrations.find((m) => m.file.includes(key)).sql.includes("notify pgrst, 'reload schema';"), key);
+    }
+});
+
+test("ai_messages ownership via conversation is fully qualified", async () => {
+    const m3 = migrations.find((m) => m.file.includes("user_data")).sql;
+    assert(m3.includes("c.id = ai_messages.conversation_id"));
+    assert(!/c\.id = conversation_id/.test(m3));
 });
 
 test("email_deliveries: service role only, unique per email, cascades with the lead", async () => {
@@ -190,16 +282,26 @@ test("email_deliveries: service role only, unique per email, cascades with the l
     assert(!/create policy[\s\S]*email_deliveries/.test(sqlCode(m5)), "no API policy on email_deliveries");
 });
 
-test("rollback only removes EMerriment objects", async () => {
+test("rollback only removes EMerriment objects and restores the recorded RLS state", async () => {
     const rb = sqlCode(read("supabase/rollback/emerriment_security_rollback.sql"));
     assert(rb.includes("policyname like 'emerriment\\_%'"));
     assert(!/drop policy if exists (?!%I)[a-z_]+/i.test(rb.replace(/drop policy if exists %I/g, "")));
+    assert(rb.includes("from emerriment_private.rls_baseline"));
+    assert(rb.includes("if not b.rls_enabled then"));
+    assert(rb.includes("disable row level security"));
+    assert(rb.indexOf("rls_baseline") < rb.indexOf("drop schema if exists emerriment_private"), "baseline used before the schema is dropped");
+    for (const f of rb.matchAll(/drop function if exists public\.([a-z_]+)/g)) {
+        assert(f[1].startsWith("emerriment_"), "rollback drops non-EMerriment function " + f[1]);
+    }
+    assert(!/delete from|truncate/.test(rb.toLowerCase()), "rollback must not touch data rows");
 });
 
-test("read-only audit file contains no data-changing statements", async () => {
-    const audit = sqlCode(read("supabase/audit/01_read_only_security_audit.sql")).toLowerCase();
-    for (const kw of ["insert ", "update ", "delete ", "drop ", "alter ", "create ", "grant ", "revoke ", "truncate"]) {
-        assert(!audit.includes(kw), "audit contains " + kw.trim());
+test("read-only audit and verification files contain no data-changing statements", async () => {
+    for (const file of ["supabase/audit/01_read_only_security_audit.sql", "supabase/audit/02_post_migration_verification.sql"]) {
+        const audit = sqlCode(read(file)).toLowerCase();
+        for (const kw of ["insert ", "update ", "delete ", "drop ", "alter ", "create ", "grant ", "revoke ", "truncate", "notify "]) {
+            assert(!audit.includes(kw), file + " contains " + kw.trim());
+        }
     }
 });
 
@@ -234,8 +336,11 @@ test("only the admin user-details page writes is_admin; no browser code inserts 
 test("public pages do not update articles except the view-counter fallback", async () => {
     const writers = calls("encyclopedia_articles", "update").filter((f) => !f.startsWith("admin/"));
     assert.deepStrictEqual(writers, ["article/article/js/article.js"]);
-    assert(read("article/article/js/article.js").includes('rpc(\n            "increment_article_views"') ||
-           read("article/article/js/article.js").includes('"increment_article_views"'));
+    const src = read("article/article/js/article.js");
+    assert(src.includes('"emerriment_increment_article_views"'), "RPC name must match the migration");
+    assert(src.indexOf('"emerriment_increment_article_views"') < src.indexOf('.from("encyclopedia_articles")\n        .update') ||
+           src.indexOf('"emerriment_increment_article_views"') < src.indexOf('.update({\n            views'),
+        "RPC must be tried before the fallback update");
 });
 
 test("quiz code uses the configured client, never the library object", async () => {
@@ -265,6 +370,9 @@ test("internal folders and files are blocked from public download; functions are
         assert(/status = 404/.test(block) && /force = true/.test(block), p);
     }
     assert(!/from = "\/\.netlify/.test(toml), "functions path must not be blocked");
+    for (const p of ["/EMerriment Authentication V2/*", "/EMerriment Authentication V3 — VERIFIED BACKUP/*", "/ROOT AUTH BACKUP BEFORE V2/*"]) {
+        assert(toml.includes(`from = "${p}"`), "backup folder not blocked (literal name; the matcher decodes paths): " + p);
+    }
 });
 
 test("_headers has no stray rule lines", async () => {
@@ -272,9 +380,19 @@ test("_headers has no stray rule lines", async () => {
     assert.deepStrictEqual(lines, ["/*"]);
 });
 
-test("email-sequence schedule declaration is unchanged (activation is a deployment decision)", async () => {
-    assert(read("netlify/functions/email-sequence.js").includes('schedule: "@daily"'));
-    assert(!/\[functions\."email-sequence"\]/.test(read("netlify.toml")), "schedule must not be activated without approval");
+test("email-sequence: schedule registered in netlify.toml, but sending requires an explicit switch", async () => {
+    // The schedule must be registered in a format Netlify recognises
+    // (verified locally with zip-it-and-ship-it: exports.config is ignored
+    // for exports.handler functions). Activation of SENDING stays a separate,
+    // deliberate decision via EMAIL_SEQUENCE_ENABLED=true.
+    const toml = read("netlify.toml");
+    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "@daily"/.test(toml));
+    const fn = read("netlify/functions/email-sequence.js");
+    const code = fn.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+    assert(!/exports\.config\s*=/.test(code), "ineffective exports.config left in place");
+    assert(fn.includes('return process.env.EMAIL_SEQUENCE_ENABLED === "true";'), "sending must require EMAIL_SEQUENCE_ENABLED=true");
+    const handler = fn.split("exports.handler")[1];
+    assert(handler.indexOf("if (!isSequenceEnabled())") < handler.indexOf("processLead("), "gate must come before any send");
 });
 
 module.exports = suite;

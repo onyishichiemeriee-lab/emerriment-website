@@ -61,6 +61,7 @@ function matches(row, filters) {
             case "is": return val === null ? v === null || v === undefined : v === val;
             case "gte": return v != null && cmpTime(v) >= cmpTime(val);
             case "lte": return v != null && cmpTime(v) <= cmpTime(val);
+            case "lt": return v != null && cmpTime(v) < cmpTime(val);
             case "ilike": return typeof v === "string" && likeToRegex(val).test(v);
             default: throw new Error("unsupported op " + op);
         }
@@ -86,6 +87,7 @@ class Query {
     is(c, v) { this.filters.push(["is", c, v]); return this; }
     gte(c, v) { this.filters.push(["gte", c, v]); return this; }
     lte(c, v) { this.filters.push(["lte", c, v]); return this; }
+    lt(c, v) { this.filters.push(["lt", c, v]); return this; }
     ilike(c, v) { this.filters.push(["ilike", c, v]); return this; }
     order(c, o) { this.ord = [c, o || {}]; return this; }
     limit(n) { this.lim = n; return this; }
@@ -215,12 +217,17 @@ const TEST_ENV = {
     RESEND_API_KEY: "test-resend-key-not-real",
     SUPABASE_URL: "https://example.invalid",
     SUPABASE_SERVICE_ROLE_KEY: "test-service-role-not-real",
-    URL: "https://emerriment216.netlify.app"
+    URL: "https://emerriment216.netlify.app",
+    // Existing sequence tests assume sending is switched on; tests of the
+    // disabled state override this.
+    EMAIL_SEQUENCE_ENABLED: "true"
 };
 
 function setEnv(overrides = {}) {
     for (const k of ["RESEND_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "URL",
-        "EMAIL_FROM", "EMAIL_LINK_SECRET", "EMAIL_CLAIM_COMPAT_MODE", "EMAIL_OPEN_ALLOW_LEGACY"]) {
+        "EMAIL_FROM", "EMAIL_LINK_SECRET", "EMAIL_CLAIM_COMPAT_MODE", "EMAIL_OPEN_ALLOW_LEGACY",
+        "EMAIL_SEQUENCE_ENABLED", "EMAIL_SEQUENCE_START_AFTER", "EMAIL_SEQUENCE_MAX_OVERDUE_DAYS",
+        "EMAIL_LINK_SECRET_PREVIOUS", "EMAIL_LINK_ACCEPT_DERIVED"]) {
         delete process.env[k];
     }
     Object.assign(process.env, TEST_ENV, overrides);

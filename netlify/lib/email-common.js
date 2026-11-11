@@ -41,6 +41,11 @@ function getSiteUrl() {
 
 }
 
+const SENDER_PATTERN =
+    /^(?:[^<>\r\n]{1,100}\s)?<?[^\s@<>]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}>?$/;
+
+let senderWarningShown = false;
+
 function getSender() {
 
     const configured = process.env.EMAIL_FROM;
@@ -49,12 +54,30 @@ function getSender() {
     if (
         typeof configured === "string" &&
         configured.length <= 200 &&
-        /^(?:[^<>\r\n]{1,100}\s)?<?[^\s@<>]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}>?$/.test(configured.trim())
+        SENDER_PATTERN.test(configured.trim())
     ) {
         return configured.trim();
     }
 
+    // Never fall back silently: Resend's test sender only delivers to the
+    // Resend account owner, so real visitors receive nothing. Logged once
+    // per function instance; no address or secret is logged.
+    if (!senderWarningShown) {
+        senderWarningShown = true;
+        console.warn(
+            typeof configured === "string" && configured.trim()
+                ? "EMAIL CONFIG: EMAIL_FROM is not a valid sender; using the Resend test sender, which only delivers to the Resend account owner."
+                : "EMAIL CONFIG: EMAIL_FROM is not set; using the Resend test sender, which only delivers to the Resend account owner."
+        );
+    }
+
     return DEFAULT_SENDER;
+
+}
+
+function isUsingTestSender() {
+
+    return getSender() === DEFAULT_SENDER;
 
 }
 
@@ -182,18 +205,39 @@ function leadCreatedTime(lead) {
    endpoints do nothing.
 ----------------------------------------- */
 
-function getLinkSecret() {
+// Minimum length for an explicit secret (32 characters; a 64-character hex
+// value from 32 random bytes is recommended).
+const MIN_SECRET_LENGTH = 32;
 
-    const explicit = process.env.EMAIL_LINK_SECRET;
+let secretWarningShown = false;
 
-    if (typeof explicit === "string" && explicit.length >= 32) {
-        return explicit;
+function explicitSecret(name) {
+
+    const value = process.env[name];
+
+    if (typeof value !== "string" || value.length === 0) {
+        return null;
     }
 
-    // Fallback: derive a separate key from the
-    // service-role key so no new variable is
-    // strictly required. HMAC is one-way, so the
-    // service-role key cannot be recovered.
+    if (value.length < MIN_SECRET_LENGTH) {
+        if (!secretWarningShown) {
+            secretWarningShown = true;
+            // The value itself is never logged.
+            console.warn(`EMAIL CONFIG: ${name} is shorter than ${MIN_SECRET_LENGTH} characters and is ignored.`);
+        }
+        return null;
+    }
+
+    return value;
+
+}
+
+// Key derived from the service-role key. Used when EMAIL_LINK_SECRET is
+// not set, and always accepted when verifying so links sent before
+// EMAIL_LINK_SECRET was introduced keep working. HMAC is one-way, so the
+// service-role key cannot be recovered from it.
+function derivedSecret() {
+
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (typeof serviceKey === "string" && serviceKey.length > 0) {
@@ -207,12 +251,50 @@ function getLinkSecret() {
 
 }
 
+// Secret used to SIGN new links.
+function getLinkSecret() {
+
+    return explicitSecret("EMAIL_LINK_SECRET") || derivedSecret();
+
+}
+
+// Secrets accepted when VERIFYING a link, newest first:
+// current secret, previous secret (EMAIL_LINK_SECRET_PREVIOUS, during a
+// rotation), and the derived key (links sent before a secret was set).
+// Once all emails signed with the derived key are old (e.g. 60 days after
+// EMAIL_LINK_SECRET was set), EMAIL_LINK_ACCEPT_DERIVED=false stops
+// accepting it.
+function getVerificationSecrets() {
+
+    const current = explicitSecret("EMAIL_LINK_SECRET");
+
+    const acceptDerived =
+        !current || process.env.EMAIL_LINK_ACCEPT_DERIVED !== "false";
+
+    return [
+        current,
+        explicitSecret("EMAIL_LINK_SECRET_PREVIOUS"),
+        acceptDerived ? derivedSecret() : null
+    ].filter((secret, index, all) => secret && all.indexOf(secret) === index);
+
+}
+
 function isValidLeadId(id) {
 
     return (
         (typeof id === "string" || typeof id === "number") &&
         /^[A-Za-z0-9-]{1,64}$/.test(String(id))
     );
+
+}
+
+function signWith(secret, purpose, leadId) {
+
+    return crypto
+        .createHmac("sha256", secret)
+        .update(`${purpose}:${leadId}`)
+        .digest("base64url")
+        .slice(0, 32);
 
 }
 
@@ -224,30 +306,29 @@ function signLink(purpose, leadId) {
         return null;
     }
 
-    return crypto
-        .createHmac("sha256", secret)
-        .update(`${purpose}:${leadId}`)
-        .digest("base64url")
-        .slice(0, 32);
+    return signWith(secret, purpose, leadId);
 
 }
 
 function verifyLink(purpose, leadId, token) {
 
-    if (typeof token !== "string" || token.length !== 32) {
+    if (typeof token !== "string" || token.length !== 32 || !isValidLeadId(leadId)) {
         return false;
     }
 
-    const expected = signLink(purpose, leadId);
+    const given = Buffer.from(token);
+    let valid = false;
 
-    if (!expected) {
-        return false;
+    // Check every accepted secret (no early exit, so timing does not reveal
+    // which one matched).
+    for (const secret of getVerificationSecrets()) {
+        const expected = Buffer.from(signWith(secret, purpose, leadId));
+        if (expected.length === given.length && crypto.timingSafeEqual(expected, given)) {
+            valid = true;
+        }
     }
 
-    const a = Buffer.from(expected);
-    const b = Buffer.from(token);
-
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
+    return valid;
 
 }
 
@@ -363,6 +444,7 @@ module.exports = {
     DEFAULT_SITE_URL,
     getSiteUrl,
     getSender,
+    isUsingTestSender,
     isValidEmail,
     normalizeEmail,
     escapeLikePattern,

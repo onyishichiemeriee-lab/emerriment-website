@@ -42,6 +42,55 @@ test("signing uses EMAIL_LINK_SECRET when set; links never contain keys or addre
     assert(!url.includes("@"));
 });
 
+test("rotation: links signed before EMAIL_LINK_SECRET was set still verify after it is set", async () => {
+    const oldToken = common().signLink("unsubscribe", "lead-7");          // derived key
+    H.setEnv({ EMAIL_LINK_SECRET: "a".repeat(64) });
+    const c = common();
+    assert(c.verifyLink("unsubscribe", "lead-7", oldToken), "old link broken");
+    const newToken = c.signLink("unsubscribe", "lead-7");
+    assert.notStrictEqual(newToken, oldToken, "new links use the explicit secret");
+    assert(c.verifyLink("unsubscribe", "lead-7", newToken));
+});
+
+test("rotation: EMAIL_LINK_SECRET_PREVIOUS keeps the previous secret's links valid", async () => {
+    H.setEnv({ EMAIL_LINK_SECRET: "b".repeat(64) });
+    const tokenB = common().signLink("open", "lead-8");
+    H.setEnv({ EMAIL_LINK_SECRET: "c".repeat(64), EMAIL_LINK_SECRET_PREVIOUS: "b".repeat(64) });
+    assert(common().verifyLink("open", "lead-8", tokenB));
+    H.setEnv({ EMAIL_LINK_SECRET: "c".repeat(64) });
+    assert(!common().verifyLink("open", "lead-8", tokenB), "retired secret must stop working");
+});
+
+test("EMAIL_LINK_ACCEPT_DERIVED=false stops accepting pre-secret links", async () => {
+    const oldToken = common().signLink("open", "lead-9");
+    H.setEnv({ EMAIL_LINK_SECRET: "d".repeat(64), EMAIL_LINK_ACCEPT_DERIVED: "false" });
+    assert(!common().verifyLink("open", "lead-9", oldToken));
+    // Without an explicit secret the derived key is always the signing key.
+    H.setEnv({ EMAIL_LINK_ACCEPT_DERIVED: "false" });
+    assert(common().verifyLink("open", "lead-9", oldToken));
+});
+
+test("a too-short EMAIL_LINK_SECRET is ignored with a warning that never contains the value", async () => {
+    const short = "shortsecretvalue123";
+    H.setEnv({ EMAIL_LINK_SECRET: short });
+    const c = common();
+    const viaShort = c.signLink("open", "lead-1");
+    H.setEnv();
+    assert.strictEqual(viaShort, common().signLink("open", "lead-1"), "short secret must not be used");
+    assert(H.logs.some((l) => l.includes("EMAIL_LINK_SECRET is shorter than 32")));
+    assert(!H.logs.join("\n").includes(short), "secret value logged");
+});
+
+test("signing secrets never appear in links, logs or rendered emails", async () => {
+    const secret = "e".repeat(30) + "SECRETMARK" + "e".repeat(30);
+    H.setEnv({ EMAIL_LINK_SECRET: secret });
+    const t = common().buildTracking("lead-3");
+    const html = H.load("emails/index.js").report({ name: "Ada", tracking: t }).html;
+    for (const s of [t.pixelUrl, t.unsubscribeUrl, html, H.logs.join("\n")]) {
+        assert(!s.includes("SECRETMARK"));
+    }
+});
+
 test("without any signing secret, no links are produced", async () => {
     H.setEnv({ SUPABASE_SERVICE_ROLE_KEY: undefined });
     const t = common().buildTracking("lead-1");

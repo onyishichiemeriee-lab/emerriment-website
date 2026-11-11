@@ -525,10 +525,10 @@ async function incrementViews() {
     // Preferred: a database function that only
     // increments the view counter, so visitors need
     // no update permission on articles.
-    // (supabase/migrations/..._increment_article_views)
+    // (supabase/migrations/20261110090300_emerriment_content_admin_rls.sql)
     const { data: rpcViews, error: rpcError } =
         await window.supabaseClient.rpc(
-            "increment_article_views",
+            "emerriment_increment_article_views",
             { article_id: currentArticle.id }
         );
 

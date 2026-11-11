@@ -73,12 +73,60 @@ const CLAIM_LEASE_MS = 2 * 60 * 60 * 1000;
 
 const STATUS_UNSUBSCRIBED = "Unsubscribed";
 
-// Leads whose lesson has been overdue for longer
-// than this are left untouched (not emailed, not
-// modified). Protects against a sudden mass send
-// to old leads if the schedule was inactive for a
-// long time. EMAIL_SEQUENCE_MAX_OVERDUE_DAYS=0
-// disables the guard.
+/* -----------------------------------------
+   ACTIVATION AND ELIGIBILITY
+   -----------------------------------------
+   EMAIL_SEQUENCE_ENABLED=true
+     Required for any lesson to be sent. The
+     function is registered on a daily schedule
+     (netlify.toml); until this is set it only
+     tidies abandoned report claims and sends
+     nothing.
+
+   EMAIL_SEQUENCE_START_AFTER=<ISO date/time>
+     Recommended when enabling. Only leads that
+     joined at or after this moment receive
+     lessons; older (historical) leads are left
+     untouched. Leads after the cutoff are never
+     excluded for being overdue — after an outage
+     they simply continue, one lesson per run.
+
+   Without a cutoff, a lead whose lesson is more
+   than EMAIL_SEQUENCE_MAX_OVERDUE_DAYS (default
+   7) overdue is skipped and left untouched, so
+   activating the schedule cannot bulk-email old
+   leads. Skips are reported in the run summary
+   and logged as a warning (never silent).
+----------------------------------------- */
+
+function isSequenceEnabled() {
+
+    return process.env.EMAIL_SEQUENCE_ENABLED === "true";
+
+}
+
+function sequenceStartAfter() {
+
+    const raw = process.env.EMAIL_SEQUENCE_START_AFTER;
+
+    if (raw === undefined || raw === "") {
+        return null;
+    }
+
+    const time = new Date(raw).getTime();
+
+    if (!Number.isFinite(time)) {
+        console.warn("EMAIL SEQUENCE: EMAIL_SEQUENCE_START_AFTER is not a valid date; ignored.");
+        return null;
+    }
+
+    return time;
+
+}
+
+// Lessons overdue for longer than this are left
+// untouched when no start cutoff is configured.
+// EMAIL_SEQUENCE_MAX_OVERDUE_DAYS=0 disables it.
 function maxOverdueMs() {
 
     const raw = process.env.EMAIL_SEQUENCE_MAX_OVERDUE_DAYS;
@@ -195,10 +243,25 @@ async function processLead(supabase, resend, lead, unsubscribed) {
         return "skipped_invalid_email";
     }
 
-    const dueTime = new Date(lead.next_email_due).getTime();
+    const startAfter = sequenceStartAfter();
 
-    if (Number.isFinite(dueTime) && Date.now() - dueTime > maxOverdueMs()) {
-        return "skipped_overdue";
+    if (startAfter !== null) {
+
+        // Historical lead: joined before the sequence was activated.
+        const joinedAt = leadCreatedTime(lead);
+
+        if (joinedAt === null || joinedAt < startAfter) {
+            return "skipped_before_start";
+        }
+
+    } else {
+
+        const dueTime = new Date(lead.next_email_due).getTime();
+
+        if (Number.isFinite(dueTime) && Date.now() - dueTime > maxOverdueMs()) {
+            return "skipped_overdue";
+        }
+
     }
 
     /* ---------- Claim ----------
@@ -426,19 +489,82 @@ exports.handler = async () => {
 
     try {
 
+        /* ---------- Disabled: tidy only, send nothing ---------- */
+
+        if (!isSequenceEnabled()) {
+
+            try {
+                const recovered = await recoverAbandonedReportClaims(supabase);
+                if (recovered) {
+                    summary.recovered_report_claims = recovered;
+                }
+            } catch (recoveryError) {
+                count("failed_report_claim_recovery");
+            }
+
+            console.log("EMAIL SEQUENCE: disabled (EMAIL_SEQUENCE_ENABLED is not \"true\"); no lessons sent.", summary);
+
+            return respond(200, {
+                message: "Email sequence is disabled.",
+                summary
+            });
+
+        }
+
         const now = new Date().toISOString();
 
-        const { data: leads, error } = await supabase
+        /* ---------- Due leads ----------
+           Eligibility filters are applied IN THE QUERY,
+           so leads that will be skipped never occupy the
+           batch (otherwise old overdue leads could crowd
+           out new subscribers indefinitely). */
+
+        const startAfter = sequenceStartAfter();
+        const overdueLimit = maxOverdueMs();
+
+        let query = supabase
             .from("leads")
             .select("*")
             .gte("email_sequence_day", FIRST_DAY)
             .lte("email_sequence_day", LAST_DAY)
-            .lte("next_email_due", now)
+            .lte("next_email_due", now);
+
+        let overdueCutoff = null;
+
+        if (startAfter !== null) {
+            query = query.gte("submitted_at", new Date(startAfter).toISOString());
+        } else if (overdueLimit !== Infinity) {
+            overdueCutoff = new Date(Date.now() - overdueLimit).toISOString();
+            query = query.gte("next_email_due", overdueCutoff);
+        }
+
+        const { data: leads, error } = await query
             .order("next_email_due", { ascending: true })
             .limit(BATCH_SIZE);
 
         if (error) {
             throw new Error("due_leads_lookup_failed");
+        }
+
+        // Not silent: report when overdue leads are being held back.
+        if (overdueCutoff !== null) {
+
+            const { data: heldBack, error: heldBackError } = await supabase
+                .from("leads")
+                .select("id")
+                .gte("email_sequence_day", FIRST_DAY)
+                .lte("email_sequence_day", LAST_DAY)
+                .lt("next_email_due", overdueCutoff)
+                .limit(1);
+
+            if (!heldBackError && Array.isArray(heldBack) && heldBack.length > 0) {
+                summary.overdue_leads_held_back = true;
+                console.warn(
+                    "EMAIL SEQUENCE: some leads are overdue by more than the configured limit and are not being emailed. " +
+                    "Set EMAIL_SEQUENCE_START_AFTER (recommended) or EMAIL_SEQUENCE_MAX_OVERDUE_DAYS to decide how historical leads are treated."
+                );
+            }
+
         }
 
         const unsubscribed = await loadUnsubscribedAddresses(supabase);
@@ -496,9 +622,10 @@ exports.handler = async () => {
 
 };
 
-// Run automatically once every day
-exports.config = {
-
-  schedule: "@daily"
-
-};
+// The daily schedule is registered in netlify.toml:
+//   [functions."email-sequence"]
+//   schedule = "@daily"
+// An `exports.config = { schedule }` export is NOT recognised by Netlify
+// for this (Lambda-style `exports.handler`) function format — verified
+// with Netlify's bundler (zip-it-and-ship-it 16.2.2): it reports no
+// schedule. Sending additionally requires EMAIL_SEQUENCE_ENABLED=true.

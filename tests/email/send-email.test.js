@@ -540,6 +540,35 @@ test("EMAIL_FROM overrides the sender only when well-formed", async () => {
     assert.strictEqual(H.mail.sent[0].payload.from, "EMerriment <onboarding@resend.dev>");
 });
 
+/* =============== Sender configuration =============== */
+
+test("test sender in use: a clear warning is logged once (no address, no secret)", async () => {
+    H.addLead();
+    H.addLead({ email: "b@example.com" });
+    const mod = fn();
+    await mod.handler({ httpMethod: "POST", body: homepageBody() });
+    await mod.handler({ httpMethod: "POST", body: homepageBody({ email: "b@example.com" }) });
+    const warnings = H.logs.filter((l) => l.includes("EMAIL_FROM is not set; using the Resend test sender"));
+    assert.strictEqual(warnings.length, 1, "warned " + warnings.length + " times");
+    H.assertLogsClean(assert, ["ada@example.com", "b@example.com"]);
+});
+
+test("invalid EMAIL_FROM: falls back to the test sender with an explicit warning", async () => {
+    H.setEnv({ EMAIL_FROM: "not an address" });
+    H.addLead();
+    await post(homepageBody());
+    assert.strictEqual(H.mail.sent[0].payload.from, "EMerriment <onboarding@resend.dev>");
+    assert(H.logs.some((l) => l.includes("EMAIL_FROM is not a valid sender")));
+});
+
+test("verified sender configured: no test-sender warning", async () => {
+    H.setEnv({ EMAIL_FROM: "EMerriment <hello@emerriment.com>" });
+    H.addLead();
+    await post(homepageBody());
+    assert(!H.logs.some((l) => l.includes("Resend test sender")));
+});
+
+
 /* =============== Delivery records (after migration) =============== */
 
 function enableDeliveries() {

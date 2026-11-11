@@ -23,8 +23,15 @@ function dueLead(over = {}) {
     });
 }
 
-test("schedule configuration is unchanged (@daily)", async () => {
-    assert.deepStrictEqual(H.load(FN).config, { schedule: "@daily" });
+test("schedule: registered @daily in netlify.toml; no ineffective exports.config left", async () => {
+    // exports.config is NOT recognised by Netlify for exports.handler-style
+    // functions (verified with zip-it-and-ship-it 16.2.2), so the schedule
+    // lives in netlify.toml.
+    const fs = require("fs");
+    const path = require("path");
+    const toml = fs.readFileSync(path.join(H.ROOT, "netlify.toml"), "utf8");
+    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "@daily"/.test(toml), "schedule not registered");
+    assert.strictEqual(H.load(FN).config, undefined, "misleading exports.config still present");
 });
 
 test("sends the lesson for the lead's current day and advances by one day", async () => {
@@ -227,8 +234,95 @@ test("overdue guard: a lesson overdue by more than 7 days is left untouched (no 
     assert.strictEqual(H.mail.attempts[0].payload.to, "fresh@example.com");
     assert.strictEqual(stale.email_sequence_day, 1, "stale lead not advanced");
     assert.strictEqual(stale.next_email_due, staleDue, "stale lead not modified");
-    assert(JSON.parse(r.body).summary.skipped_overdue === 1);
+    // Stale leads are now excluded in the query (so they cannot crowd out new
+    // subscribers); the run reports that leads are being held back.
+    assert.strictEqual(JSON.parse(r.body).summary.overdue_leads_held_back, true);
+    assert(H.logs.some((l) => l.includes("overdue by more than the configured limit")), "warning logged");
     assert.strictEqual(fresh.email_sequence_day, 2);
+});
+
+test("no starvation: 60 stale overdue leads cannot block a new subscriber (overdue-guard mode)", async () => {
+    for (let i = 0; i < 60; i++) dueLead({ email: `old${i}@example.com`, next_email_due: hoursAgo((10 + i) * 24) });
+    const fresh = dueLead({ email: "new@example.com", next_email_due: hoursAgo(2) });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert.strictEqual(H.mail.attempts[0].payload.to, "new@example.com");
+    assert.strictEqual(fresh.email_sequence_day, 2);
+});
+
+
+/* =============== Activation switch =============== */
+
+test("disabled by default: nothing is sent and leads are not modified", async () => {
+    H.setEnv({ EMAIL_SEQUENCE_ENABLED: undefined });
+    const due = hoursAgo(1);
+    const lead = dueLead({ next_email_due: due });
+    const r = await run();
+    assert.strictEqual(r.statusCode, 200);
+    assert.strictEqual(JSON.parse(r.body).message, "Email sequence is disabled.");
+    assert.strictEqual(H.mail.attempts.length, 0);
+    assert.strictEqual(lead.email_sequence_day, 1);
+    assert.strictEqual(lead.next_email_due, due);
+});
+
+test("disabled: only the exact value \"true\" enables sending", async () => {
+    for (const value of ["1", "yes", "TRUE", "on", ""]) {
+        H.reset();
+        H.setEnv({ EMAIL_SEQUENCE_ENABLED: value });
+        dueLead();
+        await run();
+        assert.strictEqual(H.mail.attempts.length, 0, "enabled by " + JSON.stringify(value));
+    }
+});
+
+test("disabled: abandoned report claims are still tidied (no email sent)", async () => {
+    H.setEnv({ EMAIL_SEQUENCE_ENABLED: undefined });
+    const abandoned = H.addLead({ email_status: "Sending", submitted_at: hoursAgo(2) });
+    await run();
+    assert.strictEqual(abandoned.email_status, "Pending");
+    assert.strictEqual(H.mail.attempts.length, 0);
+});
+
+
+/* =============== Start-after cutoff =============== */
+
+test("EMAIL_SEQUENCE_START_AFTER: historical leads are untouched, new ones continue", async () => {
+    const cutoff = hoursAgo(48);
+    H.setEnv({ EMAIL_SEQUENCE_START_AFTER: cutoff });
+    const oldDue = hoursAgo(1);
+    const historical = dueLead({ email: "old@example.com", submitted_at: hoursAgo(30 * 24), next_email_due: oldDue });
+    const joined = dueLead({ email: "new@example.com", submitted_at: hoursAgo(25) });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert.strictEqual(H.mail.attempts[0].payload.to, "new@example.com");
+    assert.strictEqual(historical.email_sequence_day, 1);
+    assert.strictEqual(historical.next_email_due, oldDue, "historical lead not modified");
+    assert.strictEqual(joined.email_sequence_day, 2);
+});
+
+test("EMAIL_SEQUENCE_START_AFTER: a new subscriber is never excluded for being overdue (catch-up after an outage)", async () => {
+    H.setEnv({ EMAIL_SEQUENCE_START_AFTER: hoursAgo(40 * 24) });
+    const lead = dueLead({ submitted_at: hoursAgo(30 * 24), email_sequence_day: 3, next_email_due: hoursAgo(20 * 24) });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert.strictEqual(lead.email_sequence_day, 4, "one lesson per run, then 24h later");
+});
+
+test("EMAIL_SEQUENCE_START_AFTER: many historical leads cannot block new subscribers", async () => {
+    H.setEnv({ EMAIL_SEQUENCE_START_AFTER: hoursAgo(10 * 24) });
+    for (let i = 0; i < 60; i++) dueLead({ email: `h${i}@example.com`, submitted_at: hoursAgo(90 * 24), next_email_due: hoursAgo(80 * 24 - i) });
+    const fresh = dueLead({ email: "fresh@example.com", submitted_at: hoursAgo(26) });
+    await run();
+    assert.deepStrictEqual(H.mail.attempts.map((a) => a.payload.to), ["fresh@example.com"]);
+    assert.strictEqual(fresh.email_sequence_day, 2);
+});
+
+test("invalid EMAIL_SEQUENCE_START_AFTER is ignored with a warning (overdue guard applies)", async () => {
+    H.setEnv({ EMAIL_SEQUENCE_START_AFTER: "not-a-date" });
+    dueLead();
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert(H.logs.some((l) => l.includes("EMAIL_SEQUENCE_START_AFTER is not a valid date")));
 });
 
 test("overdue guard can be disabled (0) or changed (days)", async () => {
