@@ -12,7 +12,8 @@ const ProductEngine = {
 
         let query = supabase
             .from("products")
-            .select("*");
+.select("*")
+.eq("is_approved", true);
 
         if (filters.skinType) {
             query = query.contains(
@@ -55,16 +56,14 @@ const ProductEngine = {
     async getProductsForArticle(articleId) {
 
         const { data, error } =
-            await supabase
-
-            .from("products")
-
-            .select("*")
-
-            .contains(
-                "related_articles",
-                [articleId]
-            );
+    await supabase
+        .from("products")
+        .select("*")
+        .eq("is_approved", true)
+        .contains(
+            "related_articles",
+            [articleId]
+        );
 
         if (error) return [];
 
@@ -95,37 +94,45 @@ const ProductEngine = {
 
     },
 
-
-
     /* =====================================
-       BUILD AI PRODUCT CONTEXT
-    ===================================== */
+   BUILD AI PRODUCT CONTEXT
+===================================== */
 
-    async buildContext(context) {
+async buildContext(context) {
 
-        const recommendations =
-            await this.recommend(context);
+    const recommendations =
+        await this.recommend(context);
 
-        return recommendations.map(product => ({
+    // Safety gate: only approved products
+    // may enter the AI recommendation context.
+    return recommendations
+        .filter(product => product.is_approved === true)
+        .map(product => ({
 
             id: product.id,
 
             name: product.name,
 
-            description:
-                product.description,
+            description: product.description,
 
-            benefits:
-                product.benefits,
+            category: product.category,
 
-            link:
-                product.link,
+            price: product.price,
 
-            image:
-                product.image
+            benefits: product.benefits || [],
+
+            ingredients: product.ingredients || [],
+
+            skin_types: product.skin_types || [],
+
+            concerns: product.concerns || [],
+
+            link: product.selar_link || null,
+
+            image: product.image || null
 
         }));
 
-    }
+}
 
 };

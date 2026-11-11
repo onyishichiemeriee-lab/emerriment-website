@@ -705,81 +705,176 @@ document.addEventListener("DOMContentLoaded", () => {
     // --------------------------------------------
 
     async function saveQuizResult(
-        data,
-        score,
-        recommendation
-    ) {
+    data,
+    score,
+    recommendation
+) {
 
-        console.log(
-            "💾 Saving quiz result..."
+    console.log(
+        "💾 Saving quiz result..."
+    );
+
+
+    // ----------------------------------------
+    // 1. Save lead
+    // ----------------------------------------
+
+    const leadPayload = {
+
+        name: data.name,
+
+        email: data.email,
+
+        skin_type: data.skin_type,
+
+        concern: data.concern,
+
+        oil_level: data.oil_level,
+
+        sensitivity: data.sensitivity,
+
+        score: score,
+
+        recommendation: recommendation
+
+    };
+
+
+    const {
+        data: savedLead,
+        error: leadError
+    } = await supabaseClient
+
+        .from("leads")
+
+        .insert(leadPayload)
+
+        .select()
+        .maybeSingle();
+
+
+    if (leadError) {
+
+        console.error(
+            "❌ Failed to save lead:",
+            leadError
         );
-
-
-        const payload = {
-
-            name: data.name,
-
-            email: data.email,
-
-            skin_type: data.skin_type,
-
-            concern: data.concern,
-
-            oil_level: data.oil_level,
-
-            sensitivity: data.sensitivity,
-
-            score: score,
-
-            recommendation:
-                recommendation
-
-        };
-
-
-        const {
-            data: savedData,
-            error
-        } = await supabaseClient
-
-            .from("leads")
-
-            .insert(payload)
-
-            .select()
-            .single();
-
-
-        if (error) {
-
-            console.error(
-                "❌ Failed to save quiz:",
-                error
-            );
-
-            return {
-                success: false,
-                error
-            };
-
-        }
-
-
-        console.log(
-            "✅ Quiz saved successfully:",
-            savedData
-        );
-
 
         return {
-
-            success: true,
-
-            data: savedData
-
+            success: false,
+            error: leadError
         };
 
     }
+
+
+    console.log(
+        "✅ Lead saved successfully:",
+        savedLead
+    );
+
+
+    // ----------------------------------------
+    // 2. Get authenticated user
+    // ----------------------------------------
+
+    const {
+        data: { user },
+        error: authError
+    } = await supabaseClient.auth.getUser();
+
+
+    if (authError || !user) {
+
+        console.warn(
+            "⚠️ No authenticated user. Quiz result saved to leads only."
+        );
+
+        return {
+            success: true,
+            data: savedLead,
+            quizResultSaved: false
+        };
+
+    }
+
+
+    // ----------------------------------------
+    // 3. Save quiz result
+    // ----------------------------------------
+
+    const quizPayload = {
+
+        user_id: user.id,
+
+        skin_type: data.skin_type,
+
+        concern: data.concern,
+
+        oil_level: data.oil_level,
+
+        sensitivity: data.sensitivity,
+
+        score: score,
+
+        recommendation: recommendation
+
+    };
+
+
+    const {
+        data: savedQuiz,
+        error: quizError
+    } = await supabaseClient
+
+        .from("quiz_results")
+
+        .insert(quizPayload)
+
+        .select()
+        .maybeSingle();
+
+
+    if (quizError) {
+
+        console.error(
+            "❌ Failed to save quiz result:",
+            quizError
+        );
+
+        return {
+            success: true,
+            data: savedLead,
+            quizResultSaved: false,
+            quizError
+        };
+
+    }
+
+
+    console.log(
+        "✅ Quiz result saved successfully:",
+        savedQuiz
+    );
+
+
+    // ----------------------------------------
+    // 4. Return success
+    // ----------------------------------------
+
+    return {
+
+        success: true,
+
+        data: savedLead,
+
+        quizResultSaved: true,
+
+        quizResult: savedQuiz
+
+    };
+
+}
 
 
     // --------------------------------------------

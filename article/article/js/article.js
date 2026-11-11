@@ -81,7 +81,7 @@ async function loadArticle() {
 
 async function loadAllArticles(){
 
-    const { data } = await supabase
+    const { data } = await window.supabaseClient    
         .from("encyclopedia_articles")
         .select("*")
         .order("created_at",{ascending:false});
@@ -178,7 +178,7 @@ async function loadRecommendedProducts(){
 
     container.innerHTML = "";
 
-    const { data } = await supabase
+    const { data } = await window.supabaseClient
 
         .from("article_products")
 
@@ -254,11 +254,11 @@ async function checkSavedStatus(){
 
         data:{user}
 
-    } = await supabase.auth.getUser();
+    } = await window.supabaseClient.auth.getUser();
 
     if(!user) return;
 
-    const { data } = await supabase
+    const { data } = await window.supabaseClient
 
         .from("saved_articles")
 
@@ -289,55 +289,36 @@ document
 async function toggleSave(){
 
     const {
-
         data:{user}
-
-    } = await supabase.auth.getUser();
+    } = await window.supabaseClient.auth.getUser();
 
     if(!user){
-
         location.href="login.html";
-
         return;
-
     }
 
-    const { data } = await supabase
-
+    const { data } = await window.supabaseClient
         .from("saved_articles")
-
         .select("*")
-
-        .eq("user_id",user.id)
-
-        .eq("article_id",currentArticle.id)
-
+        .eq("user_id", user.id)
+        .eq("article_id", currentArticle.id)
         .maybeSingle();
 
     if(data){
 
-        await supabase
-
+        await window.supabaseClient
             .from("saved_articles")
-
             .delete()
-
-            .eq("id",data.id);
+            .eq("id", data.id);
 
     }else{
 
-        await supabase
-
+        await window.supabaseClient
             .from("saved_articles")
-
             .insert({
-
-                user_id:user.id,
-
-                article_id:currentArticle.id
-
+                user_id: user.id,
+                article_id: currentArticle.id
             });
-
     }
 
     checkSavedStatus();
@@ -433,11 +414,11 @@ async function saveReadingHistory() {
 
     const {
         data: { user }
-    } = await supabase.auth.getUser();
+    } = await window.supabaseClient.auth.getUser();
 
     if (!user || !currentArticle) return;
 
-    await supabase
+    await window.supabaseClient
         .from("reading_history")
         .upsert({
             user_id: user.id,
@@ -469,7 +450,7 @@ async function updateReadingProgress() {
 
         const {
             data: { user }
-        } = await supabase.auth.getUser();
+        } = await window.supabaseClient.auth.getUser();
 
         if (!user) return;
 
@@ -485,7 +466,7 @@ async function updateReadingProgress() {
                 Math.round((scrollTop / documentHeight) * 100)
             );
 
-        await supabase
+        await window.supabaseClient
             .from("reading_history")
             .update({
                 progress,
@@ -507,11 +488,11 @@ async function restoreReadingPosition() {
 
     const {
         data: { user }
-    } = await supabase.auth.getUser();
+    } = await window.supabaseClient.auth.getUser();
 
     if (!user || !currentArticle) return;
 
-    const { data } = await supabase
+    const { data } = await window.supabaseClient
         .from("reading_history")
         .select("last_position")
         .eq("user_id", user.id)
@@ -543,7 +524,7 @@ async function incrementViews() {
 
     const newViews = (currentArticle.views || 0) + 1;
 
-    const { error } = await supabase
+    const { error } = await window.supabaseClient
         .from("encyclopedia_articles")
         .update({
             views: newViews
@@ -616,7 +597,7 @@ document
 
         data: { user }
 
-    } = await supabase.auth.getUser();
+    } = await window.supabaseClient.auth.getUser();
 
     if (!user || !currentArticle) return;
 
@@ -624,7 +605,7 @@ document
 
         document.getElementById("feedback").value;
 
-    const { error } = await supabase
+    const { error } = await window.supabaseClient
 
         .from("article_ratings")
 
@@ -660,7 +641,7 @@ async function loadArticleRating() {
 
     if (!currentArticle) return;
 
-    const { data } = await supabase
+    const { data } = await window.supabaseClient
 
         .from("article_ratings")
 

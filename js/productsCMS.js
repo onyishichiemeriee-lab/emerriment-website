@@ -9,7 +9,7 @@ await supabaseClient.auth.getUser();
 
 if(!user){
 
-location.href="loginCMS.html";
+location.href="login.html";
 
 return;
 
@@ -26,13 +26,7 @@ await supabaseClient
 
 .maybeSingle();
 
-if(!profile?.is_admin){
 
-location.href="../dashboardCMS.html";
-
-return;
-
-}
 
 loadProducts();
 

@@ -1,4 +1,4 @@
-const supabaseClient = window.supabase.createClient
+const supabaseClient = window.supabaseClient;
 
 // Wrap in DOMContentLoaded to ensure elements exist
 document.addEventListener("DOMContentLoaded", () => {

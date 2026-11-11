@@ -9,3 +9,9 @@ node_modules/
 EMerriment Authentication V2/
 EMerriment Authentication V3 — VERIFIED BACKUP/
 ROOT AUTH BACKUP BEFORE V2/
+
+# Secrets, keys and logs
+.env.*
+*.pem
+*.key
+*.log

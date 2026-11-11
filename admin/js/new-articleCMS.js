@@ -24,7 +24,7 @@ async function saveArticle(status){
 
         category: document.getElementById("category").value,
 
-        featured_image: document.getElementById("featured_image").value,
+        featured_image: document.getElementById("featuredImage").value,
 
         summary: document.getElementById("summary").value,
 
