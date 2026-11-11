@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:email": "node tests/email/run-all.js",
-    "test:security": "node tests/security/run-all.js"
+    "test:security": "node tests/security/run-all.js",
+    "test:db": "node tests/db/migrations.pglite.test.js"
   },
   "repository": {
     "type": "git",
@@ -23,5 +24,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
     "resend": "^6.17.2"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.11"
   }
 }

@@ -1,9 +1,14 @@
 # EMerriment — Supabase security migrations and production checklist
 
-**Status: prepared, NOT applied.** Nothing in this folder has been run against
-any database. No staging database was available, so the migrations have been
-reviewed and checked statically only (see `tests/security`). Every step below
-needs your approval.
+**Status: prepared, NOT applied** to any Supabase project. The migrations are
+checked statically (`npm run test:security`) and executed against a
+disposable local PostgreSQL that imitates Supabase (`npm run test:db`, PGlite —
+see `tests/db/README.md` for what that does and does not prove). They have not
+run on your real schema. Every step below needs your approval.
+
+If a migration fails in `psql` or another persistent connection, run
+`ROLLBACK;` before retrying (the SQL Editor starts a fresh connection for each
+run, so this is automatic there). A failed migration changes nothing.
 
 | Path | What it is |
 |---|---|
