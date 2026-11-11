@@ -29,14 +29,20 @@ const {
 ========================================= */
 
 
+// Only hosts EMerriment actually controls (or its shop provider).
+// emerriment.com is deliberately NOT listed: on 2026-11-11 it was not a
+// registered domain (.com registry RDAP: 404), and allowing a domain you
+// do not own would let whoever registers it receive redirected visitors.
+// Once you own a domain, add it with EMAIL_EXTRA_REDIRECT_HOSTS
+// (comma-separated host names, e.g. "emerriment.com,www.emerriment.com").
 const ALLOWED_HOSTS = new Set([
-    "emerriment.com",
-    "www.emerriment.com",
     "emerriment216.netlify.app",
     "selar.com",
     "www.selar.com",
     "selar.co"
 ]);
+
+const HOST_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
 
 function allowedHosts() {
 
@@ -46,6 +52,13 @@ function allowedHosts() {
         hosts.add(new URL(getSiteUrl()).host);
     } catch (error) {
         // Keep the fixed list.
+    }
+
+    for (const host of String(process.env.EMAIL_EXTRA_REDIRECT_HOSTS || "").split(",")) {
+        const clean = host.trim().toLowerCase();
+        if (HOST_PATTERN.test(clean)) {
+            hosts.add(clean);
+        }
     }
 
     return hosts;

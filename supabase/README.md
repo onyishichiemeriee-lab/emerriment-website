@@ -95,7 +95,8 @@ EMerriment objects). Enum values added by migration 5 remain (harmless).
 | Variable | Required | Notes |
 |---|---|---|
 | `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | yes (already used) | |
-| `EMAIL_FROM` | yes for real delivery | e.g. `EMerriment <hello@emerriment.com>` after the domain is verified. Without it the Resend test sender is used and a warning is logged on every cold start. |
+| `EMAIL_FROM` | yes for real delivery | `EMerriment <hello@YOUR-VERIFIED-DOMAIN>` once Resend shows the domain as Verified. (`emerriment.com` was **not registered** on 2026-11-11 — see `PRODUCTION_RUNBOOK.md`.) Without it the Resend test sender is used and a warning is logged on every cold start. |
+| `EMAIL_EXTRA_REDIRECT_HOSTS` | optional | comma-separated domains you own that email links may redirect to (e.g. `emerriment.com,www.emerriment.com` after registering it). |
 | `EMAIL_LINK_SECRET` | recommended | ≥ 32 characters (64 hex recommended). Can be added at any time: links sent earlier stay valid (the previous derived key is still accepted). |
 | `EMAIL_LINK_SECRET_PREVIOUS` | only while rotating | the old secret, so its links keep working. |
 | `EMAIL_LINK_ACCEPT_DERIVED` | optional | `false` ~60 days after setting `EMAIL_LINK_SECRET`, to stop accepting older links. |
@@ -107,7 +108,9 @@ EMerriment objects). Enum values added by migration 5 remain (harmless).
 
 Generate `EMAIL_LINK_SECRET` without displaying it (Windows; copies to the
 clipboard), then paste it into Netlify → Site configuration → Environment
-variables (scope: Functions; mark as secret):
+variables. On paid plans choose scope "Functions" and mark it secret; the
+site is on the Free plan, where scopes and secret values are not available
+(an attempt to create a scoped secret returned 403 Forbidden):
 
 ```bash
 node -e "process.stdout.write(require('crypto').randomBytes(32).toString('hex'))" | clip
@@ -117,9 +120,12 @@ node -e "process.stdout.write(require('crypto').randomBytes(32).toString('hex'))
 
 The schedule is registered in `netlify.toml` (`[functions."email-sequence"]
 schedule = "@daily"`). The previous `exports.config` was **not** recognised by
-Netlify for this function format (checked with Netlify's bundler), so the
-sequence has most likely never run automatically. After deploying, the daily
-run sends nothing until `EMAIL_SEQUENCE_ENABLED=true`.
+Netlify for this function format (checked with Netlify's bundler). The live
+deploy's function metadata (2026-11-11) confirms it: `email-sequence` is
+deployed as an ordinary HTTP function with no schedule — it has never run on a
+schedule, and on the live (old) deploy **any request to its URL runs it**.
+After deploying this branch it runs daily and sends nothing until
+`EMAIL_SEQUENCE_ENABLED=true`.
 
 Before enabling, decide about historical leads (audit query 17 shows how many
 leads exist). Recommended: set `EMAIL_SEQUENCE_START_AFTER` to the activation
@@ -127,8 +133,11 @@ time so only new quiz takers receive lessons.
 
 ## Resend sender domain
 
-1. Resend → Domains → Add domain: `emerriment.com` (or a sending subdomain such
-   as `mail.emerriment.com`, which keeps marketing mail reputation separate).
+0. You need a domain you own. `emerriment.com` was **not registered** on
+   2026-11-11 (public DNS: non-existent; `.com` registry: 404) — register it
+   (Namecheap) or use another domain you own.
+1. Resend → Domains → Add domain: your domain (or a sending subdomain such
+   as `mail.<domain>`, which keeps marketing mail reputation separate).
 2. Resend shows the exact DNS records to create at your DNS host (Namecheap):
    * **SPF** — a TXT record (on the bounce/return-path subdomain Resend names)
      authorising Resend's servers.

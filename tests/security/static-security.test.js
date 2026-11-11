@@ -395,6 +395,22 @@ test("email-sequence: schedule registered in netlify.toml, but sending requires 
     assert(handler.indexOf("if (!isSequenceEnabled())") < handler.indexOf("processLead("), "gate must come before any send");
 });
 
+test("production smoke test is read-only: GET only, never email-sequence, never real addresses or tokens", async () => {
+    const src = read("tests/smoke/production-smoke.js");
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+    assert(!/functions\/email-sequence/.test(code), "must never request email-sequence (it would run the sequence)");
+    assert(!/method:\s*"(POST|PUT|PATCH|DELETE)"/i.test(code), "only GET requests allowed");
+    assert(/method:\s*"GET"/.test(code));
+    assert(!/[?&]email=/.test(code), "tracking endpoints must not be called with an address");
+    assert(!/ai-chat[^"]*\?/.test(code) && !/body:/.test(code), "no request bodies");
+});
+
+test("click tracking does not trust domains EMerriment does not own", async () => {
+    const src = read("netlify/functions/track-click.js");
+    const list = src.split("const ALLOWED_HOSTS = new Set([")[1].split("]);")[0];
+    assert(!/emerriment\.com/.test(list), "emerriment.com is not a registered domain (2026-11-11)");
+});
+
 module.exports = suite;
 
 if (require.main === module) {

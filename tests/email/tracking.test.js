@@ -163,9 +163,26 @@ test("open redirect blocked: foreign, javascript:, http:, credentialed and malfo
 });
 
 test("approved destinations are redirected to as given", async () => {
-    for (const url of ["https://selar.com/4h1454", "https://emerriment.com/quiz.html", "https://emerriment216.netlify.app/article/index.html"]) {
+    for (const url of ["https://selar.com/4h1454", "https://www.selar.com/x", "https://emerriment216.netlify.app/article/index.html"]) {
         const r = await click({ url });
         assert.strictEqual(r.headers.Location, new URL(url).toString());
+    }
+});
+
+test("a domain EMerriment does not own (emerriment.com, unregistered) is not an approved destination", async () => {
+    for (const url of ["https://emerriment.com/quiz.html", "https://www.emerriment.com/"]) {
+        const r = await click({ url });
+        assert.strictEqual(r.headers.Location, "https://emerriment216.netlify.app", url);
+    }
+});
+
+test("EMAIL_EXTRA_REDIRECT_HOSTS adds owned domains; malformed entries are ignored", async () => {
+    H.setEnv({ EMAIL_EXTRA_REDIRECT_HOSTS: " Emerriment.com , www.emerriment.com,bad host,*.evil.example,https://x.example" });
+    const ok = await click({ url: "https://emerriment.com/quiz.html" });
+    assert.strictEqual(ok.headers.Location, "https://emerriment.com/quiz.html");
+    for (const url of ["https://bad host/", "https://a.evil.example/", "https://x.example/"]) {
+        const r = await click({ url });
+        assert.strictEqual(r.headers.Location, "https://emerriment216.netlify.app", url);
     }
 });
 
