@@ -726,14 +726,15 @@ async function saveQuizResult(
         recommendation: recommendation
     };
 
+    // The lead is not read back: anonymous visitors
+    // only need permission to insert it.
+    const savedLead = null;
+
     const {
-        data: savedLead,
         error: leadError
     } = await supabaseClient
         .from("leads")
-        .insert(leadPayload)
-        .select()
-        .maybeSingle();
+        .insert(leadPayload);
 
     if (leadError) {
 

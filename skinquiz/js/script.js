@@ -9708,7 +9708,7 @@ async function submitQuiz() {
   const {
     data: { user },
     error: authError
-  } = await supabase.auth.getUser();
+  } = await supabaseClient.auth.getUser();
 
   if (authError || !user) {
     console.error("Authentication error:", authError);
@@ -9898,8 +9898,9 @@ async function submitQuiz() {
 
         notes: null
       }
-    ])
-    .select();
+    ]);
+  // No .select() here: the lead row is not read back by the browser.
+  // The email function verifies and updates the lead server-side.
 
   if (error) {
 
@@ -9920,34 +9921,48 @@ async function submitQuiz() {
   // Send Email
   // ==========================================
 
-  const emailResponse = await fetch(
-    "/.netlify/functions/send-email",
-    {
-      method: "POST",
+  // A failed email must not lose the saved quiz
+  // or leave the loading screen visible.
+  let emailSent = false;
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+  try {
 
-      body: JSON.stringify({
-        name,
-        email,
-        skinType,
-        concern,
-        oilLevel,
-        sensitivity,
-        score,
-        recommendation
-      })
-    }
-  );
+    const emailResponse = await fetch(
+      "/.netlify/functions/send-email",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          name,
+          email,
+          skinType,
+          concern,
+          oilLevel,
+          sensitivity,
+          score,
+          recommendation
+        })
+      }
+    );
+
+    emailSent = emailResponse.ok;
+
+  } catch (emailError) {
+
+    console.error("Email request failed.");
+
+  }
 
   // ==========================================
   // Update User Profile
   // ==========================================
 
   const { error: profileError } =
-    await supabase
+    await supabaseClient
       .from("profiles")
       .update({
         current_skin_score: score,
@@ -9971,7 +9986,7 @@ async function submitQuiz() {
   // ==========================================
 
   const { error: quizError } =
-    await supabase
+    await supabaseClient
       .from("quiz_results")
       .insert({
         user_id: user.id,
@@ -10005,55 +10020,24 @@ async function submitQuiz() {
   }
 
   // ==========================================
-  // Lead Email Status
+  // Result
+  // The lead's email status is recorded by the
+  // send-email function on the server.
   // ==========================================
 
-  const leadId = data?.[0]?.id;
+  if (loadingEl) {
+    loadingEl.style.display = "none";
+  }
 
-  if (!emailResponse.ok) {
-
-    console.error(
-      "Email sending failed."
-    );
-
+  if (emailSent) {
     alert(
-      "Your quiz was saved, but we couldn't send your email."
+      "🎉 Your skin report has been generated and sent to your email."
     );
-
-    return;
+  } else {
+    alert(
+      "Your quiz results are saved and shown below, but we couldn't send your email right now."
+    );
   }
-
-  const { error: updateError } =
-    await supabaseClient
-      .from("leads")
-      .update({
-        email_status: "Sent",
-        last_email_sent:
-          new Date().toISOString()
-      })
-      .eq("id", leadId);
-
-  if (updateError) {
-    console.error(updateError);
-  }
-
-  console.log(
-    "Inserted lead:",
-    data
-  );
-
-  console.log(
-    "Lead ID:",
-    leadId
-  );
-
-  // ==========================================
-  // Success
-  // ==========================================
-
-  alert(
-    "🎉 Your skin report has been generated and sent to your email."
-  );
 
   document
     .getElementById("results")

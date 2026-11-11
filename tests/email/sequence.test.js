@@ -207,10 +207,142 @@ test("batch size is bounded per run", async () => {
 });
 
 test("existing in-progress leads keep their schedule (day and due time read as stored)", async () => {
-    const lead = dueLead({ email_sequence_day: 9, next_email_due: "2026-11-01T08:00:00+00:00" });
+    // Postgres returns timestamps like "2026-11-09T08:00:00+00:00"; the
+    // conditional claim must match that exact stored value.
+    const pgFormat = new Date(Date.now() - 2 * 3600e3).toISOString().replace(/\.\d{3}Z$/, "+00:00");
+    const lead = dueLead({ email_sequence_day: 9, next_email_due: pgFormat });
     await run();
     assert.strictEqual(H.mail.sent.length, 1);
     assert.strictEqual(lead.email_sequence_day, 10);
+});
+
+/* =============== Overdue guard =============== */
+
+test("overdue guard: a lesson overdue by more than 7 days is left untouched (no mass send)", async () => {
+    const staleDue = hoursAgo(8 * 24);
+    const stale = dueLead({ email: "stale@example.com", next_email_due: staleDue });
+    const fresh = dueLead({ email: "fresh@example.com", next_email_due: hoursAgo(6 * 24) });
+    const r = await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert.strictEqual(H.mail.attempts[0].payload.to, "fresh@example.com");
+    assert.strictEqual(stale.email_sequence_day, 1, "stale lead not advanced");
+    assert.strictEqual(stale.next_email_due, staleDue, "stale lead not modified");
+    assert(JSON.parse(r.body).summary.skipped_overdue === 1);
+    assert.strictEqual(fresh.email_sequence_day, 2);
+});
+
+test("overdue guard can be disabled (0) or changed (days)", async () => {
+    H.setEnv({ EMAIL_SEQUENCE_MAX_OVERDUE_DAYS: "0" });
+    dueLead({ next_email_due: hoursAgo(90 * 24) });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1, "disabled");
+    H.reset();
+    H.setEnv({ EMAIL_SEQUENCE_MAX_OVERDUE_DAYS: "2" });
+    dueLead({ next_email_due: hoursAgo(3 * 24) });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 0, "2-day limit");
+});
+
+
+/* =============== Delivery records (after migration) =============== */
+
+function enableDeliveries() {
+    H.db.missingTables.delete("email_deliveries");
+    H.db.tables.email_deliveries = [];
+}
+
+test("with email_deliveries: each lesson is recorded as sent with the provider id", async () => {
+    enableDeliveries();
+    const lead = dueLead({ email_sequence_day: 4 });
+    await run();
+    const rows = H.db.tables.email_deliveries;
+    assert.strictEqual(rows.length, 1);
+    assert.deepStrictEqual(
+        { lead_id: rows[0].lead_id, kind: rows[0].kind, day: rows[0].sequence_day, status: rows[0].status },
+        { lead_id: lead.id, kind: "sequence", day: 4, status: "sent" });
+    assert.strictEqual(rows[0].provider_message_id, "email_1");
+});
+
+test("with email_deliveries: crash after sending (progress not saved) never resends that lesson", async () => {
+    enableDeliveries();
+    const lead = dueLead({ email_sequence_day: 6 });
+    // Simulate: lesson 6 was sent, then the run died before advancing.
+    H.db.tables.email_deliveries.push({ id: "d1", lead_id: lead.id, kind: "sequence", sequence_day: 6, status: "sent" });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 0, "no duplicate");
+    assert.strictEqual(lead.email_sequence_day, 7, "moved on to the next lesson");
+});
+
+test("with email_deliveries: an interrupted send (record left 'sending') is not resent", async () => {
+    enableDeliveries();
+    const lead = dueLead({ email_sequence_day: 2 });
+    H.db.tables.email_deliveries.push({ id: "d1", lead_id: lead.id, kind: "sequence", sequence_day: 2, status: "sending" });
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 0);
+    assert.strictEqual(lead.email_sequence_day, 3);
+});
+
+test("with email_deliveries: failed delivery removes the record so the retry works", async () => {
+    enableDeliveries();
+    const lead = dueLead();
+    H.mail.mode = "error";
+    await run();
+    assert.strictEqual(H.db.tables.email_deliveries.length, 0);
+    assert.strictEqual(lead.email_sequence_day, 1);
+    H.mail.mode = "ok";
+    await run();
+    assert.strictEqual(H.mail.sent.length, 1);
+    assert.strictEqual(lead.email_sequence_day, 2);
+});
+
+test("with email_deliveries: overlapping runs still send once", async () => {
+    enableDeliveries();
+    const leads = [dueLead({ email: "a@example.com" }), dueLead({ email: "b@example.com" })];
+    H.mail.delayMs = 10;
+    const mod = H.load(FN);
+    await Promise.all([mod.handler({}), mod.handler({}), mod.handler({})]);
+    assert.strictEqual(H.mail.attempts.length, 2);
+    assert.strictEqual(H.db.tables.email_deliveries.length, 2);
+    for (const l of leads) assert.strictEqual(l.email_sequence_day, 2);
+});
+
+test("progress update retried once: a single transient failure still advances", async () => {
+    const lead = dueLead();
+    let failures = 0;
+    H.db.failWhen = (q) => q.mode === "update" && q.changes && q.changes.email_sequence_day === 2 && failures++ === 0;
+    await run();
+    assert.strictEqual(H.mail.attempts.length, 1);
+    assert.strictEqual(lead.email_sequence_day, 2);
+});
+
+
+/* =============== Abandoned report claims =============== */
+
+test("abandoned report claim (Sending, lead older than 35 min) is reset to Pending", async () => {
+    const abandoned = H.addLead({ email: "x@example.com", email_status: "Sending", submitted_at: hoursAgo(2) });
+    const live = H.addLead({ email: "y@example.com", email_status: "Sending", submitted_at: new Date(Date.now() - 60e3).toISOString() });
+    const r = await run();
+    assert.strictEqual(abandoned.email_status, "Pending");
+    assert.strictEqual(abandoned.last_email_sent, null, "not marked as sent");
+    assert.strictEqual(live.email_status, "Sending", "in-flight claim untouched");
+    assert.strictEqual(JSON.parse(r.body).summary.recovered_report_claims, 1);
+});
+
+test("abandoned report claim whose report is recorded as sent becomes Sent", async () => {
+    enableDeliveries();
+    const lead = H.addLead({ email_status: "Sending", submitted_at: hoursAgo(2) });
+    H.db.tables.email_deliveries.push({ id: "d1", lead_id: lead.id, kind: "report", sequence_day: 0, status: "sent" });
+    await run();
+    assert.strictEqual(lead.email_status, "Sent");
+    assert(lead.last_email_sent);
+});
+
+test("recovery is harmless when the database rejects 'Sending'", async () => {
+    H.db.rejectValues = { email_status: ["Sending"] };
+    dueLead();
+    const r = await run();
+    assert.strictEqual(r.statusCode, 200);
+    assert.strictEqual(H.mail.attempts.length, 1);
 });
 
 module.exports = suite;

@@ -1,5 +1,8 @@
-/* Tests for submitQuiz() in js/script.js (the homepage quiz caller).
-   The function is extracted from the real file and run against a fake
+/* Tests for submitQuiz() — the homepage-style quiz caller — in every copy:
+   js/script.js (index.html), article/js/script.js (article/index.html),
+   encyclopediaCMS/js/script.js (encyclopediaCMS/index.html) and the
+   login-required variant skinquiz/js/script.js (skinquiz/index.html).
+   Each function is extracted from the real file and run against a fake
    page, a fake Supabase client and a fake fetch. */
 "use strict";
 
@@ -12,8 +15,8 @@ const H = require("./helpers");
 const suite = H.createSuite("homepage quiz caller");
 const { test } = suite;
 
-function extractSubmitQuiz() {
-    const src = fs.readFileSync(path.join(H.ROOT, "js", "script.js"), "utf8");
+function extractSubmitQuiz(file = "js/script.js") {
+    const src = fs.readFileSync(path.join(H.ROOT, file), "utf8");
     const start = src.indexOf("async function submitQuiz() {");
     assert(start >= 0, "submitQuiz not found");
     let depth = 0;
@@ -28,7 +31,7 @@ function element(id, value = "") {
     return { id, value, innerHTML: "", innerText: "", style: { display: "" }, scrollIntoView() { this.scrolled = true; } };
 }
 
-function setup({ insertError = null, fetchResult = { ok: true }, fetchThrows = false, user = null, profileError = null } = {}) {
+function setup({ file = "js/script.js", insertError = null, fetchResult = { ok: true }, fetchThrows = false, user = null, profileError = null } = {}) {
     const els = {
         loading: element("loading"), analysisText: element("analysisText"), results: element("results"),
         recommendedProducts: element("recommendedProducts"), productRecommendations: element("productRecommendations"),
@@ -71,12 +74,20 @@ function setup({ insertError = null, fetchResult = { ok: true }, fetchThrows = f
         Promise, JSON, Date
     };
     vm.createContext(context);
-    vm.runInContext(extractSubmitQuiz() + "\nthis.submitQuiz = submitQuiz;", context);
+    vm.runInContext(extractSubmitQuiz(file) + "\nthis.submitQuiz = submitQuiz;", context);
     return { run: () => context.submitQuiz(), els, calls };
 }
 
-test("anonymous visitor, email sent: success message, loading hidden, results kept", async () => {
-    const s = setup();
+// Copies that support anonymous visitors (same intended behaviour).
+for (const file of ["js/script.js", "article/js/script.js", "encyclopediaCMS/js/script.js"]) {
+
+const t = (title, fn) => test(`[${file}] ${title}`, fn);
+const setup0 = setup;
+// eslint-disable-next-line no-shadow
+const setupFor = (opts = {}) => setup0({ file, ...opts });
+
+t("anonymous visitor, email sent: success message, loading hidden, results kept", async () => {
+    const s = setupFor();
     await s.run();
     assert.strictEqual(s.calls.inserts.length, 1);
     assert.strictEqual(s.calls.inserts[0].table, "leads");
@@ -91,39 +102,39 @@ test("anonymous visitor, email sent: success message, loading hidden, results ke
     assert.strictEqual(s.calls.updates.length, 0, "anonymous: no profile update, no client lead update");
 });
 
-test("lead row is not read back and not updated by the browser", async () => {
-    const s = setup();
+t("lead row is not read back and not updated by the browser", async () => {
+    const s = setupFor();
     await s.run();
     assert.strictEqual(s.calls.selectAfterInsert, false);
     assert(!s.calls.updates.some((u) => u.table === "leads"));
 });
 
-test("email fails (502): quiz kept, clear message, loading hidden", async () => {
-    const s = setup({ fetchResult: { ok: false, status: 502 } });
+t("email fails (502): quiz kept, clear message, loading hidden", async () => {
+    const s = setupFor({ fetchResult: { ok: false, status: 502 } });
     await s.run();
     assert.deepStrictEqual(s.calls.alerts, ["Your quiz results are saved and shown below, but we couldn't send your email right now."]);
     assert.strictEqual(s.els.loading.style.display, "none");
     assert(s.els.results.innerHTML.includes("EMerriment Skin Analysis"));
 });
 
-test("email request throws (offline): same safe outcome", async () => {
-    const s = setup({ fetchThrows: true });
+t("email request throws (offline): same safe outcome", async () => {
+    const s = setupFor({ fetchThrows: true });
     await s.run();
     assert.strictEqual(s.calls.alerts.length, 1);
     assert(s.calls.alerts[0].includes("couldn't send your email"));
     assert.strictEqual(s.els.loading.style.display, "none");
 });
 
-test("quiz could not be saved: error message, no email request, loading hidden", async () => {
-    const s = setup({ insertError: { message: "denied" } });
+t("quiz could not be saved: error message, no email request, loading hidden", async () => {
+    const s = setupFor({ insertError: { message: "denied" } });
     await s.run();
     assert.deepStrictEqual(s.calls.alerts, ["Unable to save your quiz. Please try again."]);
     assert.strictEqual(s.calls.fetches.length, 0);
     assert.strictEqual(s.els.loading.style.display, "none");
 });
 
-test("logged-in user: profile updated and quiz_results saved with the existing client (bug at old line 9852 fixed)", async () => {
-    const s = setup({ user: { id: "user-1" } });
+t("logged-in user: profile updated and quiz_results saved with the existing client (bug at old line 9852 fixed)", async () => {
+    const s = setupFor({ user: { id: "user-1" } });
     await s.run();
     const profile = s.calls.updates.find((u) => u.table === "profiles");
     assert(profile, "profile updated");
@@ -135,10 +146,56 @@ test("logged-in user: profile updated and quiz_results saved with the existing c
     assert.strictEqual(s.els.loading.style.display, "none");
 });
 
-test("logged-in user with a profile error: still finishes and shows the result", async () => {
-    const s = setup({ user: { id: "user-1" }, profileError: { message: "x" } });
+t("logged-in user with a profile error: still finishes and shows the result", async () => {
+    const s = setupFor({ user: { id: "user-1" }, profileError: { message: "x" } });
     await s.run();
     assert.strictEqual(s.calls.alerts.length, 1);
+    assert.strictEqual(s.els.loading.style.display, "none");
+});
+
+}
+
+/* ---------- skinquiz/: login-required variant (intended behaviour kept) ---------- */
+
+const SKIN = "skinquiz/js/script.js";
+
+test(`[${SKIN}] anonymous visitor is asked to log in; nothing saved or sent (previously crashed)`, async () => {
+    const s = setup({ file: SKIN });
+    await s.run();
+    assert.deepStrictEqual(s.calls.alerts, ["Please log in before submitting your skin quiz."]);
+    assert.strictEqual(s.calls.inserts.length, 0);
+    assert.strictEqual(s.calls.fetches.length, 0);
+    assert.strictEqual(s.els.loading.style.display, "none");
+});
+
+test(`[${SKIN}] logged-in user: lead saved, email requested, profile + quiz_results saved, loading hidden`, async () => {
+    const s = setup({ file: SKIN, user: { id: "user-9" } });
+    await s.run();
+    assert.strictEqual(s.calls.inserts.filter((i) => i.table === "leads").length, 1);
+    assert.strictEqual(s.calls.selectAfterInsert, false, "lead not read back");
+    assert.strictEqual(s.calls.fetches.length, 1);
+    assert.deepStrictEqual(Object.keys(JSON.parse(s.calls.fetches[0].opts.body)).sort(),
+        ["concern", "email", "name", "oilLevel", "recommendation", "score", "sensitivity", "skinType"]);
+    assert.deepStrictEqual(s.calls.updates.find((u) => u.table === "profiles").eq, ["id", "user-9"]);
+    assert.strictEqual(s.calls.inserts.find((i) => i.table === "quiz_results").rows.user_id, "user-9");
+    assert(!s.calls.updates.some((u) => u.table === "leads"), "no browser lead update");
+    assert.deepStrictEqual(s.calls.alerts, ["🎉 Your skin report has been generated and sent to your email."]);
+    assert.strictEqual(s.els.loading.style.display, "none");
+});
+
+test(`[${SKIN}] logged-in user, email fails: results kept, clear message, loading hidden`, async () => {
+    const s = setup({ file: SKIN, user: { id: "user-9" }, fetchThrows: true });
+    await s.run();
+    assert.deepStrictEqual(s.calls.alerts, ["Your quiz results are saved and shown below, but we couldn't send your email right now."]);
+    assert.strictEqual(s.els.loading.style.display, "none");
+    assert(s.calls.inserts.some((i) => i.table === "quiz_results"), "quiz result still saved");
+});
+
+test(`[${SKIN}] lead save error: message, no email, loading hidden`, async () => {
+    const s = setup({ file: SKIN, user: { id: "user-9" }, insertError: { message: "denied" } });
+    await s.run();
+    assert.deepStrictEqual(s.calls.alerts, ["Unable to save your quiz. Please try again."]);
+    assert.strictEqual(s.calls.fetches.length, 0);
     assert.strictEqual(s.els.loading.style.display, "none");
 });
 

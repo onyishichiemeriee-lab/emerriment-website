@@ -16,6 +16,12 @@ const ROOT = path.resolve(__dirname, "..", "..");
 
 const db = {
     tables: { leads: [], product_clicks: [] },
+    // Tables that do not exist (like before the
+    // migration). Queries on them fail as in PostgREST.
+    missingTables: new Set(["email_deliveries"]),
+    // { table: [[col, col, ...], ...] } unique keys
+    unique: { email_deliveries: [["lead_id", "kind", "sequence_day"]] },
+    nextRowId: 1,
     // { column: [values the database refuses] }
     rejectValues: {},
     // (query) => true to make that query fail
@@ -73,6 +79,7 @@ class Query {
     select() { if (this.mode === "select") this.returning = true; else this.returning = true; return this; }
     insert(rows) { this.mode = "insert"; this.rows = Array.isArray(rows) ? rows : [rows]; return this; }
     update(changes) { this.mode = "update"; this.changes = changes; return this; }
+    delete() { this.mode = "delete"; return this; }
     eq(c, v) { this.filters.push(["eq", c, v]); return this; }
     neq(c, v) { this.filters.push(["neq", c, v]); return this; }
     in(c, v) { this.filters.push(["in", c, v]); return this; }
@@ -102,15 +109,32 @@ class Query {
         if (db.failWhen && db.failWhen(this)) {
             return { data: null, error: { code: "XX000", message: "SECRET-DB-DETAIL internal failure" } };
         }
+        if (db.missingTables.has(this.table)) {
+            return { data: null, error: { code: "PGRST205", message: `Could not find the table 'public.${this.table}' in the schema cache` } };
+        }
         if (this.rejected()) {
             return { data: null, error: { code: "22P02", message: "SECRET-DB-DETAIL invalid input value for enum" } };
         }
         const table = db.tables[this.table] || (db.tables[this.table] = []);
         if (this.mode === "insert") {
-            table.push(...this.rows.map((r) => ({ ...r })));
-            return { data: null, error: null };
+            const keys = db.unique[this.table] || [];
+            const added = [];
+            for (const r of this.rows) {
+                const row = { id: r.id !== undefined ? r.id : "row-" + db.nextRowId++, created_at: new Date().toISOString(), ...r };
+                const clash = keys.some((cols) => table.concat(added).some((o) => cols.every((c) => o[c] === row[c])));
+                if (clash) {
+                    return { data: null, error: { code: "23505", message: "SECRET-DB-DETAIL duplicate key value violates unique constraint" } };
+                }
+                added.push(row);
+            }
+            table.push(...added);
+            return { data: this.returning ? added.map((r) => ({ id: r.id })) : null, error: null };
         }
         let rows = table.filter((r) => matches(r, this.filters));
+        if (this.mode === "delete") {
+            db.tables[this.table] = table.filter((r) => !rows.includes(r));
+            return { data: null, error: null };
+        }
         if (this.mode === "update") {
             rows.forEach((r) => Object.assign(r, this.changes));
             return { data: this.returning ? rows.map((r) => ({ id: r.id })) : null, error: null };
@@ -270,6 +294,8 @@ function addLead(over = {}) {
 
 function reset() {
     db.tables = { leads: [], product_clicks: [] };
+    db.missingTables = new Set(["email_deliveries"]);
+    db.nextRowId = 1;
     db.rejectValues = {};
     db.failWhen = null;
     db.ops = [];

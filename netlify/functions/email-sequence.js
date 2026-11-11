@@ -10,8 +10,16 @@ const {
     buildTracking,
     unsubscribeHeaders,
     sendWithResend,
-    isValueRejected
+    isValueRejected,
+    leadCreatedTime
 } = require("../lib/email-common");
+
+const {
+    reserveDelivery,
+    completeDelivery,
+    releaseDelivery,
+    wasDelivered
+} = require("../lib/email-deliveries");
 
 
 /* =========================================
@@ -64,6 +72,36 @@ const TIME_BUDGET_MS = 20 * 1000;
 const CLAIM_LEASE_MS = 2 * 60 * 60 * 1000;
 
 const STATUS_UNSUBSCRIBED = "Unsubscribed";
+
+// Leads whose lesson has been overdue for longer
+// than this are left untouched (not emailed, not
+// modified). Protects against a sudden mass send
+// to old leads if the schedule was inactive for a
+// long time. EMAIL_SEQUENCE_MAX_OVERDUE_DAYS=0
+// disables the guard.
+function maxOverdueMs() {
+
+    const raw = process.env.EMAIL_SEQUENCE_MAX_OVERDUE_DAYS;
+
+    if (raw === undefined || raw === "") {
+        return 7 * DAY_MS;
+    }
+
+    const days = Number(raw);
+
+    if (!Number.isFinite(days) || days < 0) {
+        return 7 * DAY_MS;
+    }
+
+    return days === 0 ? Infinity : days * DAY_MS;
+
+}
+
+// Report claims ("Sending") can only be taken in
+// the first 30 minutes of a lead's life. A lead
+// still "Sending" well after that is an abandoned
+// claim (the report function stopped mid-send).
+const ABANDONED_REPORT_CLAIM_MS = 35 * 60 * 1000;
 
 
 function getClients() {
@@ -157,6 +195,12 @@ async function processLead(supabase, resend, lead, unsubscribed) {
         return "skipped_invalid_email";
     }
 
+    const dueTime = new Date(lead.next_email_due).getTime();
+
+    if (Number.isFinite(dueTime) && Date.now() - dueTime > maxOverdueMs()) {
+        return "skipped_overdue";
+    }
+
     /* ---------- Claim ----------
        Matches only if no other run has changed this
        lead's day or due time since it was read. */
@@ -178,6 +222,27 @@ async function processLead(supabase, resend, lead, unsubscribed) {
 
     if (!Array.isArray(claimed) || claimed.length !== 1) {
         return "skipped_already_claimed";
+    }
+
+    /* ---------- Delivery record (at most once) ----------
+       With the email_deliveries table, a lesson that
+       was already sent — or whose send was
+       interrupted — is never sent again. */
+
+    const reservation = await reserveDelivery(supabase, {
+        leadId: lead.id,
+        kind: "sequence",
+        day
+    });
+
+    if (reservation.state === "duplicate") {
+
+        // Already handled for this day: move on rather
+        // than staying stuck or sending a duplicate.
+        const advanced = await advanceLead(supabase, lead, day, claimUntil);
+
+        return advanced ? "skipped_already_delivered" : "failed_advance";
+
     }
 
     /* ---------- Render and send ---------- */
@@ -211,9 +276,12 @@ async function processLead(supabase, resend, lead, unsubscribed) {
 
     if (!delivery.ok) {
 
-        // Put the original due time back so the
-        // next run retries this lesson. Only if
-        // this run still holds the claim.
+        // Nothing was sent: remove the reservation and
+        // put the original due time back so the next
+        // run retries this lesson. Only if this run
+        // still holds the claim.
+        await releaseDelivery(supabase, reservation);
+
         await supabase
             .from("leads")
             .update({ next_email_due: lead.next_email_due })
@@ -227,24 +295,16 @@ async function processLead(supabase, resend, lead, unsubscribed) {
 
     /* ---------- Advance ---------- */
 
-    const sentAt = new Date();
+    await completeDelivery(supabase, reservation, delivery.id);
 
-    const { error: advanceError } = await supabase
-        .from("leads")
-        .update({
-            email_sequence_day: day + 1,
-            last_sequence_email_sent: sentAt.toISOString(),
-            next_email_due: new Date(sentAt.getTime() + DAY_MS).toISOString()
-        })
-        .eq("id", lead.id)
-        .eq("email_sequence_day", lead.email_sequence_day)
-        .eq("next_email_due", claimUntil);
+    const advanced = await advanceLead(supabase, lead, day, claimUntil);
 
-    if (advanceError) {
-        // Delivered but not advanced. The claim lease
-        // keeps it from being picked up again
-        // immediately; the idempotency key guards a
-        // retry within Resend's 24-hour window.
+    if (!advanced) {
+        // Delivered but progress not saved. With the
+        // email_deliveries table the lesson can never
+        // be resent (the next run finds the record and
+        // advances). Without it, the claim lease plus
+        // the Resend idempotency key are the guard.
         console.error(
             "EMAIL SEQUENCE: sent but progress not saved.",
             { leadId: lead.id, day }
@@ -253,6 +313,94 @@ async function processLead(supabase, resend, lead, unsubscribed) {
     }
 
     return day === LAST_DAY ? "sent_completed" : "sent";
+
+}
+
+
+// Moves the lead to the next day, only while this
+// run still holds its claim. One retry on error.
+async function advanceLead(supabase, lead, day, claimUntil) {
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+
+        const sentAt = new Date();
+
+        const { error } = await supabase
+            .from("leads")
+            .update({
+                email_sequence_day: day + 1,
+                last_sequence_email_sent: sentAt.toISOString(),
+                next_email_due: new Date(sentAt.getTime() + DAY_MS).toISOString()
+            })
+            .eq("id", lead.id)
+            .eq("email_sequence_day", lead.email_sequence_day)
+            .eq("next_email_due", claimUntil);
+
+        if (!error) {
+            return true;
+        }
+
+    }
+
+    return false;
+
+}
+
+
+// Recovery for report claims abandoned mid-send
+// (see ABANDONED_REPORT_CLAIM_MS). Such a lead is
+// outside the 30-minute report window, so it can
+// never be emailed again automatically; this only
+// corrects its status so it is not stuck in
+// "Sending". If the delivery table proves the
+// report went out, it becomes "Sent", otherwise
+// "Pending" (not confirmed sent).
+async function recoverAbandonedReportClaims(supabase) {
+
+    const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("email_status", "Sending")
+        .limit(50);
+
+    if (error) {
+        // Includes databases that reject the value.
+        return 0;
+    }
+
+    let recovered = 0;
+
+    for (const lead of data || []) {
+
+        const createdAt = leadCreatedTime(lead);
+
+        if (createdAt === null || Date.now() - createdAt < ABANDONED_REPORT_CLAIM_MS) {
+            continue;
+        }
+
+        const delivered = await wasDelivered(supabase, {
+            leadId: lead.id,
+            kind: "report",
+            day: 0
+        });
+
+        const changes = delivered
+            ? { email_status: "Sent", last_email_sent: new Date().toISOString() }
+            : { email_status: "Pending" };
+
+        const { error: updateError } = await supabase
+            .from("leads")
+            .update(changes)
+            .eq("id", lead.id)
+            .eq("email_status", "Sending");
+
+        if (!updateError) {
+            recovered++;
+        }
+
+    }
+
+    return recovered;
 
 }
 
@@ -314,6 +462,15 @@ exports.handler = async () => {
                 count("failed_unexpected");
             }
 
+        }
+
+        try {
+            const recovered = await recoverAbandonedReportClaims(supabase);
+            if (recovered) {
+                summary.recovered_report_claims = recovered;
+            }
+        } catch (recoveryError) {
+            count("failed_report_claim_recovery");
         }
 
         console.log("EMAIL SEQUENCE: run complete.", summary);

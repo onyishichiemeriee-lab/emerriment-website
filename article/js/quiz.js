@@ -589,19 +589,18 @@ document.addEventListener("DOMContentLoaded", () => {
             payload
         );
 
+        // Insert (not upsert) and no read-back: anonymous
+        // visitors only need permission to insert a lead.
+        // The previous upsert on "email" needed update
+        // permission and a unique constraint on email,
+        // which the other quiz pages do not assume.
+        const data = null;
+
         const {
-            data,
             error
         } = await supabaseClient
             .from("leads")
-            .upsert(
-                payload,
-                {
-                    onConflict: "email"
-                }
-            )
-            .select()
-            .single();
+            .insert(payload);
 
         if (error) {
 

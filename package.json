@@ -5,7 +5,8 @@
   "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:email": "node tests/email/run-all.js"
+    "test:email": "node tests/email/run-all.js",
+    "test:security": "node tests/security/run-all.js"
   },
   "repository": {
     "type": "git",

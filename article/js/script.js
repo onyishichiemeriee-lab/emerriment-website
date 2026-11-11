@@ -9819,148 +9819,167 @@ next_email_due: new Date(
 
       notes: null
     }
-  ])
-  .select();
-  
-   if (error) {
-  console.error("Supabase Error:", error);
+  ]);
+  // No .select() here: the lead row is not read back by the browser.
+  // The email function verifies and updates the lead server-side.
 
-  alert("Unable to save your quiz. Please try again.");
+  if (error) {
+    console.error("Supabase Error:", error);
 
-  return;
-}
+    if (loadingEl) loadingEl.style.display = "none";
 
-  if (!error) {
+    alert("Unable to save your quiz. Please try again.");
 
-  const emailResponse = await fetch("/.netlify/functions/send-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    name,
-    email,
-    skinType,
-    concern,
-    oilLevel,
-    sensitivity,
-    score,
-    recommendation
-  })
-});
+    return;
+  }
 
-await supabase
-    .from("profiles")
-    .update({
-        current_skin_score: score,
-        current_skin_type: skinType,
-        current_concern: concern,
-        current_recommendation: recommendation,
-        last_quiz_date: new Date().toISOString()
-    })
-    .eq("id", user.id);
-    
-// ==========================================
-// Save Quiz Result to Supabase
-// ==========================================
+  // ==========================================
+  // Quiz saved. Send the report email.
+  // A failed email must not lose the saved quiz
+  // or leave the loading screen visible.
+  // ==========================================
 
-// Check if the user is logged in
-const {
-    data: { user }
-} = await supabase.auth.getUser();
+  let emailSent = false;
 
-if (user) {
+  try {
 
-    const { error } = await supabase
+    const emailResponse = await fetch("/.netlify/functions/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        skinType,
+        concern,
+        oilLevel,
+        sensitivity,
+        score,
+        recommendation
+      })
+    });
+
+    emailSent = emailResponse.ok;
+
+  } catch (emailError) {
+
+    console.error("Email request failed.");
+
+  }
+
+  // ==========================================
+  // Logged-in users: update profile and save
+  // quiz result. Anonymous visitors skip this.
+  // ==========================================
+
+  try {
+
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    if (user) {
+
+      const { error: profileError } = await supabaseClient
+        .from("profiles")
+        .update({
+          current_skin_score: score,
+          current_skin_type: skinType,
+          current_concern: concern,
+          current_recommendation: recommendation,
+          last_quiz_date: new Date().toISOString()
+        })
+        .eq("id", user.id);
+
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
+      }
+
+      const { error: quizError } = await supabaseClient
         .from("quiz_results")
         .insert({
 
-            user_id: user.id,
+          user_id: user.id,
 
-            skin_type: skinType,
+          skin_type: skinType,
 
-            concern: concern,
+          concern: concern,
 
-            oil_level: oilLevel,
+          oil_level: oilLevel,
 
-            sensitivity: sensitivity,
+          sensitivity: sensitivity,
 
-            score: score,
+          score: score,
 
-            recommendation: recommendation
+          recommendation: recommendation
 
         });
 
-    if (error) {
+      if (quizError) {
 
-        console.error("Error saving quiz:", error);
+        console.error("Error saving quiz:", quizError);
 
-    } else {
+      } else {
 
         console.log("✅ Quiz saved successfully.");
 
+      }
+
     }
 
-}
+  } catch (accountError) {
 
-// 1. Move the assignment up so leadId exists before it is used
-const leadId = data?.[0]?.id;
+    console.error("Error saving account quiz data:", accountError);
 
-if (!emailResponse.ok) {
-  console.error("Email sending failed.");
-  alert("Your quiz was saved, but we couldn't send your email.");
-  return;
-}
+  }
 
-// 2. Now leadId is initialized and can be used in the filter
-const { error: updateError } = await supabaseClient
-  .from("leads")
-  .update({
-    email_status: "Sent",
-    last_email_sent: new Date().toISOString()
-  })
-  .eq("id", leadId);
+  // The lead's email status is recorded by the
+  // send-email function on the server.
 
-if (updateError) {
-  console.error(updateError);
-}
+  if (loadingEl) loadingEl.style.display = "none";
 
-console.log("Inserted lead:", data);
-console.log("Lead ID:", leadId);
+  if (emailSent) {
+    alert("🎉 Your skin report has been generated and sent to your email.");
+  } else {
+    alert("Your quiz results are saved and shown below, but we couldn't send your email right now.");
+  }
 
-alert("🎉 Your skin report has been generated and sent to your email.");
+  document.getElementById("results").scrollIntoView({
+    behavior: "smooth"
+  });
 
-document.getElementById("results").scrollIntoView({
-  behavior: "smooth"
-});
+  const analysisText = document.getElementById("analysisText");
 
-const analysisText = document.getElementById("analysisText");
-analysisText.innerText = "Analyzing your skin profile...";
+  if (analysisText) {
 
-setTimeout(() => {
-  analysisText.innerText = "Comparing against 1,000+ skin conditions...";
-}, 1000); // Added missing closing bracket and delay
+    analysisText.innerText = "Analyzing your skin profile...";
 
-setTimeout(()=>{
-analysisText.innerText =
-"Selecting science-backed ingredients..."
-},2000);
+    setTimeout(() => {
+      analysisText.innerText = "Comparing against 1,000+ skin conditions...";
+    }, 1000);
 
-setTimeout(()=>{
-analysisText.innerText =
-"Generating your personalized skin report..."
-},3000);
+    setTimeout(() => {
+      analysisText.innerText =
+        "Selecting science-backed ingredients...";
+    }, 2000);
 
-setTimeout(()=>{
-  analysisText.innerText = "Sending your report to your email..."
-}, 4000);
+    setTimeout(() => {
+      analysisText.innerText =
+        "Generating your personalized skin report...";
+    }, 3000);
 
-setTimeout(()=>{
-  analysisText.innerText = "Done! 🎉"
-}, 5000);
+    setTimeout(() => {
+      analysisText.innerText = emailSent
+        ? "Sending your report to your email..."
+        : "Your results are ready below.";
+    }, 4000);
 
-loadingEl.style.display = "none";
-}
+    setTimeout(() => {
+      analysisText.innerText = "Done! 🎉";
+    }, 5000);
+
+  }
 
 }
 

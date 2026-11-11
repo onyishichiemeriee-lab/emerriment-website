@@ -16,6 +16,12 @@ const {
     isValueRejected
 } = require("../lib/email-common");
 
+const {
+    reserveDelivery,
+    completeDelivery,
+    releaseDelivery
+} = require("../lib/email-deliveries");
+
 
 /* =========================================
    EMerriment Email Function
@@ -565,6 +571,7 @@ exports.handler = async (event) => {
 
     let leadId = null;
     let claim = null;
+    let reservation = null;
 
     try {
 
@@ -643,6 +650,33 @@ exports.handler = async (event) => {
             throw new Error("stored_recipient_invalid");
         }
 
+        /* ---------- Delivery record (at most once) ----------
+           Uses the email_deliveries table when the
+           migration has been applied; otherwise this
+           step is skipped. */
+
+        reservation = await reserveDelivery(supabase, {
+            leadId,
+            kind: "report",
+            day: 0
+        });
+
+        if (reservation.state === "duplicate") {
+
+            const released = await releaseClaim(supabase, leadId, claim);
+
+            console.warn(
+                "SEND EMAIL: report already recorded for lead.",
+                { leadId, claimReleased: released }
+            );
+
+            claim = null;
+            reservation = null;
+
+            return RESPONSES.notSent();
+
+        }
+
         /* ---------- Render from stored lead ---------- */
 
         const tracking = buildTracking(leadId);
@@ -676,6 +710,8 @@ exports.handler = async (event) => {
 
         if (!delivery.ok) {
 
+            await releaseDelivery(supabase, reservation);
+
             const released = await releaseClaim(supabase, leadId, claim);
 
             console.error(
@@ -684,12 +720,20 @@ exports.handler = async (event) => {
             );
 
             claim = null;
+            reservation = null;
 
             return RESPONSES.deliveryFailed();
 
         }
 
         /* ---------- Record success ---------- */
+
+        // From here on the email has been sent: nothing
+        // may be released.
+        const deliveredReservation = reservation;
+        reservation = null;
+
+        await completeDelivery(supabase, deliveredReservation, delivery.id);
 
         const recorded = await markSent(supabase, leadId, claim);
 
@@ -713,8 +757,17 @@ exports.handler = async (event) => {
 
     } catch (error) {
 
-        // Release a claim taken before the failure
-        // so a legitimate retry remains possible.
+        // Release a reservation and claim taken before
+        // the failure (nothing was sent) so a
+        // legitimate retry remains possible.
+        if (reservation) {
+            try {
+                await releaseDelivery(supabase, reservation);
+            } catch (releaseError) {
+                // Logged below.
+            }
+        }
+
         if (leadId && claim) {
             try {
                 await releaseClaim(supabase, leadId, claim);

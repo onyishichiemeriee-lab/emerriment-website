@@ -522,6 +522,27 @@ async function incrementViews() {
 
     if (!currentArticle) return;
 
+    // Preferred: a database function that only
+    // increments the view counter, so visitors need
+    // no update permission on articles.
+    // (supabase/migrations/..._increment_article_views)
+    const { data: rpcViews, error: rpcError } =
+        await window.supabaseClient.rpc(
+            "increment_article_views",
+            { article_id: currentArticle.id }
+        );
+
+    if (!rpcError) {
+        if (typeof rpcViews === "number") {
+            currentArticle.views = rpcViews;
+        }
+        return;
+    }
+
+    // Fallback until the migration is applied: the
+    // previous direct update. Once visitors can no
+    // longer update articles this simply fails and
+    // the page is unaffected.
     const newViews = (currentArticle.views || 0) + 1;
 
     const { error } = await window.supabaseClient

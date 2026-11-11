@@ -8,7 +8,8 @@ const suites = [
     require("./templates.test"),
     require("./sequence.test"),
     require("./tracking.test"),
-    require("./homepage-quiz.test")
+    require("./homepage-quiz.test"),
+    require("./quiz-pages.test")
 ];
 
 (async () => {

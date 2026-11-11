@@ -540,6 +540,66 @@ test("EMAIL_FROM overrides the sender only when well-formed", async () => {
     assert.strictEqual(H.mail.sent[0].payload.from, "EMerriment <onboarding@resend.dev>");
 });
 
+/* =============== Delivery records (after migration) =============== */
+
+function enableDeliveries() {
+    H.db.missingTables.delete("email_deliveries");
+    H.db.tables.email_deliveries = [];
+}
+
+test("with email_deliveries: report recorded as sent with provider id", async () => {
+    enableDeliveries();
+    const lead = H.addLead();
+    const r = await post(homepageBody());
+    assert.strictEqual(r.statusCode, 200, r.body);
+    const rows = H.db.tables.email_deliveries;
+    assert.strictEqual(rows.length, 1);
+    assert.deepStrictEqual([rows[0].lead_id, rows[0].kind, rows[0].sequence_day, rows[0].status], [lead.id, "report", 0, "sent"]);
+    assert.strictEqual(rows[0].provider_message_id, "email_1");
+});
+
+test("with email_deliveries: an existing record blocks a resend even if the lead was reset to Pending", async () => {
+    enableDeliveries();
+    const lead = H.addLead();
+    H.db.tables.email_deliveries.push({ id: "d1", lead_id: lead.id, kind: "report", sequence_day: 0, status: "sending" });
+    const r = await post(homepageBody());
+    assert.strictEqual(r.statusCode, 409);
+    assert.strictEqual(H.mail.attempts.length, 0);
+    assert.strictEqual(lead.email_status, "Pending", "claim released");
+});
+
+test("with email_deliveries: failed delivery removes the record, retry succeeds", async () => {
+    enableDeliveries();
+    const lead = H.addLead();
+    H.mail.mode = "error";
+    assert.strictEqual((await post(homepageBody())).statusCode, 502);
+    assert.strictEqual(H.db.tables.email_deliveries.length, 0);
+    H.mail.mode = "ok";
+    assert.strictEqual((await post(homepageBody())).statusCode, 200);
+    assert.strictEqual(H.db.tables.email_deliveries.length, 1);
+    assert.strictEqual(lead.email_status, "Sent");
+});
+
+test("with email_deliveries: database error while reserving → 500, claim released, nothing sent", async () => {
+    enableDeliveries();
+    const lead = H.addLead();
+    H.db.failWhen = (q) => q.table === "email_deliveries" && q.mode === "insert";
+    const r = await post(homepageBody());
+    assert.strictEqual(r.statusCode, 500);
+    assert.strictEqual(H.mail.attempts.length, 0);
+    assert.strictEqual(lead.email_status, "Pending");
+    noLeak(r);
+});
+
+test("with email_deliveries: ten concurrent requests still send once", async () => {
+    enableDeliveries();
+    H.addLead();
+    H.mail.delayMs = 10;
+    const results = await Promise.all(Array.from({ length: 10 }, () => post(homepageBody())));
+    assert.strictEqual(results.filter((r) => r.statusCode === 200).length, 1);
+    assert.strictEqual(H.mail.attempts.length, 1);
+});
+
 module.exports = suite;
 
 if (require.main === module) {
