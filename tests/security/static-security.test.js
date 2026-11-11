@@ -20,7 +20,9 @@ const suite = H.createSuite("static security (repository only)");
 const { test } = suite;
 
 const ROOT = H.ROOT;
-const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
+// Line endings are normalised: on Windows, Git checks files out with CRLF
+// (core.autocrlf), while the repository — and every deploy — uses LF.
+const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8").replace(/\r\n/g, "\n");
 const MIGRATIONS_DIR = "supabase/migrations";
 const migrationFiles = fs.readdirSync(path.join(ROOT, MIGRATIONS_DIR)).filter((f) => f.endsWith(".sql")).sort();
 const migrations = migrationFiles.map((f) => ({ file: f, sql: read(`${MIGRATIONS_DIR}/${f}`) }));
