@@ -15583,3 +15583,39 @@ p {
 /* =========================================================
    PHASE 5 COMPLETE
    ========================================================= */
+/* =========================================
+   EMERRIMENT DASHBOARD NAV BUTTON FIX
+========================================= */
+
+#navDashboardBtn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+
+    color: #ffffff !important;
+    background: #111111 !important;
+
+    padding: 10px 18px;
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    border: 1px solid #111111;
+
+    min-width: 100px;
+    min-height: 38px;
+
+    position: relative;
+    z-index: 9999;
+}
+
+#navDashboardBtn:hover {
+    color: #ffffff !important;
+    background: #222222 !important;
+}

@@ -26,13 +26,7 @@ await supabaseClient
 
 .maybeSingle();
 
-if(!profile?.is_admin){
 
-location.href="../dashboardCMS.html";
-
-return;
-
-}
 
 loadProducts();
 

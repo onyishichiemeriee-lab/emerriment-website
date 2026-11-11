@@ -5,3 +5,120 @@ functions = "netlify/functions"
 [dev]
 publish = "."
 functions = "netlify/functions"
+
+# 14-day email sequence: registered to run once a day.
+# (The function's own `exports.config` is not recognised by Netlify for
+# this function format.) It sends NOTHING until the environment variable
+# EMAIL_SEQUENCE_ENABLED=true is set — see supabase/README.md.
+[functions."email-sequence"]
+schedule = "@daily"
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+Content-Security-Policy = "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com; connect-src 'self' http://127.0.0.1:3030 https://*.supabase.co https://api.resend.com https://www.google-analytics.com https://region1.google-analytics.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; frame-ancestors 'none';"
+
+# -------------------------------------------------------------------
+# Internal files must not be downloadable.
+# The site is published from the repository root (publish = "."), so
+# source, tests, migrations and tooling would otherwise be public.
+# `force = true` makes these rules win even though the files exist.
+# Netlify Functions (/.netlify/functions/*) are NOT affected.
+# -------------------------------------------------------------------
+[[redirects]]
+from = "/netlify/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/emails/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/tests/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/supabase/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/local-ai/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/node_modules/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/package.json"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/package-lock.json"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/deno.lock"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/netlify.toml"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/test-emails.js"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/test-special-emails.js"
+to = "/404"
+status = 404
+force = true
+
+# Local backup folders (git-ignored). Present only if a deploy is made
+# from this folder with the Netlify CLI; they contain outdated code.
+[[redirects]]
+from = "/EMerriment Authentication V2/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/EMerriment Authentication V3 — VERIFIED BACKUP/*"
+to = "/404"
+status = 404
+force = true
+
+[[redirects]]
+from = "/ROOT AUTH BACKUP BEFORE V2/*"
+to = "/404"
+status = 404
+force = true

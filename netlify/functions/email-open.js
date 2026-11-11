@@ -1,219 +1,160 @@
 const { createClient } = require("@supabase/supabase-js");
 
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const {
+    verifyLink,
+    isValidLeadId,
+    isValidEmail,
+    normalizeEmail,
+    findLeadsForAddress
+} = require("../lib/email-common");
+
+
+/* =========================================
+   EMerriment Email Open Tracking
+   -----------------------------------------
+   Returns a 1×1 transparent GIF in every case,
+   so the response never reveals whether an
+   address or lead exists.
+
+   Current links:  ?l=<lead id>&t=<signature>
+   Only a valid signature updates the counters.
+
+   Legacy links:   ?email=<address>
+   Emails sent before this change carry the
+   address in the URL. They are still counted so
+   open statistics for emails already in inboxes
+   are kept, but anyone who knows an address can
+   inflate its counter. Set
+   EMAIL_OPEN_ALLOW_LEGACY=false to stop counting
+   them once those emails are old (e.g. 30 days
+   after deployment).
+========================================= */
+
+
+const PIXEL =
+    "R0lGODlhAQABAPAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
+
+function pixelResponse() {
+
+    return {
+        statusCode: 200,
+        headers: {
+            "Content-Type": "image/gif",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        },
+        isBase64Encoded: true,
+        body: PIXEL
+    };
+
+}
+
+function getSupabase() {
+
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !key) {
+        return null;
+    }
+
+    return createClient(url, key, {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false
+        }
+    });
+
+}
+
+// Same counting rule as before: every lead record
+// for the address gets the highest current count
+// plus one.
+async function recordOpen(supabase, leads) {
+
+    if (!leads || leads.length === 0) {
+        return;
+    }
+
+    const currentCount = Math.max(
+        ...leads.map((lead) => Number(lead.emails_opened || 0))
+    );
+
+    await supabase
+        .from("leads")
+        .update({
+            emails_opened: currentCount + 1,
+            last_opened_at: new Date().toISOString()
+        })
+        .in("id", leads.map((lead) => lead.id));
+
+}
 
 exports.handler = async (event) => {
 
     try {
 
-        const email =
-            event.queryStringParameters?.email;
+        const params = event.queryStringParameters || {};
 
-        if (!email) {
+        const supabase = getSupabase();
 
-            return {
-                statusCode: 400,
-                body: "Missing email"
-            };
-
+        if (!supabase) {
+            return pixelResponse();
         }
 
-        console.log("📧 Tracking email open:", email);
+        /* ---------- Signed link ---------- */
 
+        if (params.l !== undefined || params.t !== undefined) {
 
-        // -----------------------------------------
-        // GET ALL LEAD RECORDS FOR THIS EMAIL
-        // -----------------------------------------
-
-        const {
-            data: leads,
-            error: selectError
-        } = await supabase
-
-            .from("leads")
-
-            .select("id, email, emails_opened")
-
-            .eq("email", email);
-
-
-        if (selectError) {
-
-            console.error(
-                "❌ Supabase SELECT error:",
-                selectError
-            );
-
-            throw selectError;
-
-        }
-
-
-        if (!leads || leads.length === 0) {
-
-            console.warn(
-                "⚠️ No lead found for:",
-                email
-            );
-
-            return {
-                statusCode: 200,
-
-                headers: {
-                    "Content-Type": "image/gif",
-                    "Cache-Control": "no-cache, no-store, must-revalidate"
-                },
-
-                isBase64Encoded: true,
-
-                body:
-                    "R0lGODlhAQABAPAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
-            };
-
-        }
-
-
-        console.log(
-            `📊 Found ${leads.length} records for ${email}`
-        );
-
-
-        // -----------------------------------------
-        // CALCULATE CURRENT OPEN COUNT
-        // -----------------------------------------
-
-        const currentCount = Math.max(
-            ...leads.map(
-                lead => Number(lead.emails_opened || 0)
-            )
-        );
-
-
-        const newCount =
-            currentCount + 1;
-
-
-        const openedAt =
-            new Date().toISOString();
-
-
-        // -----------------------------------------
-        // UPDATE ALL RECORDS FOR THIS SUBSCRIBER
-        // -----------------------------------------
-
-        const {
-            data: updatedData,
-            error: updateError
-        } = await supabase
-
-            .from("leads")
-
-            .update({
-
-                emails_opened:
-                    newCount,
-
-                last_opened_at:
-                    openedAt
-
-            })
-
-            .eq("email", email)
-
-            .select(
-                "id, email, emails_opened, last_opened_at"
-            );
-
-
-        if (updateError) {
-
-            console.error(
-                "❌ Supabase UPDATE error:",
-                updateError
-            );
-
-            throw updateError;
-
-        }
-
-
-        console.log(
-            "✅ Email open recorded:",
-            {
-                email,
-                previousCount: currentCount,
-                newCount,
-                recordsUpdated:
-                    updatedData?.length || 0
+            if (
+                !isValidLeadId(params.l) ||
+                !verifyLink("open", params.l, params.t)
+            ) {
+                return pixelResponse();
             }
-        );
 
+            const { data: rows, error } = await supabase
+                .from("leads")
+                .select("id, email")
+                .eq("id", params.l)
+                .limit(1);
 
-        // -----------------------------------------
-        // 1×1 TRANSPARENT GIF
-        // -----------------------------------------
+            const lead = !error && Array.isArray(rows) ? rows[0] : null;
 
-        const pixel =
-            "R0lGODlhAQABAPAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
+            if (lead) {
+                const leads = await findLeadsForAddress(supabase, lead.email, 200);
+                await recordOpen(supabase, leads);
+            }
 
+            return pixelResponse();
 
-        return {
+        }
 
-            statusCode: 200,
+        /* ---------- Legacy link ---------- */
 
-            headers: {
+        if (
+            process.env.EMAIL_OPEN_ALLOW_LEGACY !== "false" &&
+            typeof params.email === "string"
+        ) {
 
-                "Content-Type":
-                    "image/gif",
+            const email = normalizeEmail(params.email);
 
-                "Cache-Control":
-                    "no-cache, no-store, must-revalidate",
+            if (isValidEmail(email)) {
+                const leads = await findLeadsForAddress(supabase, email, 200);
+                await recordOpen(supabase, leads);
+            }
 
-                "Pragma":
-                    "no-cache",
+        }
 
-                "Expires":
-                    "0"
-
-            },
-
-            isBase64Encoded: true,
-
-            body: pixel
-
-        };
-
+        return pixelResponse();
 
     } catch (error) {
 
-        console.error(
-            "❌ EMAIL OPEN ERROR:",
-            error
-        );
+        // Tracking must never break the email.
+        console.error("EMAIL OPEN: tracking failed.");
 
-
-        return {
-
-            statusCode: 500,
-
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-
-            body: JSON.stringify({
-
-                success: false,
-
-                error:
-                    error.message
-
-            })
-
-        };
+        return pixelResponse();
 
     }
 

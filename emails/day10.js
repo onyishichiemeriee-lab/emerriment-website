@@ -1,6 +1,11 @@
 const layout = require("./layout");
 
-module.exports = ({ name, email }) => {
+const escapeHtml = require("./escape-html");
+
+module.exports = ({ name, email, tracking }) => {
+
+// The recipient's name is HTML-escaped once here.
+const safeName = escapeHtml(name || "there");
 
 return {
 
@@ -9,12 +14,14 @@ subject:
 
 html: layout({
 
+tracking,
+
 title:
 "😴 Your Lifestyle Is Showing On Your Skin",
 
 content: `
 
-<p>Hello <strong>${name}</strong> 👋🏽</p>
+<p>Hello <strong>${safeName}</strong> 👋🏽</p>
 
 <p>
 

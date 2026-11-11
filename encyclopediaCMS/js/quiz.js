@@ -737,17 +737,17 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
 
+        // The lead is not read back: anonymous visitors
+        // only need permission to insert it.
+        const savedData = null;
+
         const {
-            data: savedData,
             error
         } = await supabaseClient
 
             .from("leads")
 
-            .insert(payload)
-
-            .select()
-            .single();
+            .insert(payload);
 
 
         if (error) {

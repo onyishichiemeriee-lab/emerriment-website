@@ -147,20 +147,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* -----------------------------------------
-       DASHBOARD AUTH VISIBILITY
-       
-       NOTE:
-       This is UI only.
-       Real protection must remain
-       inside dashboard/auth logic.
+       AUTH NAVIGATION
     ----------------------------------------- */
 
     if (
         window.supabaseClient &&
-        typeof window.supabaseClient.auth !== "undefined"
+        window.supabaseClient.auth
     ) {
 
         updateNavigationAuth();
+
+    } else {
+
+        console.warn(
+            "⏳ Supabase client not ready for navigation."
+        );
 
     }
 
@@ -176,6 +177,28 @@ async function updateNavigationAuth() {
 
     try {
 
+        /* -----------------------------------------
+           CHECK SUPABASE
+        ----------------------------------------- */
+
+        if (
+            !window.supabaseClient ||
+            !window.supabaseClient.auth
+        ) {
+
+            console.warn(
+                "Supabase client not available."
+            );
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           GET CURRENT SESSION
+        ----------------------------------------- */
+
         const {
             data: { session }
         } =
@@ -183,6 +206,10 @@ async function updateNavigationAuth() {
                 .auth
                 .getSession();
 
+
+        /* -----------------------------------------
+           ELEMENTS
+        ----------------------------------------- */
 
         const loginBtn =
             document.getElementById(
@@ -210,36 +237,126 @@ async function updateNavigationAuth() {
             );
 
 
+        /* -----------------------------------------
+           LOGGED IN
+        ----------------------------------------- */
+
         if (session) {
+
+            console.log(
+                "🔐 Navigation auth: Logged in"
+            );
+
 
             /* Desktop */
 
-            if (loginBtn)
-                loginBtn.style.display = "none";
+            if (loginBtn) {
+
+                loginBtn.style.display =
+                    "none";
+
+            }
 
 
-            if (signupBtn)
-                signupBtn.style.display = "none";
+            if (signupBtn) {
+
+                signupBtn.style.display =
+                    "none";
+
+            }
 
 
-            if (dashboardBtn)
+            if (dashboardBtn) {
+
                 dashboardBtn.style.display =
                     "inline-flex";
+
+            }
 
 
             /* Mobile */
 
-            if (mobileLogin)
-                mobileLogin.style.display = "none";
+            if (mobileLogin) {
+
+                mobileLogin.style.display =
+                    "none";
+
+            }
 
 
             if (mobileSignup) {
+
+                mobileSignup.style.display =
+                    "inline-flex";
 
                 mobileSignup.textContent =
                     "My Dashboard";
 
                 mobileSignup.href =
                     "dashboard.html";
+
+            }
+
+        }
+
+
+        /* -----------------------------------------
+           LOGGED OUT
+        ----------------------------------------- */
+
+        else {
+
+            console.log(
+                "🔐 Navigation auth: Logged out"
+            );
+
+
+            /* Desktop */
+
+            if (loginBtn) {
+
+                loginBtn.style.display =
+                    "inline-flex";
+
+            }
+
+
+            if (signupBtn) {
+
+                signupBtn.style.display =
+                    "inline-flex";
+
+            }
+
+
+            if (dashboardBtn) {
+
+                dashboardBtn.style.display =
+                    "none";
+
+            }
+
+
+            /* Mobile */
+
+            if (mobileLogin) {
+
+                mobileLogin.style.display =
+                    "inline-flex";
+
+            }
+
+
+            if (mobileSignup) {
+
+                mobileSignup.style.display =
+                    "inline-flex";
+
+                mobileSignup.textContent =
+                    "Sign Up";
+
+                mobileSignup.href =
+                    "signup.html";
 
             }
 

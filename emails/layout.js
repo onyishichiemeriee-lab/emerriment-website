@@ -1,4 +1,69 @@
-module.exports = ({ title, content, email }) => {
+const escapeHtml = require("./escape-html");
+
+// Only signed links to this site's own email
+// functions may be placed in an email.
+const TRACKING_URL_PATTERN =
+    /^https:\/\/[A-Za-z0-9.-]+(:\d+)?\/\.netlify\/functions\/(email-open|unsubscribe)\?[A-Za-z0-9=&_-]+$/;
+
+function safeTrackingUrl(url) {
+
+    return typeof url === "string" && TRACKING_URL_PATTERN.test(url)
+        ? escapeHtml(url)
+        : null;
+
+}
+
+/*
+   title   — trusted HTML; templates must escape any
+             user value they include in it.
+   content — trusted HTML built by the template.
+   email   — accepted for compatibility; no longer
+             placed in any URL.
+   tracking — optional { pixelUrl, unsubscribeUrl }
+             built server-side with signed links.
+*/
+module.exports = ({ title, content, email, tracking }) => {
+
+const pixelUrl =
+    safeTrackingUrl(tracking && tracking.pixelUrl);
+
+const unsubscribeUrl =
+    safeTrackingUrl(tracking && tracking.unsubscribeUrl);
+
+const unsubscribeBlock = unsubscribeUrl
+    ? `
+
+<p
+style="
+font-size:12px;
+color:#94A3B8;
+margin-top:16px;
+">
+
+You are receiving this because you completed the EMerriment Skin Quiz.
+
+<br>
+
+<a
+href="${unsubscribeUrl}"
+style="color:#64748B;"
+>Unsubscribe from EMerriment emails</a>
+
+</p>
+`
+    : "";
+
+const pixelBlock = pixelUrl
+    ? `
+<img
+src="${pixelUrl}"
+width="1"
+height="1"
+style="display:none;"
+alt=""
+>
+`
+    : "";
 
 return `
 
@@ -157,7 +222,7 @@ color:#94A3B8;
 Helping people understand their skin naturally.
 
 </p>
-
+${unsubscribeBlock}
 </td>
 
 </tr>
@@ -170,14 +235,7 @@ Helping people understand their skin naturally.
 
 </table>
 
-<img
-src="https://emerriment216.netlify.app/.netlify/functions/email-open?email=${encodeURIComponent(email)}"
-width="1"
-height="1"
-style="display:none;"
-alt=""
->
-
+${pixelBlock}
 </body>
 
 </html>

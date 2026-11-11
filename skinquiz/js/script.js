@@ -9698,8 +9698,26 @@ async function submitQuiz() {
 
   // Only attempt to update elements if they actually exist in the DOM
   if (loadingEl) loadingEl.style.display = "flex";
-  
+
   await new Promise(resolve => setTimeout(resolve, 3000));
+
+  // ==========================================
+  // Get authenticated user FIRST
+  // ==========================================
+
+  const {
+    data: { user },
+    error: authError
+  } = await supabaseClient.auth.getUser();
+
+  if (authError || !user) {
+    console.error("Authentication error:", authError);
+    alert("Please log in before submitting your skin quiz.");
+
+    if (loadingEl) loadingEl.style.display = "none";
+
+    return;
+  }
 
   const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
@@ -9707,6 +9725,10 @@ async function submitQuiz() {
   const concern = document.getElementById("concern").value;
   const oilLevel = document.getElementById("oilLevel")?.value || "";
   const sensitivity = document.getElementById("sensitivity")?.value || "";
+
+  // ==========================================
+  // Calculate Skin Score
+  // ==========================================
 
   let score = 60;
 
@@ -9724,244 +9746,339 @@ async function submitQuiz() {
 
   let products = "";
 
-  const resultsHTML = `<div class="results-container"><h2>✨ EMerriment Skin Analysis</h2><div class="score-circle"><h3>Hydration Score</h3><p>${score}</p></div><div class="result-grid"><div class="result-card"><h3>Skin Type</h3><p>${skinType}</p></div><div class="result-card"><h3>Main Concern</h3><p>${concern}</p></div><div class="result-card"><h3>Oil Level</h3><p>${oilLevel}</p></div><div class="result-card"><h3>Sensitivity</h3><p>${sensitivity}</p></div></div><div class="recommendation-box"><h3>Your Recommendation</h3><p>${recommendation}</p></div>${products}</div>`;
+  // ==========================================
+  // Initial Results HTML
+  // ==========================================
+
+  const resultsHTML = `
+    <div class="results-container">
+      <h2>✨ EMerriment Skin Analysis</h2>
+
+      <div class="score-circle">
+        <h3>Hydration Score</h3>
+        <p>${score}</p>
+      </div>
+
+      <div class="result-grid">
+
+        <div class="result-card">
+          <h3>Skin Type</h3>
+          <p>${skinType}</p>
+        </div>
+
+        <div class="result-card">
+          <h3>Main Concern</h3>
+          <p>${concern}</p>
+        </div>
+
+        <div class="result-card">
+          <h3>Oil Level</h3>
+          <p>${oilLevel}</p>
+        </div>
+
+        <div class="result-card">
+          <h3>Sensitivity</h3>
+          <p>${sensitivity}</p>
+        </div>
+
+      </div>
+
+      <div class="recommendation-box">
+        <h3>Your Recommendation</h3>
+        <p>${recommendation}</p>
+      </div>
+
+      ${products}
+    </div>
+  `;
 
   document.getElementById("results").innerHTML = resultsHTML;
 
-  const productContainer = document.getElementById("recommendedProducts");
+  // ==========================================
+  // Product Recommendations
+  // ==========================================
+
+  const productContainer =
+    document.getElementById("recommendedProducts");
 
   let productHTML = "";
 
-if (
-  concern === "Hyperpigmentation" ||
-  concern === "Dark Spots"
-) {
+  if (
+    concern === "Hyperpigmentation" ||
+    concern === "Dark Spots"
+  ) {
 
-  productHTML = `
-  <div class="product-card">
-    <h3>✨ Fade & Glow Bundle</h3>
-    <p>Target dark spots and uneven skin tone.</p>
+    productHTML = `
+      <div class="product-card">
+        <h3>✨ Fade & Glow Bundle</h3>
+        <p>Target dark spots and uneven skin tone.</p>
 
-    <a class="product-btn"
-       href="https://selar.com/y31448"
-       target="_blank">
-       View Product
-    </a>
-  </div>
-  `;
+        <a
+          class="product-btn"
+          href="https://selar.com/y31448"
+          target="_blank"
+        >
+          View Product
+        </a>
+      </div>
+    `;
 
-}
+  } else {
 
-else {
+    productHTML = `
+      <div class="product-card">
+        <h3>🌟 21 Days To Glow Challenge</h3>
+        <p>Build healthy skincare habits and improve your glow.</p>
 
-  productHTML = `
-  <div class="product-card">
-    <h3>🌟 21 Days To Glow Challenge</h3>
-    <p>Build healthy skincare habits and improve your glow.</p>
+        <a
+          class="product-btn"
+          href="https://selar.com/4h1454"
+          target="_blank"
+        >
+          View Product
+        </a>
+      </div>
+    `;
 
-    <a class="product-btn"
-       href="https://selar.com/4h1454"
-       target="_blank">
-       View Product
-    </a>
-  </div>
-  `;
+  }
 
-}
+  productContainer.innerHTML = productHTML;
 
-productContainer.innerHTML = productHTML;
+  document.getElementById(
+    "productRecommendations"
+  ).style.display = "block";
 
-document.getElementById(
-  "productRecommendations"
-).style.display = "block";
+  // ==========================================
+  // Save Lead
+  // ==========================================
 
   console.log("About to insert into Supabase");
 
   const { data, error } = await supabaseClient
-  .from("leads")
-  .insert([
-    {
-      name,
-      email,
+    .from("leads")
+    .insert([
+      {
+        name,
+        email,
 
-      skin_type: skinType,
-      concern,
+        skin_type: skinType,
+        concern,
 
-      oil_level: oilLevel,
+        oil_level: oilLevel,
 
-      sensitivity,
+        sensitivity,
 
-      score,
+        score,
 
-      recommendation,
+        recommendation,
 
-      submitted_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
 
-      quiz_version: "2.0",
+        quiz_version: "2.0",
 
-      source: "Skin Quiz",
+        source: "Skin Quiz",
 
-      status: "New Lead",
+        status: "New Lead",
 
-      email_status: "Pending",
+        email_status: "Pending",
 
-      last_email_sent: null,
+        last_email_sent: null,
 
-      email_sequence_day: 1,
+        email_sequence_day: 1,
 
-last_sequence_email_sent: new Date().toISOString(),
+        last_sequence_email_sent:
+          new Date().toISOString(),
 
-next_email_due: new Date(
-  Date.now() + 24 * 60 * 60 * 1000
-).toISOString(),
+        next_email_due:
+          new Date(
+            Date.now() + 24 * 60 * 60 * 1000
+          ).toISOString(),
 
-      tags: ["quiz"],
+        tags: ["quiz"],
 
-      notes: null
+        notes: null
+      }
+    ]);
+  // No .select() here: the lead row is not read back by the browser.
+  // The email function verifies and updates the lead server-side.
+
+  if (error) {
+
+    console.error("Supabase Error:", error);
+
+    alert(
+      "Unable to save your quiz. Please try again."
+    );
+
+    if (loadingEl) {
+      loadingEl.style.display = "none";
     }
-  ])
-  .select();
-  
-   if (error) {
-  console.error("Supabase Error:", error);
 
-  alert("Unable to save your quiz. Please try again.");
+    return;
+  }
 
-  return;
-}
+  // ==========================================
+  // Send Email
+  // ==========================================
 
-  if (!error) {
+  // A failed email must not lose the saved quiz
+  // or leave the loading screen visible.
+  let emailSent = false;
 
-  const emailResponse = await fetch("/.netlify/functions/send-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    name,
-    email,
-    skinType,
-    concern,
-    oilLevel,
-    sensitivity,
-    score,
-    recommendation
-  })
-});
+  try {
 
-await supabase
-    .from("profiles")
-    .update({
+    const emailResponse = await fetch(
+      "/.netlify/functions/send-email",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          name,
+          email,
+          skinType,
+          concern,
+          oilLevel,
+          sensitivity,
+          score,
+          recommendation
+        })
+      }
+    );
+
+    emailSent = emailResponse.ok;
+
+  } catch (emailError) {
+
+    console.error("Email request failed.");
+
+  }
+
+  // ==========================================
+  // Update User Profile
+  // ==========================================
+
+  const { error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .update({
         current_skin_score: score,
         current_skin_type: skinType,
         current_concern: concern,
         current_recommendation: recommendation,
-        last_quiz_date: new Date().toISOString()
-    })
-    .eq("id", user.id);
-    
-// ==========================================
-// Save Quiz Result to Supabase
-// ==========================================
+        last_quiz_date:
+          new Date().toISOString()
+      })
+      .eq("id", user.id);
 
-// Check if the user is logged in
-const {
-    data: { user }
-} = await supabase.auth.getUser();
+  if (profileError) {
+    console.error(
+      "Profile update error:",
+      profileError
+    );
+  }
 
-if (user) {
+  // ==========================================
+  // Save Quiz Result
+  // ==========================================
 
-    const { error } = await supabase
-        .from("quiz_results")
-        .insert({
+  const { error: quizError } =
+    await supabaseClient
+      .from("quiz_results")
+      .insert({
+        user_id: user.id,
 
-            user_id: user.id,
+        skin_type: skinType,
 
-            skin_type: skinType,
+        concern: concern,
 
-            concern: concern,
+        oil_level: oilLevel,
 
-            oil_level: oilLevel,
+        sensitivity: sensitivity,
 
-            sensitivity: sensitivity,
+        score: score,
 
-            score: score,
+        recommendation: recommendation
+      });
 
-            recommendation: recommendation
+  if (quizError) {
 
-        });
+    console.error(
+      "Error saving quiz:",
+      quizError
+    );
 
-    if (error) {
+  } else {
 
-        console.error("Error saving quiz:", error);
+    console.log(
+      "✅ Quiz saved successfully."
+    );
 
-    } else {
+  }
 
-        console.log("✅ Quiz saved successfully.");
+  // ==========================================
+  // Result
+  // The lead's email status is recorded by the
+  // send-email function on the server.
+  // ==========================================
 
-    }
+  if (loadingEl) {
+    loadingEl.style.display = "none";
+  }
 
-}
+  if (emailSent) {
+    alert(
+      "🎉 Your skin report has been generated and sent to your email."
+    );
+  } else {
+    alert(
+      "Your quiz results are saved and shown below, but we couldn't send your email right now."
+    );
+  }
 
-// 1. Move the assignment up so leadId exists before it is used
-const leadId = data?.[0]?.id;
+  document
+    .getElementById("results")
+    .scrollIntoView({
+      behavior: "smooth"
+    });
 
-if (!emailResponse.ok) {
-  console.error("Email sending failed.");
-  alert("Your quiz was saved, but we couldn't send your email.");
-  return;
-}
+  if (analysisEl) {
 
-// 2. Now leadId is initialized and can be used in the filter
-const { error: updateError } = await supabaseClient
-  .from("leads")
-  .update({
-    email_status: "Sent",
-    last_email_sent: new Date().toISOString()
-  })
-  .eq("id", leadId);
+    analysisEl.innerText =
+      "Analyzing your skin profile...";
 
-if (updateError) {
-  console.error(updateError);
-}
+    setTimeout(() => {
+      analysisEl.innerText =
+        "Comparing against 1,000+ skin conditions...";
+    }, 1000);
 
-console.log("Inserted lead:", data);
-console.log("Lead ID:", leadId);
+    setTimeout(() => {
+      analysisEl.innerText =
+        "Selecting science-backed ingredients...";
+    }, 2000);
 
-alert("🎉 Your skin report has been generated and sent to your email.");
+    setTimeout(() => {
+      analysisEl.innerText =
+        "Generating your personalized skin report...";
+    }, 3000);
 
-document.getElementById("results").scrollIntoView({
-  behavior: "smooth"
-});
+    setTimeout(() => {
+      analysisEl.innerText =
+        "Sending your report to your email...";
+    }, 4000);
 
-const analysisText = document.getElementById("analysisText");
-analysisText.innerText = "Analyzing your skin profile...";
+    setTimeout(() => {
+      analysisEl.innerText =
+        "Done! 🎉";
+    }, 5000);
+  }
 
-setTimeout(() => {
-  analysisText.innerText = "Comparing against 1,000+ skin conditions...";
-}, 1000); // Added missing closing bracket and delay
-
-setTimeout(()=>{
-analysisText.innerText =
-"Selecting science-backed ingredients..."
-},2000);
-
-setTimeout(()=>{
-analysisText.innerText =
-"Generating your personalized skin report..."
-},3000);
-
-setTimeout(()=>{
-  analysisText.innerText = "Sending your report to your email..."
-}, 4000);
-
-setTimeout(()=>{
-  analysisText.innerText = "Done! 🎉"
-}, 5000);
-
-loadingEl.style.display = "none";
-}
-
+  if (loadingEl) {
+    loadingEl.style.display = "none";
+  }
 }
 
 function quickSearch(topic){

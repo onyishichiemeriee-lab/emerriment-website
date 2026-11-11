@@ -7,11 +7,24 @@
 
 
 /* -----------------------------------------
-   AI Endpoint
+   AI Endpoints
 ----------------------------------------- */
 
 const AI_ENDPOINT =
     "/.netlify/functions/ai-chat";
+
+const LOCAL_AI_ENDPOINT =
+    "http://127.0.0.1:3030/chat";
+
+/*
+   Current development mode.
+
+   mock  → Netlify demo engine
+   local → Local AI Bridge + Ollama
+   api   → Netlify/OpenAI API
+*/
+
+const AI_MODE = "local";
 
 
 /* -----------------------------------------
@@ -72,6 +85,40 @@ async function sendToAI(message) {
 
 
         /* -----------------------------------------
+           Process Conversation Memory
+        ----------------------------------------- */
+
+        if (
+            user &&
+            window.AIMemory &&
+            typeof window.AIMemory.processMessage === "function"
+        ) {
+
+            try {
+
+                const memoryResult =
+                    await window.AIMemory.processMessage(
+                        message.trim()
+                    );
+
+                console.log(
+                    "🧠 Conversation memory processing:",
+                    memoryResult
+                );
+
+            } catch (memoryError) {
+
+                console.warn(
+                    "⚠️ Conversation memory processing failed:",
+                    memoryError
+                );
+
+            }
+
+        }
+
+
+        /* -----------------------------------------
            Build User Context
         ----------------------------------------- */
 
@@ -87,7 +134,9 @@ async function sendToAI(message) {
 
             savedArticles: [],
 
-            readingHistory: []
+            readingHistory: [],
+
+            memories: {}
 
         };
 
@@ -101,16 +150,82 @@ async function sendToAI(message) {
                 await window.ContextEngine
                     .buildContext(user.id);
 
+            console.log(
+                "🧠 AI API conversation history:",
+                context.conversationHistory
+            );
+
         }
+
+let safetyResult = null;
+
+if (window.SafetyEngine) {
+    try {
+        safetyResult = window.SafetyEngine.analyze(message.trim());
+
+        console.log(
+            "🛡️ EMerriment Safety Result:",
+            safetyResult
+        );
+
+    } catch (safetyError) {
+        console.warn(
+            "⚠️ Safety Engine analysis failed:",
+            safetyError
+        );
+    }
+}
+
+        /* -----------------------------------------
+           Select AI Endpoint
+        ----------------------------------------- */
+
+        const endpoint =
+            AI_MODE === "local"
+                ? LOCAL_AI_ENDPOINT
+                : AI_ENDPOINT;
+
+
+        console.log(
+            "🤖 EMerriment AI MODE:",
+            AI_MODE
+        );
+
+        console.log(
+            "🌐 AI endpoint:",
+            endpoint
+        );
 
 
         /* -----------------------------------------
-           Send Request To Netlify Function
+           Build Request Body
+        ----------------------------------------- */
+
+        const requestBody = {
+
+    message:
+        message.trim(),
+
+    context:
+
+        AI_MODE === "local"
+
+            ? context
+
+            : context,
+
+    safety:
+        safetyResult
+
+};
+
+        /* -----------------------------------------
+           Send Request
         ----------------------------------------- */
 
         const response =
             await fetch(
-                AI_ENDPOINT,
+                endpoint,
                 {
 
                     method: "POST",
@@ -122,13 +237,10 @@ async function sendToAI(message) {
 
                     },
 
-                    body: JSON.stringify({
-
-                        message: message.trim(),
-
-                        context: context
-
-                    })
+                    body:
+                        JSON.stringify(
+                            requestBody
+                        )
 
                 }
             );
@@ -168,6 +280,89 @@ async function sendToAI(message) {
             data
         );
 
+
+        /* -----------------------------------------
+           Handle AI Memory Action
+        ----------------------------------------- */
+
+        console.log(
+            "🧠 MEMORY ACTION RECEIVED:",
+            data.memoryAction
+        );
+
+        console.log(
+            "🧠 AIMemory AVAILABLE:",
+            !!window.AIMemory
+        );
+
+const messageForMemoryCheck = String(message || "").trim();
+
+const isQuestionForMemory =
+    messageForMemoryCheck.endsWith("?") ||
+    /^(what|why|when|where|who|which|how|can|could|should|would|is|are|do|does|did)\b/i
+        .test(messageForMemoryCheck);
+
+        if (
+            !isQuestionForMemory &&
+            data.memoryAction &&
+            data.memoryAction.action === "save" &&
+            window.AIMemory
+        ) {
+
+            try {
+
+                const {
+                    key,
+                    value,
+                    importance
+                } = data.memoryAction;
+
+
+                if (
+                    key &&
+                    value
+                ) {
+
+                 const saved =
+    await window.AIMemory.saveExtractedMemory({
+        key,
+        value,
+        importance: importance || 1
+    });
+
+                    if (saved) {
+
+                        console.log(
+                            "🧠 AI memory saved:",
+                            key,
+                            value
+                        );
+
+                    } else {
+
+                        console.warn(
+                            "⚠️ AI memory could not be saved."
+                        );
+
+                    }
+
+                }
+
+            } catch (memorySaveError) {
+
+                console.error(
+                    "❌ AI memory save error:",
+                    memorySaveError
+                );
+
+            }
+
+        }
+
+
+        /* -----------------------------------------
+           Return AI Reply
+        ----------------------------------------- */
 
         return (
 

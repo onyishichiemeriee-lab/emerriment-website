@@ -1,205 +1,206 @@
 const { createClient } = require("@supabase/supabase-js");
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const {
+    verifyLink,
+    isValidLeadId,
+    getSiteUrl,
+    DEFAULT_SITE_URL
+} = require("../lib/email-common");
+
+
+/* =========================================
+   EMerriment Email Click Tracking
+   -----------------------------------------
+   Redirects to a destination and, for signed
+   links, records the click.
+
+   - Redirects only to approved hosts (the
+     EMerriment site and the Selar shop). Any
+     other destination goes to the homepage, so
+     this cannot be used as an open redirect.
+   - Counters change only for links signed for
+     that lead and destination; unsigned or
+     tampered links just redirect.
+
+   No email template currently creates tracked
+   links. Link format for future use:
+   ?l=<lead id>&url=<destination>&product=<name>
+     &t=<signLink("click:" + url, leadId)>
+========================================= */
+
+
+// Only hosts EMerriment actually controls (or its shop provider).
+// emerriment.com is deliberately NOT listed: on 2026-11-11 it was not a
+// registered domain (.com registry RDAP: 404), and allowing a domain you
+// do not own would let whoever registers it receive redirected visitors.
+// Once you own a domain, add it with EMAIL_EXTRA_REDIRECT_HOSTS
+// (comma-separated host names, e.g. "emerriment.com,www.emerriment.com").
+const ALLOWED_HOSTS = new Set([
+    "emerriment216.netlify.app",
+    "selar.com",
+    "www.selar.com",
+    "selar.co"
+]);
+
+const HOST_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
+
+function allowedHosts() {
+
+    const hosts = new Set(ALLOWED_HOSTS);
+
+    try {
+        hosts.add(new URL(getSiteUrl()).host);
+    } catch (error) {
+        // Keep the fixed list.
+    }
+
+    for (const host of String(process.env.EMAIL_EXTRA_REDIRECT_HOSTS || "").split(",")) {
+        const clean = host.trim().toLowerCase();
+        if (HOST_PATTERN.test(clean)) {
+            hosts.add(clean);
+        }
+    }
+
+    return hosts;
+
+}
+
+function safeDestination(value) {
+
+    if (typeof value !== "string" || value.length > 2000) {
+        return null;
+    }
+
+    let url;
+
+    try {
+        url = new URL(value);
+    } catch (error) {
+        return null;
+    }
+
+    if (url.protocol !== "https:") {
+        return null;
+    }
+
+    if (url.username || url.password) {
+        return null;
+    }
+
+    if (!allowedHosts().has(url.host.toLowerCase())) {
+        return null;
+    }
+
+    return url.toString();
+
+}
+
+function redirect(location) {
+
+    return {
+        statusCode: 302,
+        headers: {
+            Location: location,
+            "Cache-Control": "no-store",
+            "Referrer-Policy": "no-referrer"
+        },
+        body: ""
+    };
+
+}
+
+function getSupabase() {
+
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !key) {
+        return null;
+    }
+
+    return createClient(url, key, {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false
+        }
+    });
+
+}
 
 exports.handler = async (event) => {
 
-  try {
-
     const params = event.queryStringParameters || {};
 
-    const email = params.email;
-    const product = params.product;
-    const url = params.url;
+    const destination =
+        safeDestination(params.url) || (getSiteUrl() || DEFAULT_SITE_URL);
 
-    if (!email || !url) {
-      return {
-        statusCode: 400,
-        body: "Missing parameters"
-      };
-    }
+    try {
 
-    console.log("🖱️ Tracking email click:", {
-      email,
-      product,
-      url
-    });
+        const signed =
+            safeDestination(params.url) !== null &&
+            isValidLeadId(params.l) &&
+            verifyLink(`click:${params.url}`, params.l, params.t);
 
-
-    // -----------------------------------------
-    // GET ALL LEAD RECORDS FOR THIS EMAIL
-    // -----------------------------------------
-
-    const {
-      data: leads,
-      error: selectError
-    } = await supabase
-      .from("leads")
-      .select("id, email, emails_clicked")
-      .eq("email", email);
-
-
-    if (selectError) {
-
-      console.error(
-        "❌ Supabase SELECT error:",
-        selectError
-      );
-
-      throw selectError;
-
-    }
-
-
-    if (!leads || leads.length === 0) {
-
-      console.warn(
-        "⚠️ No lead found for:",
-        email
-      );
-
-    } else {
-
-      console.log(
-        `📊 Found ${leads.length} lead records for ${email}`
-      );
-
-
-      // -----------------------------------------
-      // GET CURRENT CLICK COUNT
-      // -----------------------------------------
-
-      const currentCount = Math.max(
-        ...leads.map(
-          lead => Number(lead.emails_clicked || 0)
-        )
-      );
-
-
-      const newCount =
-        currentCount + 1;
-
-
-      const clickedAt =
-        new Date().toISOString();
-
-
-      // -----------------------------------------
-      // UPDATE CLICK COUNT
-      // -----------------------------------------
-
-      const {
-        error: updateError
-      } = await supabase
-        .from("leads")
-        .update({
-          emails_clicked: newCount,
-          last_clicked_at: clickedAt
-        })
-        .eq("email", email);
-
-
-      if (updateError) {
-
-        console.error(
-          "❌ Supabase UPDATE error:",
-          updateError
-        );
-
-        throw updateError;
-
-      }
-
-
-      console.log(
-        "✅ Email click count updated:",
-        {
-          email,
-          previousCount: currentCount,
-          newCount,
-          recordsUpdated: leads.length
+        if (!signed) {
+            return redirect(destination);
         }
-      );
+
+        const supabase = getSupabase();
+
+        if (!supabase) {
+            return redirect(destination);
+        }
+
+        const { data: rows, error } = await supabase
+            .from("leads")
+            .select("id, email, emails_clicked")
+            .eq("id", params.l)
+            .limit(1);
+
+        const lead = !error && Array.isArray(rows) ? rows[0] : null;
+
+        if (lead) {
+
+            await supabase
+                .from("leads")
+                .update({
+                    emails_clicked: Number(lead.emails_clicked || 0) + 1,
+                    last_clicked_at: new Date().toISOString()
+                })
+                .eq("id", lead.id);
+
+            const product =
+                typeof params.product === "string"
+                    ? params.product.slice(0, 120)
+                    : "";
+
+            if (product) {
+
+                const { error: productError } = await supabase
+                    .from("product_clicks")
+                    .insert({
+                        email: lead.email,
+                        product,
+                        clicked_at: new Date().toISOString()
+                    });
+
+                if (productError) {
+                    // Tracking must not block the visitor.
+                    console.error("TRACK CLICK: product click not recorded.");
+                }
+
+            }
+
+        }
+
+        return redirect(destination);
+
+    } catch (error) {
+
+        console.error("TRACK CLICK: tracking failed.");
+
+        return redirect(destination);
 
     }
-
-
-    // -----------------------------------------
-    // TRACK PRODUCT CLICK
-    // -----------------------------------------
-
-    if (product) {
-
-      const {
-        error: productError
-      } = await supabase
-        .from("product_clicks")
-        .insert({
-          email,
-          product,
-          clicked_at: new Date().toISOString()
-        });
-
-
-      if (productError) {
-
-        // Product tracking should NOT prevent
-        // the user from reaching the destination.
-
-        console.error(
-          "⚠️ Failed to track product click:",
-          productError
-        );
-
-      } else {
-
-        console.log(
-          "✅ Product click recorded:",
-          product
-        );
-
-      }
-
-    }
-
-
-    // -----------------------------------------
-    // REDIRECT USER
-    // -----------------------------------------
-
-    return {
-
-      statusCode: 302,
-
-      headers: {
-        Location: url
-      }
-
-    };
-
-
-  } catch (err) {
-
-    console.error(
-      "❌ TRACK CLICK ERROR:",
-      err
-    );
-
-
-    return {
-
-      statusCode: 500,
-
-      body: JSON.stringify({
-        success: false,
-        error: err.message
-      })
-
-    };
-
-  }
 
 };
