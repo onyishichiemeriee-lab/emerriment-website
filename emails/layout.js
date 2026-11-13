@@ -173,7 +173,7 @@ text-align:center;
 ">
 
 <a
-href="https://emerriment216.netlify.app"
+href="https://emerriment.com"
 style="
 display:inline-block;
 background:#00E5FF;

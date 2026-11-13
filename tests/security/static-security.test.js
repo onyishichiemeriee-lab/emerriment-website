@@ -407,10 +407,23 @@ test("production smoke test is read-only: GET only, never email-sequence, never 
     assert(!/ai-chat[^"]*\?/.test(code) && !/body:/.test(code), "no request bodies");
 });
 
-test("click tracking does not trust domains EMerriment does not own", async () => {
+test("click tracking trusts exactly the owned domains and the shop provider", async () => {
+    // emerriment.com: registered by EMerriment 2026-11-11, primary Netlify
+    // domain with an issued certificate since 2026-11-12.
     const src = read("netlify/functions/track-click.js");
     const list = src.split("const ALLOWED_HOSTS = new Set([")[1].split("]);")[0];
-    assert(!/emerriment\.com/.test(list), "emerriment.com is not a registered domain (2026-11-11)");
+    const hosts = [...list.matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort();
+    assert.deepStrictEqual(hosts, [
+        "emerriment.com", "emerriment216.netlify.app", "selar.co", "selar.com",
+        "www.emerriment.com", "www.selar.com"
+    ]);
+});
+
+test("email templates and the site-URL fallback use the official domain", async () => {
+    for (const f of ["emails/layout.js", "emails/welcome.js", "emails/report.js", "emails/day14.js", "netlify/lib/email-common.js"]) {
+        assert(!read(f).includes("https://emerriment216.netlify.app"), f + " still links to the Netlify subdomain");
+    }
+    assert(read("netlify/lib/email-common.js").includes('const DEFAULT_SITE_URL = "https://emerriment.com";'));
 });
 
 module.exports = suite;

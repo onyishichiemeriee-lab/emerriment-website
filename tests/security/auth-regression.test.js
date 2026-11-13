@@ -100,6 +100,80 @@ test("dashboard guard redirects anonymous visitors to login", async () => {
     assert.strictEqual(window.location.href, "login.html");
 });
 
+/* ---------- Redirect construction (production domain) ---------- */
+
+function loadAuthAt(origin, overrides) {
+    const { client, calls } = fakeClient(overrides);
+    const window = { supabaseClient: client, location: { origin, href: "" } };
+    const context = { window, location: window.location, console: { log() {}, error() {}, warn() {} }, setTimeout, Promise, String, Error, Object, JSON };
+    vm.createContext(context);
+    vm.runInContext(fs.readFileSync(path.join(H.ROOT, "js", "auth.js"), "utf8"), context);
+    return { EMAuth: window.EMAuth, calls };
+}
+
+test("signup sends no emailRedirectTo: confirmation links go to the Supabase Site URL", async () => {
+    const { EMAuth, calls } = loadAuthAt("https://emerriment.com");
+    await EMAuth.signup("Ada", "ada@example.com", "longpassword");
+    const args = calls.find((c) => c[0] === "signUp")[1];
+    assert.strictEqual(args.options.emailRedirectTo, undefined,
+        "signup relies on the Site URL (must be https://emerriment.com in Supabase)");
+});
+
+test("password reset returns to /reset-password.html on the CURRENT origin", async () => {
+    for (const origin of ["https://emerriment.com", "https://emerriment216.netlify.app", "http://localhost:8888"]) {
+        const { EMAuth, calls } = loadAuthAt(origin);
+        await EMAuth.requestPasswordReset(" ada@example.com ");
+        const [, email, opts] = calls.find((c) => c[0] === "reset");
+        assert.strictEqual(email, "ada@example.com");
+        assert.strictEqual(opts.redirectTo, origin + "/reset-password.html", origin);
+    }
+});
+
+test("reset redirect cannot be steered by user input (no open redirect)", async () => {
+    const { EMAuth, calls } = loadAuthAt("https://emerriment.com");
+    await EMAuth.requestPasswordReset("ada@example.com?redirect=https://evil.example");
+    const [, , opts] = calls.find((c) => c[0] === "reset");
+    assert.strictEqual(opts.redirectTo, "https://emerriment.com/reset-password.html");
+    const src = fs.readFileSync(path.join(H.ROOT, "js", "auth.js"), "utf8");
+    assert(!/URLSearchParams|searchParams|returnTo/.test(src), "auth.js must not read redirect targets from the URL");
+    for (const page of ["login.html", "signup.html", "reset-password.html"]) {
+        const html = fs.readFileSync(path.join(H.ROOT, page), "utf8");
+        for (const m of html.matchAll(/location\.href\s*=\s*([^;]+);/g)) {
+            assert(/^\s*"(dashboard|login)\.html"\s*$/.test(m[1]), `${page}: post-auth redirect must be a fixed page, got ${m[1].trim()}`);
+        }
+    }
+});
+
+test("password update requires a recovery session and an 8+ character password", async () => {
+    const noSession = loadAuthAt("https://emerriment.com");
+    const r1 = await noSession.EMAuth.updatePassword("longpassword");
+    assert.strictEqual(r1.success, false);
+    assert(/expired/i.test(r1.error));
+    assert(!noSession.calls.some((c) => c[0] === "updateUser"));
+
+    const withSession = loadAuthAt("https://emerriment.com", {
+        getSession: async () => ({ data: { session: { access_token: "x" } }, error: null })
+    });
+    assert.strictEqual((await withSession.EMAuth.updatePassword("short")).success, false);
+    const r2 = await withSession.EMAuth.updatePassword("new-long-password");
+    assert.strictEqual(r2.success, true);
+    // JSON comparison: the object was created inside the VM context (different Object prototype).
+    assert.strictEqual(JSON.stringify(withSession.calls.find((c) => c[0] === "updateUser")[1]), JSON.stringify({ password: "new-long-password" }));
+});
+
+test("session handling: persisted, auto-refreshed, and recovered from email links in the URL", async () => {
+    const src = fs.readFileSync(path.join(H.ROOT, "js", "supabase.js"), "utf8");
+    for (const opt of ["persistSession: true", "autoRefreshToken: true", "detectSessionInUrl: true"]) {
+        assert(src.includes(opt), opt);
+    }
+    // Pages that receive Supabase email links must load the client that
+    // processes the token in the URL.
+    for (const page of ["index.html", "reset-password.html", "dashboard.html", "login.html"]) {
+        const html = fs.readFileSync(path.join(H.ROOT, page), "utf8");
+        assert(/src="js\/supabase\.js"/.test(html), page + " does not load js/supabase.js");
+    }
+});
+
 test("authentication files were not modified by the security work", async () => {
     const { execFileSync } = require("child_process");
     const changed = execFileSync("git", ["diff", "--name-only", "9795f887c86b36f1365d5e5ba0a40b52a1cf4bad", "--",

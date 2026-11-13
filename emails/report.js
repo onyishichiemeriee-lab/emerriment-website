@@ -251,7 +251,7 @@ module.exports = ({
                 <p style="text-align:center;">
 
                     <a
-                        href="https://emerriment216.netlify.app/dashboard.html"
+                        href="https://emerriment.com/dashboard.html"
                         style="
                             display:inline-block;
                             background:#00E5FF;
