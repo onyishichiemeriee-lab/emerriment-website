@@ -644,6 +644,12 @@ document
 
             updated_at: new Date().toISOString()
 
+        }, {
+
+            // One rating per reader per article (unique key);
+            // rating again updates it instead of failing.
+            onConflict: "user_id,article_id"
+
         });
 
     if (error) {
@@ -662,25 +668,28 @@ async function loadArticleRating() {
 
     if (!currentArticle) return;
 
-    const { data } = await window.supabaseClient
+    // Average and count only: individual ratings (who rated
+    // what, and their comments) are private to each reader.
+    // (supabase/migrations/20261113090000_emerriment_production_hardening.sql)
+    const { data: summary, error: summaryError } =
 
-        .from("article_ratings")
+        await window.supabaseClient.rpc(
 
-        .select("rating")
+            "emerriment_article_rating_summary",
 
-        .eq("article_id", currentArticle.id);
+            { target_article: currentArticle.id }
 
-    if (!data || !data.length) return;
+        );
 
-    const average =
+    if (summaryError) return;
 
-        data.reduce(
+    const row = Array.isArray(summary) ? summary[0] : summary;
 
-            (sum, item) => sum + item.rating,
+    if (!row || !row.total) return;
 
-            0
+    const data = { length: Number(row.total) };
 
-        ) / data.length;
+    const average = Number(row.average);
 
     document.getElementById("averageRating").textContent =
 

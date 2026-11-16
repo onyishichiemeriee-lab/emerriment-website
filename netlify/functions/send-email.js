@@ -348,6 +348,13 @@ function isLeadEligible(lead, now) {
         return false;
     }
 
+    // Claiming, tracking and unsubscribing all address the lead by id.
+    // A lead without one (the live table had none before migration
+    // 20261113090000) can never be claimed safely.
+    if (lead.id === null || lead.id === undefined || lead.id === "") {
+        return false;
+    }
+
     if (lead.email_status !== STATUS_PENDING) {
         return false;
     }

@@ -141,11 +141,32 @@ You are EMerriment AI.
    CORS
 ========================================= */
 
+// Browsers may only call this function from EMerriment's own pages.
+// (Server-side callers ignore CORS; this stops other websites from
+// spending the AI budget through visitors' browsers.)
+const ALLOWED_ORIGINS = new Set([
+    "https://emerriment.com",
+    "https://www.emerriment.com",
+    "https://emerriment216.netlify.app",
+    "http://localhost:8888",
+    "http://127.0.0.1:8888"
+]);
+
+let requestOrigin = "";
+
+function allowedOrigin() {
+    return ALLOWED_ORIGINS.has(requestOrigin)
+        ? requestOrigin
+        : "https://emerriment.com";
+}
+
 function corsHeaders() {
 
     return {
 
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": allowedOrigin(),
+
+        "Vary": "Origin",
 
         "Access-Control-Allow-Headers":
             "Content-Type",
@@ -190,6 +211,9 @@ function jsonResponse(
 ========================================= */
 
 exports.handler = async (event) => {
+
+    const headers = (event && event.headers) || {};
+    requestOrigin = String(headers.origin || headers.Origin || "");
 
     /* -----------------------------------------
        OPTIONS / CORS
@@ -261,11 +285,6 @@ exports.handler = async (event) => {
 
                     length:
                         key?.length,
-
-                    prefix:
-                        key
-                            ? key.slice(0, 8)
-                            : undefined,
 
                     looksLikeJWT:
                         key
