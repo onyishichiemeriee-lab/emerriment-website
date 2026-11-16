@@ -1,7 +1,7 @@
 -- =====================================================================
 -- EMerriment security migration 1/5 — helpers, admin check, privilege guard
 -- ---------------------------------------------------------------------
--- STATUS: PREPARED, NOT APPLIED. Review with the output of
+-- STATUS: APPLIED to production (Supabase SQL Editor); verified 2026-11-15 by audit 02 and 03b (381/381).
 -- supabase/audit/01_read_only_security_audit.sql before applying.
 -- Must run BEFORE migrations 2, 3 and 4 (they check for it).
 --

@@ -19,6 +19,19 @@ bundled into deployed functions.
 
 ## What is tested
 
+### Production-shaped suite (`production.pglite.test.js`)
+
+`production-sim.js` rebuilds the **live** database as read on 2026-11-13:
+the 22 tables with their real columns, defaults and keys (including
+`leads.id` NULL with no primary key), the 27 live policies verbatim,
+Supabase default grants, `handle_new_user` and the storage bucket. It first
+confirms the live weaknesses are reproduced, then applies all seven
+migrations in filename order and checks every table as anon, user A,
+user B, admin and the service role; runs the backup, rollback, 02 and 03
+SQL files. Data is synthetic.
+
+### Original suite (`migrations.pglite.test.js`)
+
 * All five migrations in the documented order (5, 1, 2, 3, 4) against two
   plausible starting states:
   * **rls-off** — tables created without RLS;

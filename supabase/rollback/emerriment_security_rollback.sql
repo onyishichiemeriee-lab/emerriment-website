@@ -1,5 +1,6 @@
 -- =====================================================================
 -- EMerriment — rollback for migrations 20261110090000 … 20261110090400
+-- and 20261113090000 (migration 0, 20261110085900, is kept — see below)
 -- ---------------------------------------------------------------------
 -- Removes ONLY what those migrations created: policies, triggers,
 -- functions and indexes whose names start with "emerriment_", the
@@ -86,13 +87,56 @@ begin
 end
 $$;
 
+-- Migration 6 (20261113090000) functions.
+drop function if exists public.emerriment_set_admin(uuid, boolean);
+drop function if exists public.emerriment_article_rating_summary(uuid);
+
 -- Dropped after the policies that used it. EMerriment-specific name, so
 -- no pre-existing function is affected.
 drop function if exists public.emerriment_is_admin();
 
+-- 3b. Migration 6 grants: back to Supabase's defaults as they were before
+--     (ALL on every public table, EXECUTE on functions, for the API roles).
+grant all on all tables in schema public to anon, authenticated;
+do $$
+begin
+    if to_regprocedure('public.handle_new_user()') is not null then
+        grant execute on function public.handle_new_user() to anon, authenticated;
+    end if;
+    if to_regprocedure('public.rls_auto_enable()') is not null then
+        grant execute on function public.rls_auto_enable() to anon, authenticated;
+    end if;
+    if to_regclass('storage.buckets') is not null then
+        begin
+            update storage.buckets set allowed_mime_types = null, file_size_limit = null
+             where id = 'article-images';
+        exception when undefined_column or insufficient_privilege then
+            null;
+        end;
+    end if;
+end
+$$;
+
 -- 4. Indexes.
 drop index if exists public.emerriment_leads_address_idx;
 drop index if exists public.emerriment_leads_submitted_at_idx;
+do $$
+declare
+    i record;
+begin
+    for i in select indexname from pg_indexes
+              where schemaname = 'public' and indexname like 'emerriment\_%\_idx'
+    loop
+        execute format('drop index if exists public.%I', i.indexname);
+    end loop;
+end
+$$;
+
+-- Migration 0 (20261110085900) is intentionally NOT reverted: the lead ids
+-- and primary key it added are a data repair (every id was NULL) and the
+-- quoted status values it cleaned up were never recognised by any code.
+-- To restore the previous lead values exactly, use the backup table
+-- emerriment_backup.leads_20261113 (supabase/backups/README.md).
 
 -- 5. Delivery history (comment out to keep it).
 drop table if exists public.email_deliveries;

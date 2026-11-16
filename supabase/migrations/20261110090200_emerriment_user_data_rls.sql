@@ -1,7 +1,7 @@
 -- =====================================================================
 -- EMerriment security migration 3/5 — profiles and per-user data
 -- ---------------------------------------------------------------------
--- STATUS: PREPARED, NOT APPLIED. Requires migration 1 (is_admin).
+-- STATUS: APPLIED to production (Supabase SQL Editor); verified 2026-11-15 by audit 02 and 03b (381/381).
 --
 -- Goal
 --   A signed-in user can only see and change their OWN rows; an

@@ -1,6 +1,6 @@
 # EMerriment — production runbook
 
-Last updated 2026-11-12. Each step that changes a live system needs your
+Last updated 2026-11-13. Each step that changes a live system needs your
 go-ahead. Secrets are never written here.
 
 ## 0. Verified current state (2026-11-12)
@@ -9,12 +9,13 @@ go-ahead. Secrets are never written here.
 |---|---|---|
 | Live code | Netlify deploy `6af40078`, Git `main` @ `47e76b0` | Email security hardening is live (relay closed, sequence scheduled but disabled, signed tracking/unsubscribe, internal files blocked). |
 | Domain | Cloudflare Registrar; apex flattened CNAME → `apex-loadbalancer.netlify.com`, `www` CNAME → `emerriment216.netlify.app`, both DNS-only | `https://emerriment.com` 200; `www` 301 → apex (path and query kept); `http` → `https`; Let's Encrypt certificate issued for both names (valid to 2027-02-10); `emerriment216.netlify.app` still 200. |
-| Headers (live) | Response headers of `https://emerriment.com/` | One valid CSP (7 directives), X-Frame-Options DENY, nosniff, HSTS (`includeSubDomains; preload`), Referrer-Policy, Permissions-Policy. Weaknesses: `script-src 'unsafe-inline' 'unsafe-eval'`; `connect-src http://127.0.0.1:3030`; no `object-src`/`base-uri`/`form-action`. The `_headers` CSP is not served (netlify.toml's is). |
-| Browser (signed out) | Built-in browser, console | No errors on `/`, login, reset-password, quiz, encyclopedia, AI page. The homepage shows a leftover debug `alert("JS is connected ✅")`. |
+| Headers (live) | Response headers of `https://emerriment.com/` | One valid CSP (7 directives), X-Frame-Options DENY, nosniff, HSTS (`includeSubDomains; preload`), Referrer-Policy, Permissions-Policy. Weaknesses: `script-src 'unsafe-inline' 'unsafe-eval'`; `connect-src http://127.0.0.1:3030`; no `object-src`/`base-uri`/`form-action`. The `_headers` CSP is not served (netlify.toml's is). **Fixed on this branch** (not yet deployed): no `unsafe-eval`, no local address, no unused `api.resend.com`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`. `'unsafe-inline'` remains (inline handlers and JSON-LD on many pages). |
+| Browser (signed out) | Built-in browser, console | No errors on `/`, login, reset-password, quiz, encyclopedia, AI page. The homepage shows a leftover debug `alert("JS is connected ✅")` (**removed on this branch**). **The AI assistant called `http://127.0.0.1:3030` from every visitor's browser** (`AI_MODE = "local"`), so it could not work in production — fixed: local bridge only on localhost, otherwise the Netlify function. |
 | Netlify env (names only) | API metadata | Present: `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `EMERRIMENT_OPENAI_KEY`, `OPENAI_API_KEY` (secret), `BREVO_API_KEY`, `EMERRIMENT_AI_MODE`. Missing: `EMAIL_FROM`, `EMAIL_LINK_SECRET`, `EMAIL_SEQUENCE_*`. Only `OPENAI_API_KEY` is marked secret. Creating `EMAIL_LINK_SECRET` through the API was refused (403 with per-context values/functions scope; 422 with one value for all contexts) — set it in the dashboard (§3). |
-| Supabase | Dashboard requires sign-in; no CLI/token | Auth URL settings, email templates, SMTP and the database **not inspected**. |
-| Resend | Dashboard requires sign-in; no CLI/token | Domains **not inspected**. Public DNS has no Resend records for `emerriment.com`. |
-| SEO | Live HTML | Canonical, `og:url`, JSON-LD, sitemap and robots.txt use `https://emerriment.com`. `og:image`/`twitter:image` → `images/preview.jpg` is relative **and 404**. |
+| Supabase Auth (2026-11-13) | Dashboard, read after reload | **Changed:** Site URL `https://emerriment216.netlify.app` → `https://emerriment.com`; Redirect URLs now `http://localhost:8888/reset-password.html`, `https://emerriment216.netlify.app/reset-password.html`, `https://emerriment.com/reset-password.html` (added). Templates "Confirm sign up" and "Reset password" use `{{ .ConfirmationURL }}` (compatible, unchanged). **SMTP: built-in sender — blocker for real users** (§1). |
+| Supabase DB (2026-11-13) | `pg_policies` + metadata query, read-only | RLS enabled (not forced) on all 22 public tables; 1 admin. **Critical:** `leads` has SELECT for `public` `USING (true)` — anyone with the public anon key can read every lead. `profiles` UPDATE `auth.uid() = id` with no column guard — a user can set their own `is_admin`. `ai_events` SELECT `public` `true`. **`leads.id` is NULL for all 79 leads (no default, no primary key)** — the report email can never be claimed. `ai_messages` lets a user post into another user's conversation. `encyclopedia_articles` has no UPDATE/DELETE policy (CMS edits fail). Tables with no policy (unreadable via API): products, collections, collection_articles, article_products, article_ratings, saved_products, website_settings, ai_settings, ai_feedback, ai_questions, product_clicks — so the website cannot show products. API roles hold ALL privileges (incl. TRUNCATE) on every table. Storage bucket `article-images` has no size/type limit. 57 leads hold `'pending'` with literal quotes (quoted defaults). Full matrix: `SECURITY_MATRIX.md`. **Backup taken and verified (schema `emerriment_backup`). All seven migrations applied and verified 2026-11-15 (03b: 381/381)** (§4). |
+| Resend (2026-11-13) | Dashboard, signed in | **No domains added.** Public DNS has no Resend records for `emerriment.com`. |
+| SEO | Live HTML | Canonical, `og:url`, JSON-LD, sitemap and robots.txt use `https://emerriment.com`. `og:image`/`twitter:image` → `images/preview.jpg` is relative **and 404**; SearchAction pointed at `/?search=`; only the homepage had a canonical. **Fixed on this branch:** 1200×630 `images/preview.jpg`, absolute URLs; SearchAction → `/encyclopedia.html?search=`; canonical on 9 public pages; `noindex` header on account/dashboard/CMS pages; sitemap lists the public pages. |
 
 ## 1. Supabase Auth (manual — dashboard)
 
@@ -102,19 +103,30 @@ Also tick "Contains secret values" for `RESEND_API_KEY`,
 dashboard allows it (it does for `OPENAI_API_KEY`). Variables apply on the next
 deploy.
 
-## 4. Live database security (manual — Supabase SQL Editor)
+## 4. Live database security (Supabase SQL Editor)
 
-1. Backup: Dashboard → Database → Backups (or export each table as CSV).
-2. Run `supabase/audit/01_read_only_security_audit.sql` (SQL Editor → New
-   query → paste → Run). It reads metadata and counts only. Export each result
-   and send it for review: RLS status (query 1), columns (3), constraints (4),
-   enums (5), policies (7), grants (8), triggers (10), functions (11), views (13),
-   admin count (15).
-3. Apply migrations (after review) in this order: `…090400`, `…090000`,
-   `…090100`, `…090200`, `…090300` — staging first if possible.
-4. Run `supabase/audit/02_post_migration_verification.sql` and the browser
-   checks in `supabase/README.md`. Rollback:
-   `supabase/rollback/emerriment_security_rollback.sql`.
+1. Backup — **done 2026-11-13**: `backups/20261113_create_backup.sql` (the
+   Free plan has no Supabase backups). 22 tables copied, all row counts
+   match, 31 policies and 462 grants saved. Restore: `backups/README.md`.
+2. Audit — **done 2026-11-13** (read-only): schema, 27 policies, grants,
+   functions, triggers, event triggers, storage. Result: `SECURITY_MATRIX.md`.
+3. Apply — **done** (SQL Editor; all seven, verified 2026-11-15: audit 02 and
+   03b 381/381). Remote CLI migration history did not exist (no
+   `supabase_migrations` schema); sync with
+   `npx supabase@3.1.0 migration repair --status applied <7 versions>`
+   after `supabase link` (history only). Steps that were used:
+   `APPLY_2026-11-13.md`:
+   `085900` (lead ids) → `090000` → `090100` → `090200` → `090300` →
+   `090400` → `20261113090000` (hardening). All seven were tested together
+   on a copy of the live schema (`tests/db/production.pglite.test.js`).
+4. Verify: `audit/02_post_migration_verification.sql` and
+   `audit/03_live_rls_role_checks.sql` (runs as anon / two real users /
+   admin, rolls everything back, every row must pass).
+   Rollback: `rollback/emerriment_security_rollback.sql`.
+
+Order with the deploy: either order is safe. Until the branch is deployed,
+the CMS "toggle admin" button and the article rating average need the new
+code; until the migrations are applied, the new code falls back where it can.
 
 ## 5. Deploy the domain-alignment branch
 
