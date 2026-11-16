@@ -15,3 +15,6 @@ ROOT AUTH BACKUP BEFORE V2/
 *.pem
 *.key
 *.log
+
+# Claude Code personal settings (local permissions; never committed)
+.claude/settings.local.json
