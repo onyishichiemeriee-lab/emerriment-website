@@ -177,9 +177,23 @@ test("session handling: persisted, auto-refreshed, and recovered from email link
 test("authentication files were not modified by the security work", async () => {
     const { execFileSync } = require("child_process");
     const changed = execFileSync("git", ["diff", "--name-only", "9795f887c86b36f1365d5e5ba0a40b52a1cf4bad", "--",
-        "js/auth.js", "js/supabase.js", "login.html", "signup.html", "forgot-password.html", "reset-password.html",
+        "js/auth.js", "js/supabase.js", "login.html", "forgot-password.html", "reset-password.html",
         "Dashboard", "dashboard.html", "admin/admin-authCMS.js", "admin/js/login.js"], { cwd: H.ROOT, encoding: "utf8" }).trim();
     assert.strictEqual(changed, "", "changed: " + changed);
+});
+
+test("signup.html: only the confirmation message changed; it names the sender, mentions Spam, and does not reveal existing accounts", async () => {
+    const html = fs.readFileSync(path.join(H.ROOT, "signup.html"), "utf8");
+    // Still the same auth call and fixed post-signup redirect.
+    assert(/await\s+EMAuth\.signup\(\s*fullName,\s*email,\s*password\s*\)/.test(html));
+    assert(/window\.location\.href\s*=\s*"dashboard\.html"/.test(html));
+    const msg = html.split("result.requiresConfirmation ||")[1].split("return;")[0];
+    assert(msg.includes("auth@mail.emerriment.com"), "sender address");
+    assert(/Spam/.test(msg), "spam hint");
+    assert(/Already have an account with this email\? Log in or reset your password/.test(msg));
+    assert(!/already (registered|exists)|is taken/i.test(msg), "must not confirm that an account exists");
+    // One message for both cases: no branch on identities.
+    assert(!/identities/.test(html), "signup page must not distinguish existing accounts");
 });
 
 module.exports = suite;
