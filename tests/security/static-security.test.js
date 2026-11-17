@@ -496,6 +496,20 @@ test("article ratings: the page reads only the summary function, and rating agai
     assert(/onConflict: "user_id,article_id"/.test(src.split('.from("article_ratings")')[1]));
 });
 
+test("every served page loads the SAME exactly pinned supabase-js version (no floating @2 / latest)", async () => {
+    const versions = new Set();
+    let pages = 0;
+    for (const b of BROWSER.filter((x) => x.file.endsWith(".html"))) {
+        for (const m of b.src.matchAll(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js(@[^"'\/]*)?/g)) {
+            pages++;
+            assert(m[1] && /^@\d+\.\d+\.\d+$/.test(m[1]), b.file + ": not pinned to an exact version (" + (m[1] || "none") + ")");
+            versions.add(m[1]);
+        }
+    }
+    assert(pages >= 60, "only " + pages + " references found");
+    assert.deepStrictEqual([...versions], ["@2.119.0"]);
+});
+
 module.exports = suite;
 
 if (require.main === module) {
