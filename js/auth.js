@@ -307,7 +307,11 @@ async function loginUser(
                 success: false,
 
                 error:
-                    getAuthErrorMessage(error)
+                    getAuthErrorMessage(error),
+
+                // Lets the login page offer to resend the confirmation email.
+                unconfirmed:
+                    /email not confirmed/i.test(String(error.message || ""))
 
             };
 
@@ -467,6 +471,55 @@ async function requestPasswordReset(email) {
         };
     }
 }
+
+/* =========================================
+   RESEND SIGN-UP CONFIRMATION EMAIL
+   Supabase rate-limits this per address. The reply is the same whether
+   or not the address has an unconfirmed account (no account disclosure).
+========================================= */
+
+async function resendConfirmation(email) {
+
+    try {
+
+        const supabase = getSupabase();
+
+        email = normalizeEmail(email);
+
+        if (!email) {
+            return { success: false, error: "Please enter your email address." };
+        }
+
+        const { error } = await supabase.auth.resend({
+            type: "signup",
+            email: email
+        });
+
+        if (error) {
+
+            console.error("❌ Resend confirmation error:", error);
+
+            return {
+                success: false,
+                error: /rate limit|seconds/i.test(String(error.message || ""))
+                    ? "Please wait a minute before requesting another email."
+                    : "We couldn't send the email right now. Please try again later."
+            };
+
+        }
+
+        return { success: true };
+
+    } catch (error) {
+
+        console.error("❌ Resend confirmation exception:", error);
+
+        return { success: false, error: "We couldn't send the email right now. Please try again later." };
+
+    }
+
+}
+
 
 /* =========================================
    UPDATE PASSWORD
@@ -893,6 +946,9 @@ function getAuthErrorMessage(
 ========================================= */
 
 window.EMAuth = {
+
+    resendConfirmation:
+        resendConfirmation,
 
     signup:
         signupUser,

@@ -17,7 +17,7 @@
     href="css/auth.css">
 
 <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0">
 </script>
 
 <script
@@ -311,13 +311,19 @@ signupForm.addEventListener(
                 signupMessage.className =
                     "auth-message success";
 
+                // Same wording whether or not the address already
+                // had an account: Supabase deliberately does not say
+                // (and sends no email for existing accounts), so the
+                // page must not reveal it either.
                 signupMessage.textContent =
-                    "✅ Account created! Please check your email and confirm your account before logging in.";
+                    "✅ Almost done! We've sent a confirmation link from EMerriment (auth@mail.emerriment.com). " +
+                    "Please check your inbox — and your Spam or Promotions folder — then confirm before logging in. " +
+                    "Already have an account with this email? Log in or reset your password instead.";
 
                 signupButton.disabled = false;
 
                 signupButton.textContent =
-                    "Account Created";
+                    "Check your email";
 
                 return;
 

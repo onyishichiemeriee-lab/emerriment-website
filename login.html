@@ -17,7 +17,7 @@
     href="css/auth.css">
 
 <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0">
 </script>
 
 <script
@@ -265,6 +265,37 @@ document.addEventListener("DOMContentLoaded", () => {
                     loginMessage.textContent =
                         result.error ||
                         "Login failed.";
+
+                    // Unconfirmed account: offer a new confirmation email.
+                    if (result.unconfirmed && typeof EMAuth.resendConfirmation === "function") {
+
+                        const resend = document.createElement("button");
+
+                        resend.type = "button";
+
+                        resend.id = "resendConfirmation";
+
+                        resend.className = "auth-link-button";
+
+                        resend.textContent = "Resend confirmation email";
+
+                        resend.addEventListener("click", async () => {
+
+                            resend.disabled = true;
+
+                            const sent = await EMAuth.resendConfirmation(email);
+
+                            loginMessage.textContent = sent.success
+                                ? "If this account still needs confirming, a new confirmation email is on its way from auth@mail.emerriment.com. Please check your inbox and Spam folder."
+                                : sent.error;
+
+                        });
+
+                        loginMessage.appendChild(document.createElement("br"));
+
+                        loginMessage.appendChild(resend);
+
+                    }
 
                     loginButton.disabled = false;
 

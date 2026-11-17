@@ -14,11 +14,15 @@ run, so this is automatic there). A failed migration changes nothing.
 |---|---|
 | `audit/01_read_only_security_audit.sql` | Read-only metadata audit. Run first and **save the output**. |
 | `audit/02_post_migration_verification.sql` | Read-only checks to run after applying. |
+| `audit/03_live_rls_role_checks.sql` | Runs as anon, two real non-admin users and the admin (PostgREST roles + JWT claims), rolls back every write, prints pass/fail per check. Run after applying. |
+| `backups/20261113_create_backup.sql` | In-database backup (schema `emerriment_backup`). **Run on 2026-11-13; verified.** See `backups/README.md`. |
+| `migrations/20261110085900_emerriment_leads_identity.sql` | Migration 0: `leads.id` was NULL for every lead with no primary key — numbers them, adds identity + primary key, fixes the quoted defaults (`'pending'` with quotes). Must run before 090400. |
 | `migrations/20261110090000_emerriment_security_helpers.sql` | Private helper schema (RLS baseline for rollback, request role), `emerriment_is_admin()`, profile privilege guard (no self-promotion, last admin protected against demotion **and deletion**, race-safe). |
 | `migrations/20261110090100_emerriment_leads_rls.sql` | `leads`: visitors insert only; admins read/update/delete; server-side, race-safe per-address rate limits; safe initial email state. |
 | `migrations/20261110090200_emerriment_user_data_rls.sql` | `profiles` and per-user tables: own rows only (admins see all). Ratings **reads unchanged**. |
 | `migrations/20261110090300_emerriment_content_admin_rls.sql` | Articles/products/collections: admin-only writes, reads unchanged; settings/AI analytics/product clicks admin-only; `emerriment_increment_article_views()`. |
-| `migrations/20261110090400_emerriment_email_delivery.sql` | `Sending` / `Unsubscribed` values (enum) and the `email_deliveries` table. |
+| `migrations/20261110090400_emerriment_email_delivery.sql` | `Sending` / `Unsubscribed` values (enum) and the `email_deliveries` table (needs migration 0). |
+| `migrations/20261113090000_emerriment_production_hardening.sql` | Migration 6: `emerriment_set_admin()` (only way to change admin access), column privileges on `profiles`/`leads`, least-privilege grants (no TRUNCATE, anon read-only on content), public read of approved products and their article links, rating summary function, view counter for published articles only, AI messages tied to the sender's own conversation, trigger functions not callable, RLS indexes, image-only storage bucket. |
 | `rollback/emerriment_security_rollback.sql` | Removes everything the migrations created and restores the recorded RLS state. |
 
 ## Design
@@ -54,14 +58,21 @@ Preconditions
      reports these — they must allow `Sending` / `Unsubscribed`).
    Send me the output if anything differs and I will adjust the migrations.
 
-Order (each file in the SQL Editor, one at a time; read every NOTICE)
-1. `20261110090400_emerriment_email_delivery.sql` (independent, additive)
+Order (filename order; each file in the SQL Editor, one at a time; read
+every NOTICE; stop at the first error — see APPLY_2026-11-13.md)
+0. `backups/20261113_create_backup.sql` — **done 2026-11-13** (22 tables, counts match)
+1. `20261110085900_emerriment_leads_identity.sql`
 2. `20261110090000_emerriment_security_helpers.sql`
 3. `20261110090100_emerriment_leads_rls.sql`
 4. `20261110090200_emerriment_user_data_rls.sql`
 5. `20261110090300_emerriment_content_admin_rls.sql`
-6. `audit/02_post_migration_verification.sql` — compare with the expectations
-   written in that file.
+6. `20261110090400_emerriment_email_delivery.sql`
+7. `20261113090000_emerriment_production_hardening.sql`
+8. `audit/02_post_migration_verification.sql`, then
+   `audit/03_live_rls_role_checks.sql` — every row must show `pass = true`.
+
+(The earlier plan ran 090400 first. On the live schema that fails: its
+foreign key needs a unique `leads.id`, which only exists after migration 0.)
 
 Verify in the browser console on the live site
 
@@ -78,12 +89,14 @@ Signed in as an **ordinary test user**:
 ```js
 const { data: { user } } = await supabaseClient.auth.getUser();
 await supabaseClient.from("profiles").update({ is_admin: true }).eq("id", user.id)
+// → error: permission denied (is_admin is not writable through the API)
+await supabaseClient.rpc("emerriment_set_admin", { target_user: user.id, make_admin: true })
 // → error "Only an administrator can change administrator access."
 await supabaseClient.from("quiz_results").select("user_id")      // → only your own rows
 ```
 
 As the **administrator**: CMS users, subscribers, articles, products, settings
-and AI analytics load and save; toggle admin on a test account and back.
+and AI analytics load and save; toggle admin on a test account and back (the CMS now calls `emerriment_set_admin`).
 Then take the homepage quiz (anonymous and signed in) and `quiz.html` once.
 
 Rollback: run `rollback/emerriment_security_rollback.sql` (restores the RLS
@@ -95,8 +108,8 @@ EMerriment objects). Enum values added by migration 5 remain (harmless).
 | Variable | Required | Notes |
 |---|---|---|
 | `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | yes (already used) | |
-| `EMAIL_FROM` | yes for real delivery | `EMerriment <hello@YOUR-VERIFIED-DOMAIN>` once Resend shows the domain as Verified. (`emerriment.com` was **not registered** on 2026-11-11 — see `PRODUCTION_RUNBOOK.md`.) Without it the Resend test sender is used and a warning is logged on every cold start. |
-| `EMAIL_EXTRA_REDIRECT_HOSTS` | optional | comma-separated domains you own that email links may redirect to (e.g. `emerriment.com,www.emerriment.com` after registering it). |
+| `EMAIL_FROM` | yes for real delivery | e.g. `EMerriment <hello@mail.emerriment.com>` once Resend shows the sending domain as Verified. Without it the Resend test sender is used and a warning is logged on every cold start. |
+| `EMAIL_EXTRA_REDIRECT_HOSTS` | optional | comma-separated extra domains you own that email links may redirect to (`emerriment.com`, `www.emerriment.com` and the Netlify address are already built in). |
 | `EMAIL_LINK_SECRET` | recommended | ≥ 32 characters (64 hex recommended). Can be added at any time: links sent earlier stay valid (the previous derived key is still accepted). |
 | `EMAIL_LINK_SECRET_PREVIOUS` | only while rotating | the old secret, so its links keep working. |
 | `EMAIL_LINK_ACCEPT_DERIVED` | optional | `false` ~60 days after setting `EMAIL_LINK_SECRET`, to stop accepting older links. |
@@ -133,12 +146,11 @@ time so only new quiz takers receive lessons.
 
 ## Resend sender domain
 
-0. You need a domain you own. `emerriment.com` was **not registered** on
-   2026-11-11 (public DNS: non-existent; `.com` registry: 404) — register it
-   (Namecheap) or use another domain you own.
+0. `emerriment.com` is registered (Cloudflare Registrar, DNS at Cloudflare)
+   and serves the website. Recommended sending domain: `mail.emerriment.com`.
 1. Resend → Domains → Add domain: your domain (or a sending subdomain such
    as `mail.<domain>`, which keeps marketing mail reputation separate).
-2. Resend shows the exact DNS records to create at your DNS host (Namecheap):
+2. Resend shows the exact DNS records to create at your DNS host (Cloudflare → DNS, Proxy status "DNS only"):
    * **SPF** — a TXT record (on the bounce/return-path subdomain Resend names)
      authorising Resend's servers.
    * **DKIM** — a TXT record (`resend._domainkey…`) holding Resend's public key;

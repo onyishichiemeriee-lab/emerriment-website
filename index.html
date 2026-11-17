@@ -29,7 +29,13 @@
 
     <meta property="og:description" content="Discover 1000+ skincare topics, EMerriment AI, personalized skincare routines, and science-backed skincare education.">
 
-    <meta property="og:image" content="images/preview.jpg">
+    <meta property="og:image" content="https://emerriment.com/images/preview.jpg">
+
+    <meta property="og:image:width" content="1200">
+
+    <meta property="og:image:height" content="630">
+
+    <meta property="og:image:alt" content="EMerriment — Healthy Skin Begins With Understanding">
 
     <meta property="og:url" content="https://emerriment.com">
 
@@ -42,7 +48,7 @@
 
     <meta name="twitter:description" content="Learn skincare with EMerriment AI and explore over 1000 expert skincare topics.">
 
-    <meta name="twitter:image" content="images/preview.jpg">
+    <meta name="twitter:image" content="https://emerriment.com/images/preview.jpg">
 
     <!-- CSS -->
 
@@ -96,7 +102,7 @@
 
 "@type":"SearchAction",
 
-"target":"https://emerriment.com/?search={search_term_string}",
+"target":"https://emerriment.com/encyclopedia.html?search={search_term_string}",
 
 "query-input":"required name=search_term_string"
 
@@ -1711,7 +1717,9 @@ class="contact-card">
    }
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Reads email-link results before supabase-js clears the address -->
+<script src="js/auth-callback.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
 <script src="js/supabase.js"></script>
 <script src="js/script.js"></script>
 <script src="js/navigation.js"></script>

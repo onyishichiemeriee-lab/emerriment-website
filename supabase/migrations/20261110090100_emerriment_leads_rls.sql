@@ -1,7 +1,7 @@
 -- =====================================================================
 -- EMerriment security migration 2/5 — public.leads
 -- ---------------------------------------------------------------------
--- STATUS: PREPARED, NOT APPLIED. Requires migration 1 (is_admin).
+-- STATUS: APPLIED to production (Supabase SQL Editor); verified 2026-11-15 by audit 02 and 03b (381/381).
 --
 -- Goal
 --   Anonymous quiz visitors may only INSERT a lead. They can no longer

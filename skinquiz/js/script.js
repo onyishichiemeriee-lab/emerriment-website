@@ -10491,7 +10491,6 @@ return text
 
 window.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("newsletterForm");
-  alert("JS is connected ✅");
 
   const reveals = document.querySelectorAll(".reveal");
 

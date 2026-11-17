@@ -60,18 +60,18 @@ function calls(table, op) {
 test("sanity: the browser-code scanner finds known calls", async () => {
     assert(calls("leads", "insert").includes("js/script.js"));
     assert(calls("leads", "select").includes("admin/subscribers.js"));
-    assert(calls("profiles", "update").includes("admin/js/user-detailsCMS.js"));
+    assert(calls("profiles", "update").includes("Dashboard/dashboard-profile.js"));
     assert(BROWSER.length > 100, "scanned " + BROWSER.length + " files");
 });
 
 
 /* =============== Migrations =============== */
 
-test("migrations exist, are timestamp-ordered and marked as not applied", async () => {
-    assert(migrationFiles.length >= 5, "expected 5 migrations");
+test("migrations exist, are timestamp-ordered and carry a STATUS line", async () => {
+    assert(migrationFiles.length >= 7, "expected 7 migrations");
     for (const m of migrations) {
         assert(/^\d{14}_emerriment_[a-z_]+\.sql$/.test(m.file), m.file);
-        assert(m.sql.includes("STATUS: PREPARED, NOT APPLIED"), m.file + " not marked as prepared");
+        assert(/STATUS: (PREPARED, NOT APPLIED|APPLIED )/.test(m.sql), m.file + " has no STATUS line");
         assert(m.sql.includes("Rollback:"), m.file + " has no rollback note");
     }
 });
@@ -81,7 +81,7 @@ test("migrations are non-destructive: no DROP TABLE, DELETE, TRUNCATE, DROP COLU
         const code = sqlCode(m.sql).toLowerCase();
         assert(!/\bdrop\s+table\b/.test(code), m.file + ": drop table");
         assert(!/\bdelete\s+from\b/.test(code), m.file + ": delete from");
-        assert(!/\btruncate\b/.test(code), m.file + ": truncate");
+        assert(!/(^|;|\(|')\s*truncate\b/m.test(code), m.file + ": truncate"); // "revoke truncate" is allowed
         assert(!/\bdrop\s+column\b/.test(code), m.file + ": drop column");
         assert(!/\bdisable\s+row\s+level\s+security\b/.test(code), m.file + ": disables RLS");
         for (const match of code.matchAll(/drop policy if exists\s+(%i|[a-z0-9_]+)/g)) {
@@ -112,13 +112,13 @@ test("helper is uniquely named (does not overwrite an existing public.is_admin)"
 });
 
 test("admin lock-out protection: aborts without an admin, and the last admin cannot be removed", async () => {
-    const m1 = migrations[0].sql;
+    const m1 = migrations.find((m) => m.file.includes("security_helpers")).sql;
     assert(/if not exists \(select 1 from public\.profiles where is_admin is true\) then\s+raise exception/.test(m1));
     assert(m1.includes("Cannot remove the last administrator."));
 });
 
 test("last-admin protection covers DELETE and is serialised against concurrent demotions", async () => {
-    const m1 = migrations[0].sql;
+    const m1 = migrations.find((m) => m.file.includes("security_helpers")).sql;
     assert(/before insert or update or delete on public\.profiles/.test(m1), "DELETE not guarded");
     const guard = m1.split("create or replace function public.emerriment_guard_profile_privileges()")[1].split("$$;")[0];
     assert(guard.includes("pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext('emerriment_admin_change'))"), "no lock");
@@ -130,7 +130,7 @@ test("last-admin protection covers DELETE and is serialised against concurrent d
 });
 
 test("privilege escalation: only an admin (or trusted server roles) can change profiles.is_admin", async () => {
-    const m1 = migrations[0].sql;
+    const m1 = migrations.find((m) => m.file.includes("security_helpers")).sql;
     const guard = m1.split("create or replace function public.emerriment_guard_profile_privileges()")[1].split("$$;")[0];
     assert(/security invoker/.test(guard), "guard must run as the caller so current_user identifies API requests");
     assert(!/security definer/.test(guard));
@@ -162,7 +162,7 @@ test("lead rate limit is serialised per address (lock taken before counting)", a
 });
 
 test("request_role reads the JWT claims (both PostgREST setting formats)", async () => {
-    const m1 = migrations[0].sql;
+    const m1 = migrations.find((m) => m.file.includes("security_helpers")).sql;
     const fn = m1.split("create or replace function emerriment_private.request_role()")[1].split("$$;")[0];
     assert(fn.includes("current_setting('request.jwt.claim.role', true)"));
     assert(fn.includes("current_setting('request.jwt.claims', true)), '')::jsonb ->> 'role'") ||
@@ -190,7 +190,7 @@ test("every RLS change records the previous state first (rollback can restore it
     // email_deliveries table has no previous state to restore.
     assert.deepStrictEqual(direct.filter((d) => !d.endsWith(": %s") && !d.endsWith(": public.email_deliveries")), []);
     assert.strictEqual(direct.length, 2, "unexpected direct RLS changes: " + direct.join(", "));
-    const helper = migrations[0].sql.split("create or replace function emerriment_private.enable_rls(target regclass)")[1].split("$$;")[0];
+    const helper = migrations.find((m) => m.file.includes("security_helpers")).sql.split("create or replace function emerriment_private.enable_rls(target regclass)")[1].split("$$;")[0];
     assert(helper.indexOf("insert into emerriment_private.rls_baseline") < helper.indexOf("enable row level security"));
     assert(helper.includes("on conflict (table_name) do nothing"), "re-runs must keep the ORIGINAL state");
     const enableCalls = (allSql.match(/emerriment_private\.enable_rls\(/g) || []).length;
@@ -198,7 +198,7 @@ test("every RLS change records the previous state first (rollback can restore it
 });
 
 test("baseline names are schema-qualified independently of search_path", async () => {
-    const m1 = migrations[0].sql;
+    const m1 = migrations.find((m) => m.file.includes("security_helpers")).sql;
     assert(m1.includes("pg_catalog.format('%I.%I', n.nspname, c.relname)"));
     assert(!/regclass::text/.test(sqlCode(allSql)), "regclass::text depends on search_path");
 });
@@ -243,7 +243,10 @@ test("ratings reads are left exactly as they are; no new public read is created"
 
 test("open reads are only re-created where RLS was previously OFF (no new exposure)", async () => {
     const code = sqlCode(allSql);
-    const usingTrue = [...code.matchAll(/using \(true\)/g)].length;
+    // Restrictive policies with using (true) add no access (they only narrow);
+    // count the permissive ones.
+    const restrictiveTrue = [...code.matchAll(/as restrictive for \w+\s+to [a-z, ]+\s+using \(true\)/g)].length;
+    const usingTrue = [...code.matchAll(/using \(true\)/g)].length - restrictiveTrue;
     const keepOpen = [...code.matchAll(/'_keep_open_read', t\);?/g)].length;
     // Every `using (true)` must be a _keep_open_read policy guarded by the baseline.
     const guarded = [...code.matchAll(/not emerriment_private\.rls_was_enabled\(format\('public\.%I', t\)::regclass\)/g)].length;
@@ -328,9 +331,11 @@ test("no quiz implementation reads the lead back after inserting it", async () =
     }
 });
 
-test("only the admin user-details page writes is_admin; no browser code inserts admin profiles", async () => {
+test("no browser code writes is_admin; the CMS toggle uses emerriment_set_admin; no browser code inserts admin profiles", async () => {
     const writers = BROWSER.filter((b) => /is_admin\s*:/.test(b.src)).map((b) => b.file);
-    assert.deepStrictEqual(writers, ["admin/js/user-detailsCMS.js"]);
+    assert.deepStrictEqual(writers, []);
+    assert(read("admin/js/user-detailsCMS.js").includes('.rpc("emerriment_set_admin"'), "CMS toggle must use the admin function");
+    assert(/create or replace function public\.emerriment_set_admin\(target_user uuid, make_admin boolean\)/.test(allSql));
     const profileInserts = [...calls("profiles", "insert"), ...calls("profiles", "upsert")];
     for (const f of profileInserts) assert(!/is_admin/.test(read(f).split(".from(\"profiles\")")[1].slice(0, 300)), f);
 });
@@ -407,10 +412,102 @@ test("production smoke test is read-only: GET only, never email-sequence, never 
     assert(!/ai-chat[^"]*\?/.test(code) && !/body:/.test(code), "no request bodies");
 });
 
-test("click tracking does not trust domains EMerriment does not own", async () => {
+test("click tracking trusts exactly the owned domains and the shop provider", async () => {
+    // emerriment.com: registered by EMerriment 2026-11-11, primary Netlify
+    // domain with an issued certificate since 2026-11-12.
     const src = read("netlify/functions/track-click.js");
     const list = src.split("const ALLOWED_HOSTS = new Set([")[1].split("]);")[0];
-    assert(!/emerriment\.com/.test(list), "emerriment.com is not a registered domain (2026-11-11)");
+    const hosts = [...list.matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort();
+    assert.deepStrictEqual(hosts, [
+        "emerriment.com", "emerriment216.netlify.app", "selar.co", "selar.com",
+        "www.emerriment.com", "www.selar.com"
+    ]);
+});
+
+test("email templates and the site-URL fallback use the official domain", async () => {
+    for (const f of ["emails/layout.js", "emails/welcome.js", "emails/report.js", "emails/day14.js", "netlify/lib/email-common.js"]) {
+        assert(!read(f).includes("https://emerriment216.netlify.app"), f + " still links to the Netlify subdomain");
+    }
+    assert(read("netlify/lib/email-common.js").includes('const DEFAULT_SITE_URL = "https://emerriment.com";'));
+});
+
+/* =============== Production readiness (2026-11-13) =============== */
+
+test("no debug alert on any served page script", async () => {
+    for (const f of ["js/script.js", "article/js/script.js", "encyclopediaCMS/js/script.js", "skinquiz/js/script.js"]) {
+        assert(!read(f).includes('alert("JS is connected'), f);
+    }
+});
+
+test("CSP: no unsafe-eval, no local AI address, no unused Resend origin; object-src/base-uri/form-action set", async () => {
+    for (const f of ["netlify.toml", "_headers"]) {
+        const csp = read(f).split("Content-Security-Policy")[1].split("\n")[0];
+        assert(!csp.includes("'unsafe-eval'"), f + ": unsafe-eval");
+        assert(!csp.includes("127.0.0.1") && !csp.includes("localhost"), f + ": local address");
+        assert(!csp.includes("api.resend.com"), f + ": browser never calls Resend");
+        for (const d of ["object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'"]) {
+            assert(csp.includes(d), f + ": missing " + d);
+        }
+    }
+    // Nothing in the served code needs eval.
+    for (const b of BROWSER) {
+        assert(!/\beval\(|new Function\(/.test(b.src), b.file + " uses eval");
+    }
+});
+
+test("AI assistant: the browser calls the Netlify function in production, the local bridge only on localhost", async () => {
+    const src = read("ai/js/ai-api.js");
+    assert(!/const AI_MODE\s*=\s*"local"/.test(src), "hard-coded local mode");
+    assert(/AI_LOCAL_HOSTS\.includes\(window\.location\.hostname\)/.test(src));
+    assert(src.includes('"/.netlify/functions/ai-chat"'));
+});
+
+test("AI function: CORS limited to EMerriment origins; the API key is never logged, not even a prefix", async () => {
+    const src = read("netlify/functions/ai-chat.js");
+    assert(!src.includes('"Access-Control-Allow-Origin": "*"'), "wildcard CORS");
+    assert(src.includes('"https://emerriment.com"'));
+    assert(!/key\.slice\(/.test(src), "key prefix logged");
+});
+
+test("social preview image exists, is absolute, and the search action targets the encyclopedia", async () => {
+    const html = read("index.html");
+    assert(html.includes('<meta property="og:image" content="https://emerriment.com/images/preview.jpg">'));
+    assert(html.includes('<meta name="twitter:image" content="https://emerriment.com/images/preview.jpg">'));
+    assert(fs.statSync(path.join(ROOT, "images", "preview.jpg")).size > 10000, "preview.jpg missing");
+    assert(html.includes('"target":"https://emerriment.com/encyclopedia.html?search={search_term_string}"'));
+    assert(read("js/encyclopediaCMS.js").includes('params.get("search")'), "encyclopedia must read ?search=");
+});
+
+test("public pages declare a canonical URL; account/CMS pages are noindex", async () => {
+    for (const page of ["acne", "encyclopedia", "privacy", "products", "quiz", "skin-conditions", "skin-journey", "terms"]) {
+        assert(read(page + ".html").includes(`<link rel="canonical" href="https://emerriment.com/${page}.html">`), page);
+    }
+    const toml = read("netlify.toml");
+    for (const p of ["/login*", "/signup*", "/forgot-password*", "/reset-password*", "/dashboard*", "/encyclopediaCMS*", "/admin/*"]) {
+        const block = toml.split(`for = "${p}"`)[1];
+        assert(block && /^\s+\[headers\.values\]\s+X-Robots-Tag = "noindex, nofollow"/.test(block), p);
+    }
+});
+
+test("article ratings: the page reads only the summary function, and rating again updates instead of failing", async () => {
+    const src = read("article/article/js/article.js");
+    assert(src.includes('"emerriment_article_rating_summary"'));
+    assert(!/from\("article_ratings"\)\s*\.select\(/.test(src), "individual ratings must not be read");
+    assert(/onConflict: "user_id,article_id"/.test(src.split('.from("article_ratings")')[1]));
+});
+
+test("every served page loads the SAME exactly pinned supabase-js version (no floating @2 / latest)", async () => {
+    const versions = new Set();
+    let pages = 0;
+    for (const b of BROWSER.filter((x) => x.file.endsWith(".html"))) {
+        for (const m of b.src.matchAll(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js(@[^"'\/]*)?/g)) {
+            pages++;
+            assert(m[1] && /^@\d+\.\d+\.\d+$/.test(m[1]), b.file + ": not pinned to an exact version (" + (m[1] || "none") + ")");
+            versions.add(m[1]);
+        }
+    }
+    assert(pages >= 60, "only " + pages + " references found");
+    assert.deepStrictEqual([...versions], ["@2.119.0"]);
 });
 
 module.exports = suite;

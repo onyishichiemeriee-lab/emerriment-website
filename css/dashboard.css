@@ -349,3 +349,46 @@ footer{
     color:#666;
 
 }
+/* =========================
+   Loading and error notice
+========================= */
+.dashboard-loader{
+    padding:14px 18px;
+    margin-bottom:20px;
+    border-radius:12px;
+    background:#ffffff;
+    border:1px solid #e5e1d6;
+    color:#555;
+    font-weight:600;
+}
+
+.dashboard-notice{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:12px;
+    padding:14px 18px;
+    margin-bottom:20px;
+    border-radius:12px;
+    background:#fff4f2;
+    border:1px solid #f0c4bb;
+    color:#7a2e1f;
+}
+
+.dashboard-notice[hidden]{
+    display:none;
+}
+
+.dashboard-notice p{
+    margin:0;
+    flex:1 1 240px;
+}
+
+.dashboard-notice-action{
+    border:0;
+    border-radius:8px;
+    padding:8px 14px;
+    background:#7a2e1f;
+    color:#fff;
+    cursor:pointer;
+}

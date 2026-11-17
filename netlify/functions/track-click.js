@@ -30,12 +30,15 @@ const {
 
 
 // Only hosts EMerriment actually controls (or its shop provider).
-// emerriment.com is deliberately NOT listed: on 2026-11-11 it was not a
-// registered domain (.com registry RDAP: 404), and allowing a domain you
-// do not own would let whoever registers it receive redirected visitors.
-// Once you own a domain, add it with EMAIL_EXTRA_REDIRECT_HOSTS
-// (comma-separated host names, e.g. "emerriment.com,www.emerriment.com").
+// emerriment.com was registered by EMerriment on 2026-11-11 (Cloudflare
+// Registrar) and became the site's primary domain on 2026-11-12 (Netlify
+// certificate issued for emerriment.com and www.emerriment.com).
+// emerriment216.netlify.app stays allowed for links in emails already sent.
+// Further owned domains can be added with EMAIL_EXTRA_REDIRECT_HOSTS
+// (comma-separated host names).
 const ALLOWED_HOSTS = new Set([
+    "emerriment.com",
+    "www.emerriment.com",
     "emerriment216.netlify.app",
     "selar.com",
     "www.selar.com",

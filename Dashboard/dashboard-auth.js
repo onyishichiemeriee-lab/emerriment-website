@@ -2,7 +2,22 @@
 // Dashboard Authentication
 // ============================================
 
-const supabaseClient = window.supabaseClient;
+// Null when the Supabase library failed to load (network, blocked CDN):
+// the dashboard then shows a message instead of failing silently.
+const supabaseClient = window.supabaseClient || null;
+
+function dashboardUnavailable() {
+
+    const message =
+        "We couldn't connect to EMerriment right now. Please check your connection and reload the page.";
+
+    if (typeof showError === "function") {
+        showError(message);
+    } else {
+        console.error(message);
+    }
+
+}
 
 
 // --------------------------------------------
@@ -10,6 +25,14 @@ const supabaseClient = window.supabaseClient;
 // --------------------------------------------
 
 async function checkAuthentication() {
+
+    if (!supabaseClient) {
+
+        dashboardUnavailable();
+
+        return null;
+
+    }
 
     try {
 
@@ -54,7 +77,11 @@ async function checkAuthentication() {
 
 async function logout() {
 
-    await supabaseClient.auth.signOut();
+    if (supabaseClient) {
+
+        await supabaseClient.auth.signOut();
+
+    }
 
     window.location.href = "login.html";
 
@@ -65,7 +92,7 @@ async function logout() {
 // Auth Listener
 // --------------------------------------------
 
-supabaseClient.auth.onAuthStateChange(
+if (supabaseClient) supabaseClient.auth.onAuthStateChange(
 
     (event) => {
 

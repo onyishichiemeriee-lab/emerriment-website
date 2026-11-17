@@ -1,7 +1,7 @@
 -- =====================================================================
 -- EMerriment security migration 4/5 — content and admin-only tables
 -- ---------------------------------------------------------------------
--- STATUS: PREPARED, NOT APPLIED. Requires migration 1 (is_admin).
+-- STATUS: APPLIED to production (Supabase SQL Editor); verified 2026-11-15 by audit 02 and 03b (381/381).
 --
 -- Content tables (public website reads them):
 --   encyclopedia_articles, products, collections, collection_articles,

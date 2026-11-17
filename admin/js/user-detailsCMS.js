@@ -490,20 +490,22 @@ document
                 }
 
 
+                // Administrator access can only be changed through
+                // this database function, which checks that the
+                // caller is an administrator and never removes the
+                // last one. Direct updates of is_admin are refused.
+                // (supabase/migrations/20261113090000_emerriment_production_hardening.sql)
                 const {
                     error: updateError
                 } = await supabaseClient
 
-                    .from("profiles")
+                    .rpc("emerriment_set_admin", {
 
-                    .update({
+                        target_user: userId,
 
-                        is_admin:
-                            !data.is_admin
+                        make_admin: !data.is_admin
 
-                    })
-
-                    .eq("id", userId);
+                    });
 
 
                 if (updateError) {

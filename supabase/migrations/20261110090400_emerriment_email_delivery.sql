@@ -1,7 +1,7 @@
 -- =====================================================================
 -- EMerriment security migration 5/5 — email states and delivery records
 -- ---------------------------------------------------------------------
--- STATUS: PREPARED, NOT APPLIED. Independent of migrations 1–4.
+-- STATUS: APPLIED to production (Supabase SQL Editor); verified 2026-11-15 by audit 02 and 03b (381/381).
 --
 -- 1. Status values used by the hardened email functions:
 --      leads.email_status : 'Pending' (existing), 'Sending' (new, while a

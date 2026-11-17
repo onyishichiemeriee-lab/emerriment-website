@@ -16,10 +16,12 @@ const crypto = require("crypto");
    SITE AND SENDER
 ----------------------------------------- */
 
-// Fallback matches the site URL already used in
-// the email layout. Netlify sets URL to the site's
-// primary address at build and run time.
-const DEFAULT_SITE_URL = "https://emerriment216.netlify.app";
+// The official domain (primary domain on the Netlify site since
+// 2026-11-12). Netlify sets URL to the site's primary address at build
+// and run time; this fallback is used only when URL is missing or invalid.
+// Links already sent with emerriment216.netlify.app keep working: that
+// address still serves the site, and signatures do not depend on the host.
+const DEFAULT_SITE_URL = "https://emerriment.com";
 
 // Resend's shared test sender. Kept as the default
 // so behaviour does not change until a verified

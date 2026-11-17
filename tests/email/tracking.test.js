@@ -169,17 +169,25 @@ test("approved destinations are redirected to as given", async () => {
     }
 });
 
-test("a domain EMerriment does not own (emerriment.com, unregistered) is not an approved destination", async () => {
-    for (const url of ["https://emerriment.com/quiz.html", "https://www.emerriment.com/"]) {
+test("the official domain (owned since 2026-11-11, primary since 2026-11-12) is an approved destination", async () => {
+    for (const url of ["https://emerriment.com/quiz.html", "https://www.emerriment.com/", "https://emerriment.com/encyclopedia.html?search=acne"]) {
+        const r = await click({ url });
+        assert.strictEqual(r.headers.Location, new URL(url).toString(), url);
+    }
+});
+
+test("lookalikes of the official domain are not approved destinations", async () => {
+    for (const url of ["https://emerriment.com.evil.example/", "https://emerriment.co/", "https://xemerriment.com/",
+        "https://evil-emerriment.com/", "https://emerriment.com@evil.example/", "http://emerriment.com/"]) {
         const r = await click({ url });
         assert.strictEqual(r.headers.Location, "https://emerriment216.netlify.app", url);
     }
 });
 
 test("EMAIL_EXTRA_REDIRECT_HOSTS adds owned domains; malformed entries are ignored", async () => {
-    H.setEnv({ EMAIL_EXTRA_REDIRECT_HOSTS: " Emerriment.com , www.emerriment.com,bad host,*.evil.example,https://x.example" });
-    const ok = await click({ url: "https://emerriment.com/quiz.html" });
-    assert.strictEqual(ok.headers.Location, "https://emerriment.com/quiz.html");
+    H.setEnv({ EMAIL_EXTRA_REDIRECT_HOSTS: " Shop.Example.org , bad host,*.evil.example,https://x.example" });
+    const ok = await click({ url: "https://shop.example.org/item" });
+    assert.strictEqual(ok.headers.Location, "https://shop.example.org/item");
     for (const url of ["https://bad host/", "https://a.evil.example/", "https://x.example/"]) {
         const r = await click({ url });
         assert.strictEqual(r.headers.Location, "https://emerriment216.netlify.app", url);

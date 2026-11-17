@@ -94,7 +94,7 @@ module.exports = ({ name, email, tracking }) => {
                 <p style="text-align:center;">
 
                     <a
-                        href="https://emerriment216.netlify.app/quiz.html"
+                        href="https://emerriment.com/quiz.html"
                         style="
                             display:inline-block;
                             background:#00E5FF;

@@ -43,7 +43,7 @@ test("all 14 lessons render with personalization, subject and design", async () 
         assert(t.html.includes("Hello <strong>Ada</strong>"), `day ${day} greeting`);
         assert(t.html.includes("🌿 EMerriment"), `day ${day} header`);
         assert(t.html.includes("Healthy Skin Begins With Understanding"), `day ${day} tagline`);
-        assert(t.html.includes("https://emerriment216.netlify.app"), `day ${day} site link`);
+        assert(/href="https:\/\/emerriment\.com"/.test(t.html), `day ${day} "Visit EMerriment" link to the official domain`);
         assert(t.html.includes("© EMerriment"), `day ${day} footer`);
     }
     assert.strictEqual(all[15], undefined, "no Day 15 lesson");
@@ -69,6 +69,16 @@ test("lessons use a safe default when the name is missing", async () => {
             assert(t.html.includes("Hello <strong>there</strong>"), `day ${day} default for ${JSON.stringify(name)}`);
             assert(!t.html.includes("undefined") && !t.html.includes(">null<"), `day ${day} leaks ${name}`);
         }
+    }
+});
+
+test("call-to-action links in welcome, report and Day 14 use the official domain", async () => {
+    const all = emails();
+    assert(all.welcome({ name: "Ada" }).html.includes('href="https://emerriment.com/quiz.html"'), "welcome quiz link");
+    assert(all.report({ name: "Ada" }).html.includes('href="https://emerriment.com/dashboard.html"'), "report dashboard link");
+    assert(all[14]({ name: "Ada" }).html.includes('<a href="https://emerriment.com"'), "day 14 link");
+    for (const html of [all.welcome({}).html, all.report({}).html, all[14]({}).html, all.newsletter({}).html]) {
+        assert(!html.includes("emerriment216.netlify.app"), "old Netlify address in a call-to-action");
     }
 });
 

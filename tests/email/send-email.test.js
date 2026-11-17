@@ -55,6 +55,16 @@ test("valid homepage report: one email, correct lead marked Sent, unrelated lead
     noLeak(r);
 });
 
+test("a lead without an id (the live table before migration 0) is never claimed or emailed", async () => {
+    const lead = H.addLead({ id: null });
+    const r = await post(homepageBody());
+    assert.strictEqual(H.mail.sent.length, 0, "no email may be sent");
+    assert.notStrictEqual(r.statusCode, 500, r.body);
+    assert.strictEqual(lead.email_status, "Pending", "lead left untouched");
+    assert.strictEqual(lead.last_email_sent, null);
+    noLeak(r);
+});
+
 test("explicit type=report is accepted", async () => {
     H.addLead();
     const r = await post(homepageBody({ type: "report" }));

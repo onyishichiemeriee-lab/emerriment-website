@@ -17,14 +17,23 @@ const LOCAL_AI_ENDPOINT =
     "http://127.0.0.1:3030/chat";
 
 /*
-   Current development mode.
+   Endpoint mode.
 
-   mock  → Netlify demo engine
-   local → Local AI Bridge + Ollama
-   api   → Netlify/OpenAI API
+   local → Local AI Bridge + Ollama (only when the page itself is
+           served from this computer: localhost / 127.0.0.1)
+   api   → Netlify function (production). The function decides
+           between its demo engine and OpenAI (EMERRIMENT_AI_MODE).
+
+   Visitors' browsers must never be sent to 127.0.0.1: on their
+   machine nothing listens there, so the assistant would fail.
 */
 
-const AI_MODE = "local";
+const AI_LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
+
+const AI_MODE =
+    AI_LOCAL_HOSTS.includes(window.location.hostname)
+        ? "local"
+        : "api";
 
 
 /* -----------------------------------------

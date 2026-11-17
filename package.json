@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:email": "node tests/email/run-all.js",
     "test:security": "node tests/security/run-all.js",
-    "test:db": "node tests/db/migrations.pglite.test.js"
+    "test:db": "node tests/db/migrations.pglite.test.js && node tests/db/production.pglite.test.js && node tests/db/security-03b.pglite.test.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "resend": "^6.17.2"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.11"
+    "@electric-sql/pglite": "0.5.11",
+    "jsdom": "24.1.3"
   }
 }
