@@ -27,7 +27,9 @@ function fakeClientSource(opts) {
           getSession: async () => ({ data: { session: user ? { access_token: "x", user } : null }, error: null }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
           signOut: async () => ({ error: null }),
-          signInWithPassword: async () => (window.__signin || { data: { user: ${JSON.stringify(USER)}, session: { access_token: "x" } }, error: null })
+          signInWithPassword: async () => (window.__signin || { data: { user: ${JSON.stringify(USER)}, session: { access_token: "x" } }, error: null }),
+          resend: async (args) => { (window.__resendCalls = window.__resendCalls || []).push(args); return window.__resend || { data: {}, error: null }; },
+          updateUser: async (args) => { window.__updateUserCalls = (window.__updateUserCalls || 0) + 1; return { data: { user }, error: null }; }
         },
         from: (t) => window.__fakeFrom(t),
         rpc: async () => ({ data: null, error: null })
@@ -64,7 +66,7 @@ function resolveExact(rel) {
 }
 
 // Loads a page; local files are served with EXACT case (stricter than Netlify).
-async function load(page, { signedIn = true, rows = {}, supabaseLoads = true, before } = {}) {
+async function load(page, { signedIn = true, rows = {}, supabaseLoads = true, before, hash = "" } = {}) {
     const events = { errors: [], navigations: 0, missing: [] };
     class Loader extends ResourceLoader {
         fetch(url) {
@@ -84,7 +86,7 @@ async function load(page, { signedIn = true, rows = {}, supabaseLoads = true, be
         else events.errors.push(m.split("\n")[0]);
     });
     const dom = new JSDOM(fs.readFileSync(path.join(H.ROOT, page), "utf8"), {
-        url: "https://local.test/" + page, runScripts: "dangerously", resources: new Loader(), virtualConsole: vc, pretendToBeVisual: true,
+        url: "https://local.test/" + page + hash, runScripts: "dangerously", resources: new Loader(), virtualConsole: vc, pretendToBeVisual: true,
         beforeParse(window) {
             window.__fakeFrom = makeFrom({ profiles: [{ id: USER.id, full_name: "Test User", email: USER.email, is_admin: false, current_skin_score: 0 }], encyclopedia_articles: [ARTICLE], products: [PRODUCT], ...rows });
             window.addEventListener("error", (e) => events.errors.push("uncaught: " + (e.error && e.error.message || e.message)));
@@ -193,6 +195,111 @@ test("dashboard notice renders text only (no HTML injection)", async () => {
     const notice = p.document.getElementById("dashboardNotice");
     assert(!notice.querySelector("img"));
     assert(notice.textContent.includes("<img src=x"));
+    p.window.close();
+});
+
+/* ---------- Email links: expired / invalid / successful ---------- */
+
+const EXPIRED = "#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired";
+
+test("homepage after an EXPIRED confirmation link: visible explanation, error removed from the address bar", async () => {
+    const p = await load("index.html", { signedIn: false, hash: EXPIRED });
+    await p.settle();
+    const notice = p.document.querySelector(".auth-callback-notice");
+    assert(notice, "no notice shown");
+    assert.match(notice.textContent, /expired or was already used/);
+    assert(notice.querySelector('a[href="login.html"]'));
+    assert.strictEqual(p.window.location.hash, "", "error details left in the address bar");
+    p.window.close();
+});
+
+test("homepage after a SUCCESSFUL confirmation link: 'email confirmed' notice; tokens left to supabase-js and never shown", async () => {
+    const p = await load("index.html", { hash: "#access_token=secret-token-value&refresh_token=r&type=signup&expires_in=3600" });
+    await p.settle();
+    const notice = p.document.querySelector(".auth-callback-notice");
+    assert(notice && /email address is confirmed/.test(notice.textContent));
+    assert(!p.document.body.innerHTML.includes("secret-token-value"), "token rendered in the page");
+    assert.strictEqual(p.window.EMAuthCallback.hasTokens, true);
+    p.window.close();
+});
+
+test("homepage without email-link parameters: no notice", async () => {
+    const p = await load("index.html", { signedIn: false });
+    await p.settle();
+    assert.strictEqual(p.document.querySelector(".auth-callback-notice"), null);
+    p.window.close();
+});
+
+test("reset page after an EXPIRED reset link: message with a new-link action, form disabled", async () => {
+    const p = await load("reset-password.html", { signedIn: false, hash: EXPIRED });
+    await p.settle();
+    const message = p.document.getElementById("passwordMessage");
+    assert.match(message.textContent, /reset link has expired/);
+    assert(message.querySelector('a[href="forgot-password.html"]'));
+    assert(p.document.getElementById("password").disabled, "form still enabled");
+    p.window.close();
+});
+
+test("reset page opened without a reset session: explains how to get a valid link", async () => {
+    const p = await load("reset-password.html", { signedIn: false });
+    await p.settle(500);
+    const message = p.document.getElementById("passwordMessage");
+    assert.match(message.textContent, /Open this page from the link in your password reset email/);
+    assert(message.querySelector('a[href="forgot-password.html"]'));
+    p.window.close();
+});
+
+test("reset page with a valid reset session: no warning; new password saved, then back to login", async () => {
+    const p = await load("reset-password.html");
+    await p.settle(500);
+    assert.strictEqual(p.document.getElementById("passwordMessage").textContent.trim(), "");
+    p.document.getElementById("password").value = "a-new-long-password";
+    p.document.getElementById("confirmPassword").value = "a-new-long-password";
+    p.document.getElementById("passwordForm").dispatchEvent(new p.window.Event("submit", { cancelable: true }));
+    await p.settle(1900);
+    assert.match(p.document.getElementById("passwordMessage").textContent, /Password updated successfully/);
+    assert.strictEqual(p.window.__updateUserCalls, 1);
+    assert.strictEqual(p.events.navigations, 1, "no redirect to login.html");
+    p.window.close();
+});
+
+test("login with an unconfirmed account: offers to resend the confirmation email (neutral reply)", async () => {
+    const p = await load("login.html", { before: (w) => { w.__signin = { data: {}, error: { message: "Email not confirmed" } }; } });
+    p.document.getElementById("email").value = " User@Example.test ";
+    p.document.getElementById("password").value = "placeholder-password";
+    p.document.getElementById("loginForm").dispatchEvent(new p.window.Event("submit", { cancelable: true }));
+    await p.settle(400);
+    const resend = p.document.getElementById("resendConfirmation");
+    assert(resend, "no resend option");
+    resend.click();
+    await p.settle(300);
+    assert.strictEqual(JSON.stringify(p.window.__resendCalls), JSON.stringify([{ type: "signup", email: "user@example.test" }]));
+    assert.match(p.document.getElementById("loginMessage").textContent, /If this account still needs confirming/);
+    p.window.close();
+});
+
+test("resend confirmation: Supabase rate limit is explained in plain words", async () => {
+    const p = await load("login.html", { before: (w) => {
+        w.__signin = { data: {}, error: { message: "Email not confirmed" } };
+        w.__resend = { data: null, error: { message: "For security purposes, you can only request this after 52 seconds." } };
+    } });
+    p.document.getElementById("email").value = "user@example.test";
+    p.document.getElementById("password").value = "placeholder-password";
+    p.document.getElementById("loginForm").dispatchEvent(new p.window.Event("submit", { cancelable: true }));
+    await p.settle(400);
+    p.document.getElementById("resendConfirmation").click();
+    await p.settle(300);
+    assert.match(p.document.getElementById("loginMessage").textContent, /wait a minute/);
+    p.window.close();
+});
+
+test("wrong password: no resend option is offered", async () => {
+    const p = await load("login.html", { before: (w) => { w.__signin = { data: {}, error: { message: "Invalid login credentials" } }; } });
+    p.document.getElementById("email").value = "user@example.test";
+    p.document.getElementById("password").value = "placeholder-password";
+    p.document.getElementById("loginForm").dispatchEvent(new p.window.Event("submit", { cancelable: true }));
+    await p.settle(400);
+    assert.strictEqual(p.document.getElementById("resendConfirmation"), null);
     p.window.close();
 });
 
