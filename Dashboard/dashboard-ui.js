@@ -92,37 +92,50 @@ function showNotification(
 // Error Screen
 // --------------------------------------------
 
+// Shows a visible message at the top of the dashboard (never a blank
+// page) and always removes the loading indicator. Plain text only.
 function showError(message) {
 
-    const container =
+    hideLoading();
+
+    const notice =
 
         document.getElementById(
 
-            "dashboardContent"
+            "dashboardNotice"
 
         );
 
-    if (!container) return;
+    if (!notice) {
 
-    container.innerHTML = `
+        console.error("Dashboard:", message);
 
-        <div class="empty-state">
+        return;
 
-            <h2>
+    }
 
-                Something went wrong
+    notice.textContent = "";
 
-            </h2>
+    const text = document.createElement("p");
 
-            <p>
+    text.textContent =
+        String(message || "Something went wrong while loading your dashboard.");
 
-                ${message}
+    const reload = document.createElement("button");
 
-            </p>
+    reload.type = "button";
 
-        </div>
+    reload.className = "dashboard-notice-action";
 
-    `;
+    reload.textContent = "Reload";
+
+    reload.addEventListener("click", () => window.location.reload());
+
+    notice.appendChild(text);
+
+    notice.appendChild(reload);
+
+    notice.hidden = false;
 
 }
 

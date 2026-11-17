@@ -178,7 +178,9 @@ test("authentication files were not modified by the security work", async () => 
     const { execFileSync } = require("child_process");
     const changed = execFileSync("git", ["diff", "--name-only", "9795f887c86b36f1365d5e5ba0a40b52a1cf4bad", "--",
         "js/auth.js", "js/supabase.js", "login.html", "forgot-password.html", "reset-password.html",
-        "Dashboard", "dashboard.html", "admin/admin-authCMS.js", "admin/js/login.js"], { cwd: H.ROOT, encoding: "utf8" }).trim();
+        // Dashboard/ and dashboard.html changed on purpose (2026-11-17: loader, error notice,
+        // parallel loading); covered by tests/security/auth-pages.dom.test.js.
+        "admin/admin-authCMS.js", "admin/js/login.js"], { cwd: H.ROOT, encoding: "utf8" }).trim();
     assert.strictEqual(changed, "", "changed: " + changed);
 });
 

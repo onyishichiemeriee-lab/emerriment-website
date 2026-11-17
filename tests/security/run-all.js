@@ -6,7 +6,8 @@
 
 const suites = [
     require("./static-security.test"),
-    require("./auth-regression.test")
+    require("./auth-regression.test"),
+    require("./auth-pages.dom.test")
 ];
 
 (async () => {

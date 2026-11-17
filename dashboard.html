@@ -11,16 +11,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 
-<script src="dashboard/dashboard-ui.js"></script>
-<script src="dashboard/dashboard-auth.js"></script>
-<script src="dashboard/dashboard-profile.js"></script>
-<script src="dashboard/dashboard-stats.js"></script>
-<script src="dashboard/dashboard-reading.js"></script>
-<script src="dashboard/dashboard-history.js"></script>
-<script src="dashboard/dashboard-recommendations.js"></script>
-<script src="dashboard/dashboard-products.js"></script>
-<script src="dashboard/dashboard-topics.js"></script>
-<script src="dashboard/dashboard.js"></script>
+<script src="Dashboard/dashboard-ui.js"></script>
+<script src="Dashboard/dashboard-auth.js"></script>
+<script src="Dashboard/dashboard-profile.js"></script>
+<script src="Dashboard/dashboard-stats.js"></script>
+<script src="Dashboard/dashboard-reading.js"></script>
+<script src="Dashboard/dashboard-history.js"></script>
+<script src="Dashboard/dashboard-recommendations.js"></script>
+<script src="Dashboard/dashboard-products.js"></script>
+<script src="Dashboard/dashboard-topics.js"></script>
+<script src="Dashboard/dashboard.js"></script>
 </head>
 
 <body>
@@ -38,6 +38,14 @@
 </header>
 
 <main class="dashboard">
+
+    <!-- Shown while the sections load; hidden by Dashboard/dashboard.js -->
+    <div id="dashboardLoader" class="dashboard-loader" role="status" aria-live="polite">
+        Loading your dashboard…
+    </div>
+
+    <!-- Visible message if something fails (never a blank page) -->
+    <div id="dashboardNotice" class="dashboard-notice" role="alert" hidden></div>
 
     <!-- Welcome -->
 
