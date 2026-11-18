@@ -68,7 +68,7 @@ const INTERNAL_FILES = [
     "/package.json", "/package-lock.json", "/netlify.toml",
     "/netlify/functions/send-email.js", "/netlify/lib/email-common.js",
     "/emails/day1.js", "/emails/layout.js", "/local-ai/server.js",
-    "/tests/email/helpers.js", "/supabase/README.md",
+    "/tests/email/helpers.js", "/supabase/README.md", "/docs/EMAIL_LIFECYCLE_PLAN.md", "/DOCS/PRODUCTION_ACTIVATION_CHECKLIST.md",
     "/supabase/migrations/20261110090000_emerriment_security_helpers.sql",
     "/test-emails.js", "/deno.lock"
 ];

@@ -2048,3 +2048,35 @@ a {
 /* =========================================================
    END OF QUIZ.CSS
    ========================================================= */
+/* =========================================
+   Report email note and optional consent
+========================================= */
+.quiz-email-note {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    opacity: 0.85;
+}
+
+.quiz-email-note a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.quiz-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.quiz-consent input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    flex: none;
+    cursor: pointer;
+}

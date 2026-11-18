@@ -188,8 +188,10 @@ test("every RLS change records the previous state first (rollback can restore it
     // table may enable RLS directly.
     // The helper builds its statement with format('... %s ...'), and the new
     // email_deliveries table has no previous state to restore.
-    assert.deepStrictEqual(direct.filter((d) => !d.endsWith(": %s") && !d.endsWith(": public.email_deliveries")), []);
-    assert.strictEqual(direct.length, 2, "unexpected direct RLS changes: " + direct.join(", "));
+    // public.purchases (migration 7) is likewise brand-new.
+    const brandNew = [": public.email_deliveries", ": public.purchases"];
+    assert.deepStrictEqual(direct.filter((d) => !d.endsWith(": %s") && !brandNew.some((b) => d.endsWith(b))), []);
+    assert.strictEqual(direct.length, 3, "unexpected direct RLS changes: " + direct.join(", "));
     const helper = migrations.find((m) => m.file.includes("security_helpers")).sql.split("create or replace function emerriment_private.enable_rls(target regclass)")[1].split("$$;")[0];
     assert(helper.indexOf("insert into emerriment_private.rls_baseline") < helper.indexOf("enable row level security"));
     assert(helper.includes("on conflict (table_name) do nothing"), "re-runs must keep the ORIGINAL state");
@@ -370,7 +372,7 @@ test("browser code contains no service-role key or secret names", async () => {
 
 test("internal folders and files are blocked from public download; functions are not", async () => {
     const toml = read("netlify.toml");
-    for (const p of ["/netlify/*", "/emails/*", "/tests/*", "/supabase/*", "/local-ai/*", "/node_modules/*",
+    for (const p of ["/netlify/*", "/emails/*", "/tests/*", "/supabase/*", "/docs/*", "/local-ai/*", "/node_modules/*",
         "/package.json", "/package-lock.json", "/deno.lock", "/netlify.toml", "/test-emails.js", "/test-special-emails.js"]) {
         const block = toml.split("[[redirects]]").find((b) => b.includes(`from = "${p}"`));
         assert(block, "not blocked: " + p);
@@ -393,7 +395,8 @@ test("email-sequence: schedule registered in netlify.toml, but sending requires 
     // for exports.handler functions). Activation of SENDING stays a separate,
     // deliberate decision via EMAIL_SEQUENCE_ENABLED=true.
     const toml = read("netlify.toml");
-    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "@daily"/.test(toml));
+    // Daily at 07:00 UTC = 08:00 Africa/Lagos.
+    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "0 7 \* \* \*"/.test(toml));
     const fn = read("netlify/functions/email-sequence.js");
     const code = fn.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
     assert(!/exports\.config\s*=/.test(code), "ineffective exports.config left in place");

@@ -15619,3 +15619,58 @@ p {
     color: #ffffff !important;
     background: #222222 !important;
 }
+
+/* ===============================
+   Quiz: report note, optional consent, inline error
+================================ */
+.quiz-form .quiz-privacy-note{
+font-size:14px;
+line-height:1.5;
+margin:0;
+opacity:.85;
+text-align:left;
+}
+
+.quiz-form .quiz-privacy-note a{
+color:inherit;
+text-decoration:underline;
+}
+
+.quiz-form .quiz-consent{
+display:flex;
+align-items:flex-start;
+gap:10px;
+font-size:14px;
+line-height:1.5;
+text-align:left;
+cursor:pointer;
+}
+
+.quiz-form .quiz-consent input[type="checkbox"]{
+width:18px;
+height:18px;
+padding:0;
+margin:2px 0 0;
+flex:none;
+cursor:pointer;
+}
+
+.quiz-form .quiz-form-error{
+margin:0;
+padding:10px 14px;
+border-radius:10px;
+background:#fff4f2;
+border:1px solid #f0c4bb;
+color:#7a2e1f;
+font-size:14px;
+text-align:left;
+}
+
+.quiz-form .quiz-form-error[hidden]{
+display:none;
+}
+
+.quiz-form button:disabled{
+opacity:.6;
+cursor:wait;
+}

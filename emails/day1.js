@@ -10,7 +10,7 @@ const safeName = escapeHtml(name || "there");
 return {
 
 subject:
-"🌿 The Truth About Your Skin Type (Most People Get This Wrong)",
+"🌿 Day 1: What your skin type really tells you",
 
 html: layout({
 

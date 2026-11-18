@@ -123,6 +123,26 @@ const PAGES = {
 };
 
 
+// Unsubscribing also withdraws marketing consent (migration
+// 20261117090000), so every consent check — including the sequence's
+// claim right before sending — refuses these leads. The original consent
+// time, source and wording stay as evidence. Best effort: before the
+// migration the columns do not exist and the status change alone applies.
+async function withdrawConsent(supabase, ids) {
+    try {
+        const { error } = await supabase
+            .from("leads")
+            .update({
+                marketing_consent: false,
+                marketing_consent_withdrawn_at: new Date().toISOString()
+            })
+            .in("id", ids);
+        return !error;
+    } catch (error) {
+        return false;
+    }
+}
+
 async function unsubscribeLead(supabase, leadId) {
 
     const { data: rows, error: findError } = await supabase
@@ -158,6 +178,7 @@ async function unsubscribeLead(supabase, leadId) {
         .in("id", ids);
 
     if (!statusError) {
+        await withdrawConsent(supabase, ids);
         return "done";
     }
 

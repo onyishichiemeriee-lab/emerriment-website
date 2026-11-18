@@ -9693,20 +9693,73 @@ messages.scrollTop = messages.scrollHeight;
 }
 
 async function submitQuiz() {
+
+  // One submission at a time: double clicks created duplicate leads.
+  if (submitQuiz.busy) return;
+
+  const formError = document.getElementById("quizFormError");
+  const submitButton = document.getElementById("quizSubmit");
+
+  // Privacy-safe funnel events (js/analytics.js): never the address,
+  // name or quiz answers.
+  const track = (event, params) => {
+    try { if (typeof emTrack === "function") emTrack(event, params || {}); } catch (e) { /* ignore */ }
+  };
+
+  const showFormError = (message) => {
+    if (formError) {
+      formError.textContent = message;
+      formError.hidden = false;
+    } else {
+      alert(message);
+    }
+  };
+
+  if (formError) {
+    formError.textContent = "";
+    formError.hidden = true;
+  }
+
+  const enteredEmail = String((document.getElementById("email") || {}).value || "").trim();
+
+  if (!/^[^\s@<>]+@[^\s@<>]+\.[A-Za-z]{2,}$/.test(enteredEmail)) {
+    showFormError("Please enter a valid email address so we can send you your skin report.");
+    track("quiz_validation_error", { field: "email" });
+    return;
+  }
+
+  submitQuiz.busy = true;
+  if (submitButton) submitButton.disabled = true;
+
+  try {
+    return await runQuizSubmission();
+  } finally {
+    submitQuiz.busy = false;
+    if (submitButton) submitButton.disabled = false;
+  }
+
+  async function runQuizSubmission() {
   const loadingEl = document.getElementById("loading");
   const analysisEl = document.getElementById("analysisText");
 
   // Only attempt to update elements if they actually exist in the DOM
   if (loadingEl) loadingEl.style.display = "flex";
-  
+
   await new Promise(resolve => setTimeout(resolve, 3000));
 
   const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
+  const email = enteredEmail;
   const skinType = document.getElementById("skinType").value;
   const concern = document.getElementById("concern").value;
   const oilLevel = document.getElementById("oilLevel")?.value || "";
   const sensitivity = document.getElementById("sensitivity")?.value || "";
+
+  // Optional, separate marketing consent (unticked by default). The
+  // requested report is sent either way; lessons only with this opt-in.
+  const consentBox = document.getElementById("marketingConsent");
+  const marketingConsent = Boolean(consentBox && consentBox.checked);
+
+  track("quiz_complete", { form: "homepage" });
 
   let score = 60;
 
@@ -9777,9 +9830,7 @@ document.getElementById(
 
   console.log("About to insert into Supabase");
 
-  const { data, error } = await supabaseClient
-  .from("leads")
-  .insert([
+  const leadRow =
     {
       name,
       email,
@@ -9818,8 +9869,29 @@ next_email_due: new Date(
       tags: ["quiz"],
 
       notes: null
-    }
-  ]);
+    };
+
+  // Consent fields only when the visitor opted in (database wording
+  // version "quiz-optin-2026-11-17"; source and time are checked/set by
+  // the database).
+  if (marketingConsent) {
+    leadRow.marketing_consent = true;
+    leadRow.marketing_consent_source = "homepage_quiz";
+    leadRow.marketing_consent_version = "quiz-optin-2026-11-17";
+  }
+
+  let { data, error } = await supabaseClient
+  .from("leads")
+  .insert([leadRow]);
+
+  // Before the consent migration is applied the columns do not exist:
+  // save the quiz without them (no consent recorded = no lessons).
+  if (error && marketingConsent && (error.code === "PGRST204" || /marketing_consent/.test(String(error.message || "")))) {
+    delete leadRow.marketing_consent;
+    delete leadRow.marketing_consent_source;
+    delete leadRow.marketing_consent_version;
+    ({ data, error } = await supabaseClient.from("leads").insert([leadRow]));
+  }
   // No .select() here: the lead row is not read back by the browser.
   // The email function verifies and updates the lead server-side.
 
@@ -9828,10 +9900,15 @@ next_email_due: new Date(
 
     if (loadingEl) loadingEl.style.display = "none";
 
+    track("lead_submit", { success: false });
+
     alert("Unable to save your quiz. Please try again.");
 
     return;
   }
+
+  track("lead_submit", { success: true });
+  track("marketing_consent", { granted: marketingConsent });
 
   // ==========================================
   // Quiz saved. Send the report email.
@@ -9980,6 +10057,8 @@ next_email_due: new Date(
     }, 5000);
 
   }
+
+}
 
 }
 

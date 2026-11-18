@@ -19,6 +19,8 @@ const db = {
     // Tables that do not exist (like before the
     // migration). Queries on them fail as in PostgREST.
     missingTables: new Set(["email_deliveries"]),
+    // Columns that do not exist yet (before a migration).
+    missingColumns: new Set(),
     // { table: [[col, col, ...], ...] } unique keys
     unique: { email_deliveries: [["lead_id", "kind", "sequence_day"]] },
     nextRowId: 1,
@@ -110,6 +112,10 @@ class Query {
         db.ops.push({ table: this.table, mode: this.mode, filters: this.filters, changes: this.changes });
         if (db.failWhen && db.failWhen(this)) {
             return { data: null, error: { code: "XX000", message: "SECRET-DB-DETAIL internal failure" } };
+        }
+        const missingColumn = this.filters.map((f) => f[1]).find((c) => db.missingColumns.has(c));
+        if (missingColumn) {
+            return { data: null, error: { code: "42703", message: `column ${this.table}.${missingColumn} does not exist` } };
         }
         if (db.missingTables.has(this.table)) {
             return { data: null, error: { code: "PGRST205", message: `Could not find the table 'public.${this.table}' in the schema cache` } };
@@ -293,6 +299,9 @@ function addLead(over = {}) {
         emails_clicked: 0,
         tags: ["quiz"],
         notes: null,
+        // Lesson-sequence fixtures are opted-in leads (the only leads that
+        // may receive lessons); tests of declined consent override this.
+        marketing_consent: true,
         ...over
     };
     db.tables.leads.push(lead);
@@ -302,6 +311,7 @@ function addLead(over = {}) {
 function reset() {
     db.tables = { leads: [], product_clicks: [] };
     db.missingTables = new Set(["email_deliveries"]);
+    db.missingColumns = new Set();
     db.nextRowId = 1;
     db.rejectValues = {};
     db.failWhen = null;

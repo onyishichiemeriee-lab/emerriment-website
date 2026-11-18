@@ -5,6 +5,7 @@
 const layout = require("./layout");
 
 const escapeHtml = require("./escape-html");
+const { guidanceFor } = require("./report-guidance");
 
 
 module.exports = ({
@@ -53,6 +54,22 @@ module.exports = ({
         );
 
 
+    // Educational guidance from fixed text keyed by the known quiz answers
+    // (emails/report-guidance.js) — never the visitor's own text.
+    const guidance = guidanceFor({ concern, skinType });
+
+    const guidanceBlock = guidance.concern || guidance.skinTip
+        ? `
+                <h3>📚 What to learn next${guidance.concern ? " about " + escapeHtml(guidance.concern.label.toLowerCase()) : ""}</h3>
+                ${guidance.skinTip ? `<p>${escapeHtml(guidance.skinTip)}</p>` : ""}
+                ${guidance.concern ? `
+                <ul style="padding-left:20px;line-height:1.7;">
+                    ${guidance.concern.points.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}
+                </ul>
+                <p><strong>When to see a professional:</strong> ${escapeHtml(guidance.concern.seeSomeone)}</p>
+                <p><a href="https://emerriment.com/encyclopedia.html?search=${encodeURIComponent(guidance.concern.label)}" style="color:#0E7490;font-weight:bold;">Read about ${escapeHtml(guidance.concern.label.toLowerCase())} in the EMerriment encyclopedia →</a></p>` : ""}`
+        : "";
+
     return {
 
         subject:
@@ -62,6 +79,9 @@ module.exports = ({
         html: layout({
 
             tracking,
+
+            preheader:
+                "Your skin profile, a simple starting point and what to learn next.",
 
             title:
                 "Your Personalized Skin Report 🌿",
@@ -229,6 +249,9 @@ module.exports = ({
                 </div>
 
 
+                ${guidanceBlock}
+
+
                 <h3>
                     💚 One Important Reminder
                 </h3>
@@ -245,6 +268,14 @@ module.exports = ({
                     Consistency, patience and the right information
                     matter more than trying every product you see
                     online.
+                </p>
+
+
+                <p style="font-size:13px;color:#64748B;">
+                    This report is educational and based only on your
+                    quiz answers. It is not a medical diagnosis. If your
+                    skin is painful, bleeding, spreading or not
+                    improving, please see a dermatologist or doctor.
                 </p>
 
 

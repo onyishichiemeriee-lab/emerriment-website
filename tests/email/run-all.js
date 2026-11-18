@@ -9,7 +9,8 @@ const suites = [
     require("./sequence.test"),
     require("./tracking.test"),
     require("./homepage-quiz.test"),
-    require("./quiz-pages.test")
+    require("./quiz-pages.test"),
+    require("./lifecycle.test")
 ];
 
 (async () => {

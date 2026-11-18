@@ -77,6 +77,16 @@ function getSender() {
 
 }
 
+// Optional reply address (EMAIL_REPLY_TO, a bare address on a domain
+// with a real inbox). mail.emerriment.com has no inbox, so without it
+// replies to EMerriment emails reach no one.
+function getReplyTo() {
+    const configured = String(process.env.EMAIL_REPLY_TO || "").trim();
+    return configured.length <= 254 && /^[^s@<>]+@[A-Za-z0-9.-]+.[A-Za-z]{2,}$/.test(configured)
+        ? configured
+        : null;
+}
+
 function isUsingTestSender() {
 
     return getSender() === DEFAULT_SENDER;
@@ -397,6 +407,11 @@ async function sendWithResend(resend, message, idempotencyKey) {
             payload.headers = message.headers;
         }
 
+        const replyTo = getReplyTo();
+        if (replyTo) {
+            payload.replyTo = replyTo;
+        }
+
         const response = await resend.emails.send(
             payload,
             idempotencyKey ? { idempotencyKey } : undefined
@@ -446,6 +461,7 @@ module.exports = {
     DEFAULT_SITE_URL,
     getSiteUrl,
     getSender,
+    getReplyTo,
     isUsingTestSender,
     isValidEmail,
     normalizeEmail,

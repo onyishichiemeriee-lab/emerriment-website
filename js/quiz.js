@@ -505,7 +505,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             goal,
 
-            routine
+            routine,
+
+            // Optional, separate opt-in to the 14-day lessons
+            // (wording version quiz-optin-2026-11-17).
+            marketing_consent:
+                Boolean(document.getElementById("marketingConsent")?.checked)
 
         };
 
@@ -744,13 +749,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // only need permission to insert it.
     const savedLead = null;
 
-    const {
+    if (data.marketing_consent === true) {
+        leadPayload.marketing_consent = true;
+        leadPayload.marketing_consent_source = "quiz_page";
+        leadPayload.marketing_consent_version = "quiz-optin-2026-11-17";
+    }
+
+    let {
         error: leadError
     } = await supabaseClient
 
         .from("leads")
 
         .insert(leadPayload);
+
+    // Before the consent migration the columns do not exist: save the
+    // quiz without them (no consent recorded = no lessons).
+    if (leadError && leadPayload.marketing_consent &&
+        (leadError.code === "PGRST204" || /marketing_consent/.test(String(leadError.message || "")))) {
+        delete leadPayload.marketing_consent;
+        delete leadPayload.marketing_consent_source;
+        delete leadPayload.marketing_consent_version;
+        ({ error: leadError } = await supabaseClient.from("leads").insert(leadPayload));
+    }
 
 
     if (leadError) {
@@ -773,6 +794,30 @@ document.addEventListener("DOMContentLoaded", () => {
         savedLead
     );
 
+    // The visitor asked for their report: one email through the same
+    // server function as the homepage (per-address limits, at most once).
+    let reportEmailSent = false;
+
+    try {
+        const response = await fetch("/.netlify/functions/send-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: data.name,
+                email: data.email,
+                skinType: data.skin_type,
+                concern: data.concern,
+                oilLevel: data.oil_level,
+                sensitivity: data.sensitivity,
+                score: score,
+                recommendation: recommendation
+            })
+        });
+        reportEmailSent = Boolean(response && response.ok);
+    } catch (emailError) {
+        console.warn("⚠️ Report email request failed.");
+    }
+
 
     // ----------------------------------------
     // 2. Get authenticated user
@@ -793,7 +838,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
             success: true,
             data: savedLead,
-            quizResultSaved: false
+            quizResultSaved: false,
+            reportEmailSent
         };
 
     }

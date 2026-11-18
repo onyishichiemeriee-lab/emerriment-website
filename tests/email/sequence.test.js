@@ -23,14 +23,14 @@ function dueLead(over = {}) {
     });
 }
 
-test("schedule: registered @daily in netlify.toml; no ineffective exports.config left", async () => {
+test("schedule: registered daily at 07:00 UTC (08:00 Africa/Lagos) in netlify.toml; no ineffective exports.config left", async () => {
     // exports.config is NOT recognised by Netlify for exports.handler-style
     // functions (verified with zip-it-and-ship-it 16.2.2), so the schedule
     // lives in netlify.toml.
     const fs = require("fs");
     const path = require("path");
     const toml = fs.readFileSync(path.join(H.ROOT, "netlify.toml"), "utf8");
-    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "@daily"/.test(toml), "schedule not registered");
+    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "0 7 \* \* \*"/.test(toml), "schedule not registered");
     assert.strictEqual(H.load(FN).config, undefined, "misleading exports.config still present");
 });
 
@@ -47,7 +47,8 @@ test("sends the lesson for the lead's current day and advances by one day", asyn
     assert.strictEqual(H.mail.sent[0].payload.to, "ada@example.com");
     assert.strictEqual(lead.email_sequence_day, 4);
     const due = new Date(lead.next_email_due).getTime();
-    assert(due >= before + 864e5 - 1000 && due <= Date.now() + 864e5 + 1000, "next lesson 24h later");
+    // 20 hours, so the next DAILY run picks it up (24h drifted to every other day).
+    assert(due >= before + 20 * 3600e3 - 1000 && due <= Date.now() + 20 * 3600e3 + 1000, "next lesson 20h later");
     assert(lead.last_sequence_email_sent);
     assert.strictEqual(lead.email_status, "Sent", "report status untouched");
     assert.strictEqual(lead.last_email_sent, reportSentAt, "report timestamp untouched");
