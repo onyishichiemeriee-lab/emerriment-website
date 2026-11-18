@@ -128,6 +128,14 @@ Order with the deploy: either order is safe. Until the branch is deployed,
 the CMS "toggle admin" button and the article rating average need the new
 code; until the migrations are applied, the new code falls back where it can.
 
+### Migration 7 (2026-11-17, prepared — not applied)
+
+`20261117090000_emerriment_marketing_consent_and_purchases.sql`: separate
+marketing consent, verified purchases, customer onboarding delivery
+records. Release order, approvals and test plan:
+`docs/PRODUCTION_ACTIVATION_CHECKLIST.md`; journey and lifecycle design:
+`docs/VISITOR_TO_CUSTOMER_JOURNEY.md`, `docs/EMAIL_LIFECYCLE_PLAN.md`.
+
 ## 5. Deploy the domain-alignment branch
 
 `production/official-domain-finalization` changes only email call-to-action

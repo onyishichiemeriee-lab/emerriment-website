@@ -68,9 +68,11 @@ $$;
 -- 3. Triggers and functions.
 drop trigger if exists emerriment_guard_profile_privileges on public.profiles;
 drop trigger if exists emerriment_guard_lead_insert on public.leads;
+drop trigger if exists emerriment_guard_lead_consent on public.leads;
 
 drop function if exists public.emerriment_guard_profile_privileges();
 drop function if exists public.emerriment_guard_lead_insert();
+drop function if exists public.emerriment_guard_lead_consent();
 
 do $$
 declare
@@ -140,6 +142,11 @@ $$;
 
 -- 5. Delivery history (comment out to keep it).
 drop table if exists public.email_deliveries;
+
+-- Migration 7 (20261117090000): verified purchases (after email_deliveries,
+-- which references it). The leads consent columns are intentionally KEPT:
+-- they are consent evidence; drop them manually only if you are sure.
+drop table if exists public.purchases;
 
 -- 6. Private helper schema (baseline table, enable_rls, request_role).
 drop schema if exists emerriment_private cascade;
