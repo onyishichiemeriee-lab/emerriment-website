@@ -303,6 +303,22 @@ test("rollback only removes EMerriment objects and restores the recorded RLS sta
     assert(!/delete from|truncate/.test(rb.toLowerCase()), "rollback must not touch data rows");
 });
 
+test("full rollback needs an explicit all-seven confirmation; migration 7 rollback is narrow (no grants, no drops of tables, policies or RLS)", async () => {
+    const full = sqlCode(read("supabase/rollback/emerriment_security_rollback.sql"));
+    assert(full.indexOf("emerriment.full_rollback") >= 0 && full.indexOf("emerriment.full_rollback") < full.indexOf("drop policy"), "confirmation checked before anything is dropped");
+    const m7 = sqlCode(read("supabase/rollback/emerriment_migration7_rollback.sql")).toLowerCase();
+    for (const banned of ["grant ", "drop table", "drop policy", "drop schema", "drop column", "disable row level security", "delete from", "truncate", "update public."]) {
+        assert(!m7.includes(banned), "migration 7 rollback contains " + banned.trim());
+    }
+    const drops = [...m7.matchAll(/drop (trigger|function) if exists (?:public\.)?([a-z_]+)/g)].map((m) => m[2]);
+    assert.deepStrictEqual([...new Set(drops)].sort(), ["emerriment_guard_lead_consent", "emerriment_guard_lead_consent_change"]);
+    assert(/^\s*begin;/m.test(m7) && /commit;\s*$/.test(m7), "one transaction");
+    // Docs never point at the broad rollback for migration 7.
+    for (const doc of ["docs/PRODUCTION_ACTIVATION_CHECKLIST.md", "supabase/PRODUCTION_RUNBOOK.md", "supabase/README.md"]) {
+        assert(read(doc).includes("emerriment_migration7_rollback.sql"), doc + " names the migration 7 rollback");
+    }
+});
+
 test("read-only audit and verification files contain no data-changing statements", async () => {
     for (const file of ["supabase/audit/01_read_only_security_audit.sql", "supabase/audit/02_post_migration_verification.sql"]) {
         const audit = sqlCode(read(file)).toLowerCase();

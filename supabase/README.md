@@ -24,7 +24,8 @@ run, so this is automatic there). A failed migration changes nothing.
 | `migrations/20261110090400_emerriment_email_delivery.sql` | `Sending` / `Unsubscribed` values (enum) and the `email_deliveries` table (needs migration 0). |
 | `migrations/20261113090000_emerriment_production_hardening.sql` | Migration 6: `emerriment_set_admin()` (only way to change admin access), column privileges on `profiles`/`leads`, least-privilege grants (no TRUNCATE, anon read-only on content), public read of approved products and their article links, rating summary function, view counter for published articles only, AI messages tied to the sender's own conversation, trigger functions not callable, RLS indexes, image-only storage bucket. |
 | `migrations/20261117090000_emerriment_marketing_consent_and_purchases.sql` | Migration 7 (**prepared, not applied**): separate marketing consent on `leads` (database time, allow-listed source and wording version), `purchases` (verified purchases, service role only), customer onboarding records in `email_deliveries`. See `docs/PRODUCTION_ACTIVATION_CHECKLIST.md`. |
-| `rollback/emerriment_security_rollback.sql` | Removes everything the migrations created and restores the recorded RLS state. |
+| `rollback/emerriment_security_rollback.sql` | Full rollback of **all seven** migrations: removes everything they created and restores the recorded RLS state. Requires `set emerriment.full_rollback = 'all-seven-migrations';` first. Never for migration 7 alone. |
+| `rollback/emerriment_migration7_rollback.sql` | Rollback of **migration 7 only**: removes the two consent guards and the visitor consent-column privilege; keeps all data and every migration 1–6 protection. Run only after the website has been rolled back. |
 
 ## Design
 
@@ -100,9 +101,14 @@ As the **administrator**: CMS users, subscribers, articles, products, settings
 and AI analytics load and save; toggle admin on a test account and back (the CMS now calls `emerriment_set_admin`).
 Then take the homepage quiz (anonymous and signed in) and `quiz.html` once.
 
-Rollback: run `rollback/emerriment_security_rollback.sql` (restores the RLS
-state recorded in `emerriment_private.rls_baseline`, then removes the
-EMerriment objects). Enum values added by migration 5 remain (harmless).
+Rollback of all seven migrations: first
+`set emerriment.full_rollback = 'all-seven-migrations';`, then run
+`rollback/emerriment_security_rollback.sql` (restores the RLS state recorded
+in `emerriment_private.rls_baseline`, then removes the EMerriment objects).
+Enum values added by migration 5 remain (harmless). This also removes the
+protections of migrations 1–6 — to undo migration 7 only, use
+`rollback/emerriment_migration7_rollback.sql` instead (see
+`PRODUCTION_RUNBOOK.md`, "Migration 7").
 
 ## Netlify environment variables
 

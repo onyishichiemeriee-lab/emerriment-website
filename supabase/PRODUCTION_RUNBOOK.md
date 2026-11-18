@@ -122,7 +122,8 @@ deploy.
 4. Verify: `audit/02_post_migration_verification.sql` and
    `audit/03_live_rls_role_checks.sql` (runs as anon / two real users /
    admin, rolls everything back, every row must pass).
-   Rollback: `rollback/emerriment_security_rollback.sql`.
+   Rollback of migrations 1–6 (all seven): `rollback/emerriment_security_rollback.sql` —
+   full rollback of all seven migrations; refuses to run unless the session first sets `emerriment.full_rollback = 'all-seven-migrations'`. **Never use it to undo migration 7 alone** (it removes every EMerriment security policy and makes `leads` readable by anyone).
 
 Order with the deploy: either order is safe. Until the branch is deployed,
 the CMS "toggle admin" button and the article rating average need the new
@@ -132,9 +133,27 @@ code; until the migrations are applied, the new code falls back where it can.
 
 `20261117090000_emerriment_marketing_consent_and_purchases.sql`: separate
 marketing consent, verified purchases, customer onboarding delivery
-records. Release order, approvals and test plan:
+records, and two consent guards on `leads` (insert: quiz rules for every
+API caller; update: consent never switched on or rewritten, withdrawal only
+by the server). Release order, approvals and test plan:
 `docs/PRODUCTION_ACTIVATION_CHECKLIST.md`; journey and lifecycle design:
 `docs/VISITOR_TO_CUSTOMER_JOURNEY.md`, `docs/EMAIL_LIFECYCLE_PLAN.md`.
+
+Rollback of migration 7 **only**: `rollback/emerriment_migration7_rollback.sql`.
+* Not needed when only a website deploy fails — the previous code works
+  with migration 7 applied; re-publish the previous Netlify deploy.
+* Order: website rolled back and lessons/onboarding switches unset → run
+  the file (one transaction) → re-apply migration 7 before the newer code
+  returns.
+* Removes only the two consent triggers/functions and the visitor INSERT
+  privilege on the consent columns. Keeps all rows (leads, consent
+  evidence, purchases, delivery history), the consent CHECK constraint,
+  `purchases` and its RLS, the `email_deliveries` extensions and every
+  migration 1–6 object. It aborts itself if any row count, policy, RLS
+  flag or API privilege changes.
+* Tested: `tests/db/journey.pglite.test.js` (data fingerprint identical,
+  migration 1–6 security state identical, 03b passes afterwards,
+  re-apply works).
 
 ## 5. Deploy the domain-alignment branch
 

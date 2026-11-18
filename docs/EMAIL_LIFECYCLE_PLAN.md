@@ -43,6 +43,17 @@ Stored per lead: `marketing_consent`, `marketing_consent_at` (database time),
 `marketing_consent_withdrawn_at`. Existing leads have `marketing_consent =
 false` — nobody is enrolled retroactively.
 
+Who can change it (enforced by the database, migration 7):
+* Consent is recorded only when a quiz submission inserts a lead with the
+  box ticked: allow-listed source and wording, server time. An
+  administrator or the server inserting a lead gets exactly the same rules.
+* Afterwards nobody — administrator, server or SQL Editor — can switch
+  consent on or rewrite its time, source or version.
+* Withdrawal only by the server (the unsubscribe function) or the SQL
+  Editor, with the server time; repeat unsubscribes keep the first time.
+  Administrators mark a lead `Unsubscribed` instead (every sender honours
+  that status).
+
 ## 2. Sequences
 
 ### 2.1 Requested quiz report (live)

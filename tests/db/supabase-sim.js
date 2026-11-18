@@ -258,8 +258,30 @@ async function applyMigrations(db, files = MIGRATIONS) {
     }
 }
 
+// The full rollback refuses to run without an explicit confirmation.
 async function applyRollback(db) {
-    await db.exec(read("supabase/rollback/emerriment_security_rollback.sql"));
+    await db.exec("set emerriment.full_rollback = 'all-seven-migrations'");
+    try {
+        await execScript(db, read("supabase/rollback/emerriment_security_rollback.sql"));
+    } finally {
+        await db.exec("reset emerriment.full_rollback");
+    }
+}
+
+// Migration 7 only (keeps all data and migrations 1–6).
+async function applyMigration7Rollback(db) {
+    await execScript(db, read("supabase/rollback/emerriment_migration7_rollback.sql"));
+}
+
+// A failed script leaves its explicit transaction aborted: close it, so
+// the database is usable afterwards (as the SQL Editor does).
+async function execScript(db, sql) {
+    try {
+        await db.exec(sql);
+    } catch (error) {
+        await db.exec("rollback").catch(() => {});
+        throw error;
+    }
 }
 
 // Runs `sql` as an API request with the given identity, like PostgREST:
@@ -324,6 +346,7 @@ module.exports = {
     createDatabase,
     applyMigrations,
     applyRollback,
+    applyMigration7Rollback,
     migrationSql,
     read,
     as,

@@ -17,6 +17,25 @@
 --    Visitors can only submit the choice, source and version; the
 --    timestamps cannot be written through the API.
 --
+--    Who may do what (caller = emerriment_private.request_role(), the JWT
+--    role PostgREST sets; '' = a direct database connection such as the
+--    SQL Editor, which carries no JWT):
+--      * INSERT through the API (visitor, signed-in user, administrator,
+--        service role): treated exactly like a quiz submission — only the
+--        allow-listed source and wording version, server timestamp, no
+--        withdrawal. An administrator has no more power than a visitor.
+--      * UPDATE: consent is never switched ON and its evidence (time,
+--        source, version) is never rewritten, by anyone. Withdrawal
+--        (true → false) only by the service role (the unsubscribe
+--        function) or a direct database connection; the withdrawal time
+--        is the server time. Repeat or no-op withdrawals change nothing.
+--        Administrators and signed-in users cannot change consent at all
+--        (they mark a lead "Unsubscribed" instead, which every sender
+--        honours).
+--      * A CHECK constraint keeps the evidence consistent: consent = true
+--        always has a time, source and version; a withdrawal time only
+--        exists where consent was once recorded.
+--
 -- 2. public.purchases — VERIFIED purchases only (written by the service
 --    role: a future signed Selar webhook, or an administrator recording a
 --    purchase checked in the Selar dashboard). Clicking a checkout link
@@ -29,7 +48,10 @@
 -- Non-destructive: no row is deleted or changed; existing leads keep
 -- marketing_consent = false (nobody is enrolled retroactively).
 -- Safe to re-run.
--- Rollback: supabase/rollback/emerriment_security_rollback.sql (part 7).
+-- Rollback: supabase/rollback/emerriment_migration7_rollback.sql
+--   (migration 7 ONLY; keeps all data and migrations 1–6).
+-- Never use emerriment_security_rollback.sql to undo this migration: it
+-- removes the protections of migrations 1–6 as well.
 -- =====================================================================
 
 begin;
@@ -60,8 +82,20 @@ comment on column public.leads.marketing_consent is
 create index if not exists emerriment_leads_marketing_consent_idx
     on public.leads (next_email_due) where marketing_consent;
 
--- Consent guard for browser (API) inserts. SECURITY DEFINER only to read
--- the request role from the private helper schema; it reads no table.
+-- Evidence stays consistent whoever writes the row. Every existing lead
+-- has marketing_consent = false and empty evidence, so this validates.
+alter table public.leads drop constraint if exists leads_marketing_consent_evidence_check;
+alter table public.leads
+    add constraint leads_marketing_consent_evidence_check check (
+        (not marketing_consent
+         or (marketing_consent_at is not null
+             and marketing_consent_source is not null
+             and marketing_consent_version is not null))
+        and (marketing_consent_withdrawn_at is null or marketing_consent_at is not null)
+    );
+
+-- 1a. Consent guard for inserts. SECURITY DEFINER only to read the
+-- request role from the private helper schema; it reads no table.
 create or replace function public.emerriment_guard_lead_consent()
 returns trigger
 language plpgsql
@@ -72,40 +106,42 @@ declare
     caller text := emerriment_private.request_role();
 begin
 
-    if caller in ('anon', 'authenticated') and not public.emerriment_is_admin() then
-
-        if coalesce(new.marketing_consent, false) then
-
-            if new.marketing_consent_version is null
-               or new.marketing_consent_version not in ('quiz-optin-2026-11-17') then
-                raise exception 'Unknown consent wording version.' using errcode = 'P0001';
-            end if;
-
-            if new.marketing_consent_source is null
-               or new.marketing_consent_source not in ('homepage_quiz', 'quiz_page') then
-                raise exception 'Unknown consent source.' using errcode = 'P0001';
-            end if;
-
-            -- Server time, never the browser clock.
+    -- Direct database connection (SQL Editor, restore from backup): no
+    -- JWT. Trusted; the CHECK constraint still enforces the evidence.
+    if caller = '' then
+        if coalesce(new.marketing_consent, false) and new.marketing_consent_at is null then
             new.marketing_consent_at := now();
+        end if;
+        return new;
+    end if;
 
-        else
+    -- Every API request — visitor, signed-in user, administrator or
+    -- service role — is treated as a quiz submission.
+    if coalesce(new.marketing_consent, false) then
 
-            new.marketing_consent := false;
-            new.marketing_consent_at := null;
-            new.marketing_consent_source := null;
-            new.marketing_consent_version := null;
-
+        if new.marketing_consent_version is null
+           or new.marketing_consent_version not in ('quiz-optin-2026-11-17') then
+            raise exception 'Unknown consent wording version.' using errcode = 'P0001';
         end if;
 
-        new.marketing_consent_withdrawn_at := null;
+        if new.marketing_consent_source is null
+           or new.marketing_consent_source not in ('homepage_quiz', 'quiz_page') then
+            raise exception 'Unknown consent source.' using errcode = 'P0001';
+        end if;
 
-    elsif coalesce(new.marketing_consent, false) and new.marketing_consent_at is null then
-
-        -- Trusted callers (service role, admins) recording a consent.
+        -- Server time, never a client clock.
         new.marketing_consent_at := now();
 
+    else
+
+        new.marketing_consent := false;
+        new.marketing_consent_at := null;
+        new.marketing_consent_source := null;
+        new.marketing_consent_version := null;
+
     end if;
+
+    new.marketing_consent_withdrawn_at := null;
 
     return new;
 
@@ -119,6 +155,71 @@ create trigger emerriment_guard_lead_consent
     before insert on public.leads
     for each row
     execute function public.emerriment_guard_lead_consent();
+
+-- 1b. Consent guard for updates: consent is given once, on the quiz form,
+-- and can afterwards only be withdrawn by the server.
+create or replace function public.emerriment_guard_lead_consent_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+    caller text := emerriment_private.request_role();
+begin
+
+    -- Unchanged consent (for example a CMS edit of notes or status that
+    -- sends the whole row): nothing to check.
+    if new.marketing_consent is not distinct from old.marketing_consent
+       and new.marketing_consent_at is not distinct from old.marketing_consent_at
+       and new.marketing_consent_source is not distinct from old.marketing_consent_source
+       and new.marketing_consent_version is not distinct from old.marketing_consent_version
+       and new.marketing_consent_withdrawn_at is not distinct from old.marketing_consent_withdrawn_at then
+        return new;
+    end if;
+
+    -- The evidence of a consent is never rewritten, by anyone.
+    if new.marketing_consent_at is distinct from old.marketing_consent_at
+       or new.marketing_consent_source is distinct from old.marketing_consent_source
+       or new.marketing_consent_version is distinct from old.marketing_consent_version then
+        raise exception 'Marketing consent records cannot be changed.' using errcode = 'P0001';
+    end if;
+
+    -- Consent is never switched on afterwards (only a new quiz submission
+    -- by the person records it).
+    if new.marketing_consent and not old.marketing_consent then
+        raise exception 'Marketing consent can only be given by the person on the quiz form.' using errcode = 'P0001';
+    end if;
+
+    -- What remains is a withdrawal: server side only.
+    if caller not in ('service_role', '') then
+        raise exception 'Only the unsubscribe process can withdraw marketing consent; mark the lead Unsubscribed instead.'
+            using errcode = '42501';
+    end if;
+
+    if old.marketing_consent and not new.marketing_consent then
+        -- Server time, never a client clock.
+        new.marketing_consent_withdrawn_at := now();
+    else
+        -- Not consenting already (or still consenting): the withdrawal
+        -- time stays as it was, so repeat unsubscribes change nothing.
+        new.marketing_consent_withdrawn_at := old.marketing_consent_withdrawn_at;
+    end if;
+
+    return new;
+
+end;
+$$;
+
+revoke all on function public.emerriment_guard_lead_consent_change() from public, anon, authenticated;
+
+drop trigger if exists emerriment_guard_lead_consent_change on public.leads;
+create trigger emerriment_guard_lead_consent_change
+    before update of marketing_consent, marketing_consent_at, marketing_consent_source,
+                     marketing_consent_version, marketing_consent_withdrawn_at
+    on public.leads
+    for each row
+    execute function public.emerriment_guard_lead_consent_change();
 
 -- Visitors may submit the choice, source and version (never timestamps).
 grant insert (marketing_consent, marketing_consent_source, marketing_consent_version)

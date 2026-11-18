@@ -1,4 +1,15 @@
 -- =====================================================================
+-- !!! FULL SECURITY ROLLBACK — ALL SEVEN MIGRATIONS AT ONCE !!!
+-- This is NOT a rollback for migration 7 (20261117090000). It removes the
+-- protections of migrations 1–6 as well (lead privacy, admin protection,
+-- least-privilege grants) and drops email_deliveries and purchases.
+-- To undo migration 7 only, use emerriment_migration7_rollback.sql.
+--
+-- It refuses to run unless the session first confirms the intent:
+--     set emerriment.full_rollback = 'all-seven-migrations';
+-- =====================================================================
+--
+-- =====================================================================
 -- EMerriment — rollback for migrations 20261110090000 … 20261110090400
 -- and 20261113090000 (migration 0, 20261110085900, is kept — see below)
 -- ---------------------------------------------------------------------
@@ -27,6 +38,15 @@
 -- =====================================================================
 
 begin;
+
+-- 0. Explicit confirmation (see the header). Nothing has changed yet.
+do $$
+begin
+    if coalesce(current_setting('emerriment.full_rollback', true), '') <> 'all-seven-migrations' then
+        raise exception 'EMerriment: this is the FULL security rollback (all seven migrations). To undo migration 7 only, run emerriment_migration7_rollback.sql. To really run this one, first: set emerriment.full_rollback = ''all-seven-migrations'';';
+    end if;
+end
+$$;
 
 -- 1. All emerriment_* policies on public tables.
 do $$
@@ -69,10 +89,12 @@ $$;
 drop trigger if exists emerriment_guard_profile_privileges on public.profiles;
 drop trigger if exists emerriment_guard_lead_insert on public.leads;
 drop trigger if exists emerriment_guard_lead_consent on public.leads;
+drop trigger if exists emerriment_guard_lead_consent_change on public.leads;
 
 drop function if exists public.emerriment_guard_profile_privileges();
 drop function if exists public.emerriment_guard_lead_insert();
 drop function if exists public.emerriment_guard_lead_consent();
+drop function if exists public.emerriment_guard_lead_consent_change();
 
 do $$
 declare
