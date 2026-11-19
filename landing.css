@@ -15649,10 +15649,21 @@ cursor:pointer;
 .quiz-form .quiz-consent input[type="checkbox"]{
 width:18px;
 height:18px;
+/* Override the touch-device input min-height (44px): it centred the box
+   below the first line of text. The wrapping label is the tap target. */
+min-height:0;
 padding:0;
 margin:2px 0 0;
 flex:none;
 cursor:pointer;
+}
+
+/* The opt-in label and its confirmation note share one wrapper (shown or
+   hidden together); keep the form's own 15px spacing between them. */
+.quiz-form .quiz-consent-block:not([hidden]){
+display:flex;
+flex-direction:column;
+gap:15px;
 }
 
 .quiz-form .quiz-form-error{
