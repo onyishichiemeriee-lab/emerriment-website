@@ -29,6 +29,11 @@ off, people can complete double opt-in; their consent waits for the lessons.
 
 ## 1. Order of release
 
+0. **Read-only preflight** (no approval needed, changes nothing): run
+   `supabase/audit/04_migration7_preflight_read_only.sql` in the SQL Editor.
+   Every `BLOCKER` row must be `PASS`; keep the result with the approval.
+   Also `npx supabase@3.1.0 migration list --remote`: 7 remote versions,
+   `20261117090000` local only.
 1. **Approval — apply migration 7** (SQL Editor, as before; backup first:
    re-run `supabase/backups/20261113_create_backup.sql` with a new date suffix
    or confirm the existing backup is sufficient). Then
