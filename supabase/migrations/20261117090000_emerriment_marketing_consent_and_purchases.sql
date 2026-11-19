@@ -33,13 +33,24 @@
 --        always false on insert; confirmation, token and withdrawal
 --        fields are cleared. An administrator has no more power than a
 --        visitor.
---      * ACTIVATION (false → true): only the service role — the
---        confirm-subscription function, after the person clicks
+--      * ACTIVATION by UPDATE (false → true): only the service role —
+--        the confirm-subscription function, after the person clicks
 --        "Confirm" — and only while the row holds a pending request,
 --        an unexpired token, no withdrawal and is not Unsubscribed. The
 --        database sets the confirmation time and destroys the token
---        (single use). Administrators, signed-in users and the SQL
---        Editor cannot activate consent.
+--        (single use). Browser/API clients cannot activate consent;
+--        signed-in users and administrators cannot activate or forge it
+--        through the API (inserts are forced to a request, updates are
+--        refused). The SQL Editor cannot activate an existing lead by
+--        UPDATE either.
+--      * DIRECT DATABASE CONNECTION (SQL Editor; request role ''): a
+--        trusted, privileged operator path that bypasses the API consent
+--        restrictions. Both guards let it through on INSERT (only the
+--        CHECK constraint applies, so it can insert a lead with complete,
+--        consistent consent evidence), it may withdraw consent and manage
+--        tokens, and as the table owner it could disable the triggers.
+--        It is not reachable from the website; it is protected by
+--        database credentials and Supabase dashboard access.
 --      * TOKEN: issued or cleared only by the service role (or a direct
 --        connection), and only for a pending request.
 --      * WITHDRAWAL: by the server (unsubscribe) or a direct connection,

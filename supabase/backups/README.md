@@ -79,8 +79,10 @@ What the backup cannot give back: anything written after it — new leads,
 unsubscribes, delivery records, and, after migration 7, **consent requests
 and confirmations, which exist only in the live data**. Restore A never
 touches those. Restore B keeps a copy of them and re-applies unsubscribes
-and newer delivery records, but cannot re-create confirmed consent (by
-design only the confirmation page can activate consent).
+and newer delivery records, but does not re-create confirmed consent:
+activating consent by update is reserved for the confirmation page, and
+the restore deliberately does not use the SQL Editor's privileged insert
+path to manufacture consent.
 
 Both procedures first copy the current rows of every listed table to
 `emerriment_backup.<table>_prerestore_<UTC time>` (no API access, RLS on),

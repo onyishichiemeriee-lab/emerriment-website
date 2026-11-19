@@ -36,10 +36,15 @@ On the production-shaped copy with all eight migration files:
 * double opt-in: a quiz insert records only a pending request
   (allow-listed source and wording, server time); consent itself, times and
   tokens are refused by column privileges;
-* activation only by the service role with a live, unexpired token (the
-  confirmation page); the token is destroyed on use; signed-in users,
-  administrators and the SQL Editor cannot activate; one active subscriber
-  per address; evidence never rewritten;
+* activation (by update) only by the service role with a live, unexpired
+  token (the confirmation page); the token is destroyed on use; browser
+  clients, signed-in users and administrators cannot activate or forge
+  consent through the API; the SQL Editor cannot activate by update; one
+  active subscriber per address; evidence never rewritten;
+* the SQL Editor (trusted direct connection) is a privileged operator path:
+  an insert without consistent evidence is refused by the CHECK
+  constraint, but an insert with complete evidence is accepted (asserted
+  in a rolled-back transaction, documenting the path, not endorsing it);
 * withdrawal by the service role (server time) or automatically on
   `Unsubscribed`, destroying outstanding tokens; the exact updates made by
   `unsubscribe.js` work; existing leads stay opted out;

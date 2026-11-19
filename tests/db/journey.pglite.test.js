@@ -133,7 +133,7 @@ test("anonymous forgery: consent itself, request/confirmation times, tokens and 
     await db.close();
 });
 
-test("signed-in user: same forgeries refused; cannot activate, confirm or change any lead's consent", async () => {
+test("signed-in user (API): same forgeries refused; cannot activate, confirm or change any lead's consent", async () => {
     const db = await migrated();
     const forged = await tryAs(db, A, "insert into public.leads (email, marketing_consent) values ('user-a@example.test', true)");
     assert(!forged.ok && forged.error.code === "42501");
@@ -157,7 +157,7 @@ test("signed-in user: same forgeries refused; cannot activate, confirm or change
 // Administrators and the server cannot manufacture consent
 // ---------------------------------------------------------------------
 
-test("administrator: cannot opt anyone in — not by flag, not with a live token, not with forged evidence; cannot issue tokens or withdraw directly", async () => {
+test("administrator (API): cannot opt anyone in — not by flag, not with a live token, not with forged evidence; cannot issue tokens or withdraw directly", async () => {
     const db = await migrated();
     const insert = await tryAs(db, ADMIN, "insert into public.leads (email, marketing_consent) values ('admin-made@example.test', true)");
     assert(!insert.ok && insert.error.code === "42501", "admin inserted active consent");
@@ -186,7 +186,7 @@ test("administrator: cannot opt anyone in — not by flag, not with a live token
     await db.close();
 });
 
-test("server and SQL Editor: inserts are never active; no activation without a live token; the SQL Editor cannot activate at all", async () => {
+test("service role: inserts are never active, no activation without a live token; SQL Editor (privileged direct connection): no activation by UPDATE, inserts without consistent evidence refused, a fully evidenced insert is accepted (operator path)", async () => {
     const db = await migrated();
     await as(db, "service_role", "insert into public.leads (email, marketing_consent, marketing_consent_source, marketing_consent_version) values ('svc@example.test', true, 'homepage_quiz', 'quiz-optin-2026-11-17')");
     const svc = await lead(db, "svc@example.test");
@@ -202,6 +202,17 @@ test("server and SQL Editor: inserts are never active; no activation without a l
     assert(!editor.ok && editor.error.code === "P0001", "SQL Editor activated");
     const bare = await tryAs(db, "postgres", "insert into public.leads (email, marketing_consent) values ('bare@example.test', true)");
     assert(!bare.ok && bare.error.code === "23514", "active consent without request/confirmation evidence");
+    // Documented, not endorsed: the trusted direct connection is a privileged
+    // operator path that bypasses the API consent restrictions. With complete,
+    // consistent evidence its INSERT is accepted (only the CHECK constraint
+    // applies). Rolled back, so nothing is kept.
+    await db.exec("begin");
+    await db.query(`insert into public.leads (email, marketing_consent_requested_at, marketing_consent_source,
+                        marketing_consent_version, marketing_consent, marketing_consent_at)
+                    values ('operator@example.test', now(), 'quiz_page', 'quiz-optin-2026-11-17', true, now())`);
+    assert.strictEqual((await lead(db, "operator@example.test")).marketing_consent, true,
+        "the SQL Editor's privileged insert path is as documented");
+    await db.exec("rollback");
     assert.strictEqual(await active(db), 0);
     await db.close();
 });

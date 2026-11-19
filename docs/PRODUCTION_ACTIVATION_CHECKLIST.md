@@ -34,11 +34,18 @@ off, people can complete double opt-in; their consent waits for the lessons.
    Every `BLOCKER` row must be `PASS`; keep the result with the approval.
    Also `npx supabase@3.1.0 migration list --remote`: 7 remote versions,
    `20261117090000` local only.
-1. **Approval — apply migration 7** (SQL Editor, as before; backup first:
-   re-run `supabase/backups/20261113_create_backup.sql` with a new date suffix
-   or confirm the existing backup is sufficient). Then
-   `npx supabase@3.1.0 migration repair --status applied 20261117090000 --remote`
-   **(approval)**, or apply it with `db push` once — not both.
+1. **Approval — backup, then apply migration 7** (SQL Editor, as before):
+   * Backup first: `supabase/backups/20261119_create_backup_before_migration7.sql`
+     (refuses to overwrite, refuses after migration 7, refuses if RLS could
+     hide rows; 23 rows with `copy_matches = true`), then the read-only
+     `supabase/backups/20261119_verify_backup.sql` — every `BLOCKER` row
+     `PASS`. Re-run the verify script right before applying. Details,
+     restore procedures and limitations: `supabase/backups/README.md`.
+     (The older `20261113_create_backup.sql` is the pre-migration-1 backup;
+     do not re-run it.)
+   * Apply the whole migration file. Then
+     `npx supabase@3.1.0 migration repair --status applied 20261117090000 --remote`
+     **(approval)**, or apply it with `db push` once — not both.
 2. Verify: `03b_comprehensive_live_security_checks.sql` (expect all PASS) and:
    ```sql
    select count(*) filter (where marketing_consent) as opted_in, count(*) as leads from leads;  -- expect opted_in = 0

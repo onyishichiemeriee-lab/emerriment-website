@@ -84,10 +84,21 @@ sent a confirmation.
 Who can change it (enforced by the database, migration 7):
 * A request is recorded only when a quiz submission inserts a lead with the
   box ticked: allow-listed source and wording, server time. Consent is
-  always `false` on insert, for every caller including administrators.
-* Activation only by the service role (the confirmation page), only with a
-  live token, no withdrawal and not `Unsubscribed`. Administrators, signed-in
-  users and the SQL Editor cannot activate consent.
+  always `false` on an API insert, for every API caller — visitor,
+  signed-in user, administrator and the service role.
+* Activation (by update) only by the service role (the confirmation page),
+  only with a live token, no withdrawal and not `Unsubscribed`.
+  Browser/API clients cannot activate consent directly, and signed-in
+  administrators cannot forge it through the API. The SQL Editor cannot
+  activate an existing lead by update either.
+* **Privileged operator path:** a direct database connection (the SQL
+  Editor, request role `''`) is trusted by both guards and bypasses the API
+  consent restrictions: it can insert a lead with complete, consistent
+  consent evidence (only the CHECK constraint applies), withdraw consent,
+  manage tokens, and — as the table owner — disable the triggers. It is not
+  reachable from the website; it is protected by database credentials and
+  Supabase dashboard access, and should only be used for documented
+  operations (migrations, backups, restores).
 * At most one active subscriber per address (unique index).
 * The request evidence and the confirmation time are never rewritten.
 * Withdrawal by the server (unsubscribe function) or the SQL Editor, or
