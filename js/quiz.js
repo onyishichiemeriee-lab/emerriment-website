@@ -508,9 +508,13 @@ document.addEventListener("DOMContentLoaded", () => {
             routine,
 
             // Optional, separate opt-in to the 14-day lessons
-            // (wording version quiz-optin-2026-11-17).
-            marketing_consent:
-                Boolean(document.getElementById("marketingConsent")?.checked)
+            // (wording version quiz-optin-2026-11-17). Only an ENABLED
+            // box counts: js/consent-optin.js keeps it hidden and disabled
+            // while confirmation emails are switched off.
+            marketing_consent: (() => {
+                const box = document.getElementById("marketingConsent");
+                return Boolean(box && box.checked && !box.disabled);
+            })()
 
         };
 

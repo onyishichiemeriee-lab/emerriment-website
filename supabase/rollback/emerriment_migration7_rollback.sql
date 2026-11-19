@@ -9,8 +9,9 @@
 --
 -- ORDER (required):
 --   1. Roll the website back first (Netlify: re-publish the previous
---      deploy) and make sure EMAIL_SEQUENCE_ENABLED and
---      CUSTOMER_ONBOARDING_ENABLED are not set. The current code sends
+--      deploy) and make sure EMAIL_CONFIRMATION_ENABLED,
+--      EMAIL_SEQUENCE_ENABLED and CUSTOMER_ONBOARDING_ENABLED are not set.
+--      The current code sends
 --      the consent request fields on the quiz and runs the confirmation
 --      page; once this script removes the column privileges and the
 --      guards, those requests would be refused and no confirmation could

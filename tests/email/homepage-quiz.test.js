@@ -251,6 +251,16 @@ test("[js/script.js] D: consent ticked → a REQUEST only (source homepage_quiz 
         ["concern", "email", "name", "oilLevel", "recommendation", "score", "sensitivity", "skinType"], "consent is not sent to the email function");
 });
 
+test("[js/script.js] a ticked but DISABLED box (confirmation emails off) records no request and promises no confirmation", async () => {
+    const s = setup({ consent: true });
+    s.els.marketingConsent.disabled = true;
+    await s.run();
+    const row = s.calls.inserts.find((i) => i.table === "leads").rows[0];
+    assert(!("marketing_consent_source" in row) && !("marketing_consent_version" in row), "no unusable request");
+    assert.strictEqual(s.calls.fetches.length, 1, "the requested report is still sent");
+    assert(!/confirm/.test(s.calls.alerts.join(" ")), "no confirmation promised");
+});
+
 test("[js/script.js] database without the consent columns yet: quiz still saved (without consent) and report sent", async () => {
     const s = setup({ consent: true, insertErrors: [{ code: "PGRST204", message: "Could not find the 'marketing_consent' column of 'leads' in the schema cache" }, null] });
     await s.run();

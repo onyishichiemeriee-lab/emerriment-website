@@ -25,9 +25,12 @@
      last 24 hours.
    - Fails closed: without the migration (columns or delivery records
      missing) nothing is sent.
-   - Off unless EMAIL_SEQUENCE_ENABLED=true (the same switch as the
-     lessons): a confirmation email must never promise lessons that are
-     not being sent. While it is off the database is not even read.
+   - Off unless EMAIL_CONFIRMATION_ENABLED=true — its own switch,
+     independent of the lessons (EMAIL_SEQUENCE_ENABLED) and of customer
+     onboarding (CUSTOMER_ONBOARDING_ENABLED). A person can confirm while
+     the lessons are still off; confirming never sends a lesson. While it
+     is off the database is not even read, and the quiz pages hide the
+     opt-in box (netlify/functions/email-features.js).
 
    Independent of the quiz report: callers must never let a failure
    here affect the report response.
@@ -85,8 +88,8 @@ function buildConfirmUrl(token) {
 
 const isUnsubscribed = (lead) => String(lead.status || "") === STATUS_UNSUBSCRIBED;
 
-// Same switch as the 14-day lessons (netlify/functions/email-sequence.js).
-const isEnabled = () => process.env.EMAIL_SEQUENCE_ENABLED === "true";
+// Independent of EMAIL_SEQUENCE_ENABLED and CUSTOMER_ONBOARDING_ENABLED.
+const isConfirmationEnabled = () => process.env.EMAIL_CONFIRMATION_ENABLED === "true";
 
 // The request this quiz submission made, if confirmation is due.
 function pendingRequest(leads, now) {
@@ -151,7 +154,7 @@ async function sendConsentConfirmation(supabase, resend, email) {
     let tokenHash = null;
     let reservation = null;
 
-    if (!isEnabled()) {
+    if (!isConfirmationEnabled()) {
         return { state: "disabled" };
     }
 
@@ -271,6 +274,7 @@ async function sendConsentConfirmation(supabase, resend, email) {
 
 module.exports = {
     sendConsentConfirmation,
+    isConfirmationEnabled,
     generateToken,
     hashToken,
     isTokenShape,

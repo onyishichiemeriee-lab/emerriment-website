@@ -1048,17 +1048,21 @@ including future updates you add.
       See our <a href="privacy.html">privacy policy</a>.
     </p>
 
-    <!-- Optional and separate: wording version quiz-optin-2026-11-17 -->
-    <label class="quiz-consent">
-      <input type="checkbox" id="marketingConsent" name="marketingConsent">
-      <span>
-        Yes, also send me EMerriment's free 14-day skin education emails
-        (one short lesson a day for two weeks). Optional — unsubscribe anytime with one click.
-      </span>
-    </label>
-    <p class="quiz-privacy-note quiz-confirm-note">
-      If you tick the box, we'll send one short email asking you to confirm. No lessons are sent until you do.
-    </p>
+    <!-- Optional and separate: wording version quiz-optin-2026-11-17.
+         Hidden and disabled until confirmation emails are switched on
+         (js/consent-optin.js, EMAIL_CONFIRMATION_ENABLED). -->
+    <div class="quiz-consent-block" data-marketing-optin hidden>
+      <label class="quiz-consent">
+        <input type="checkbox" id="marketingConsent" name="marketingConsent" disabled>
+        <span>
+          Yes, also send me EMerriment's free 14-day skin education emails
+          (one short lesson a day for two weeks). Optional — unsubscribe anytime with one click.
+        </span>
+      </label>
+      <p class="quiz-privacy-note quiz-confirm-note">
+        If you tick the box, we'll send one short email asking you to confirm. No lessons are sent until you do.
+      </p>
+    </div>
 
     <p id="quizFormError" class="quiz-form-error" role="alert" hidden></p>
 
@@ -1742,6 +1746,7 @@ class="contact-card">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
 <script src="js/supabase.js"></script>
 <script src="js/analytics.js"></script>
+<script src="js/consent-optin.js"></script>
 <script src="js/script.js"></script>
 <script src="js/navigation.js"></script>
 

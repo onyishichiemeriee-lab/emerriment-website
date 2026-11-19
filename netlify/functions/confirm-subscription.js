@@ -98,10 +98,15 @@ If you didn't ask for this, just close this page.</p>`,
 </form>`
         ),
 
+    // Confirming never sends anything itself. The lessons have their own
+    // switch (EMAIL_SEQUENCE_ENABLED); promise a date only while it is on.
     confirmed: () =>
         page(200, "You're subscribed",
-            `<p style="line-height:1.7;">Thank you for confirming. Your first lesson arrives within the next day or two.
-You can unsubscribe at any time from any lesson.</p>`),
+            process.env.EMAIL_SEQUENCE_ENABLED === "true"
+                ? `<p style="line-height:1.7;">Thank you for confirming. Your first lesson arrives within the next day or two.
+You can unsubscribe at any time from any lesson.</p>`
+                : `<p style="line-height:1.7;">Thank you for confirming. The 14-day lessons have not started yet; your first lesson
+will arrive when they begin. You can unsubscribe at any time from any lesson.</p>`),
 
     // Used, unknown or already confirmed elsewhere: deliberately the same
     // answer, so the page reveals nothing about any address.

@@ -11,7 +11,12 @@ const crypto = require("crypto");
 const H = require("./helpers");
 
 const suite = H.createSuite("consent confirmation (double opt-in)");
-const { test } = suite;
+
+// Confirmation emails have their own switch. Every test starts with it ON
+// (and, from the shared defaults, the lessons ON); tests of other
+// combinations override it.
+const env = (over = {}) => H.setEnv({ EMAIL_CONFIRMATION_ENABLED: "true", ...over });
+const test = (title, fn) => suite.test(title, async () => { env(); await fn(); });
 
 const minutesAgo = (m) => new Date(Date.now() - m * 60e3).toISOString();
 const sha256 = (s) => crypto.createHash("sha256").update(s, "utf8").digest("hex");
@@ -90,15 +95,28 @@ test("box not ticked: report only, no confirmation, no token", async () => {
     assert(!lead.marketing_consent_token_hash);
 });
 
-test("EMAIL_SEQUENCE_ENABLED off: no confirmation is sent and no token is issued (report unaffected)", async () => {
-    H.setEnv({ EMAIL_SEQUENCE_ENABLED: undefined });
+test("EMAIL_CONFIRMATION_ENABLED off: no confirmation is sent, no token issued, the database is not even read for it (report unaffected)", async () => {
+    env({ EMAIL_CONFIRMATION_ENABLED: undefined });
     enableDeliveries();
     const lead = requestLead();
+    const lib = H.load("netlify/lib/consent-confirmation.js");
+    const before = H.db.ops.length;
+    assert.strictEqual((await lib.sendConsentConfirmation(require("@supabase/supabase-js").createClient(), new (require("resend").Resend)(), "ada@example.com")).state, "disabled");
+    assert.strictEqual(H.db.ops.length, before, "no database access while switched off");
     const r = await submitQuiz();
     assert.strictEqual(r.statusCode, 200);
     assert.strictEqual(reports().length, 1);
     assert.strictEqual(confirmations().length, 0);
     assert(!lead.marketing_consent_token_hash);
+});
+
+test("only the exact value \"true\" switches confirmation emails on", async () => {
+    for (const value of ["1", "TRUE", "yes", " true", ""]) {
+        H.reset(); env({ EMAIL_CONFIRMATION_ENABLED: value }); enableDeliveries();
+        requestLead();
+        await submitQuiz();
+        assert.strictEqual(confirmations().length, 0, JSON.stringify(value));
+    }
 });
 
 test("without delivery records (migration not applied): fails closed, token removed, report unaffected", async () => {
@@ -159,12 +177,12 @@ test("no confirmation for an address that is already subscribed, unsubscribed, o
     requestLead();
     assert.strictEqual((await send()).state, "already_subscribed");
 
-    H.reset(); H.setEnv(); enableDeliveries();
+    H.reset(); env(); enableDeliveries();
     H.addLead({ submitted_at: minutesAgo(60 * 24 * 5), created_at: minutesAgo(60 * 24 * 5), marketing_consent: false, status: "Unsubscribed" });
     requestLead();
     assert.strictEqual((await send()).state, "unsubscribed");
 
-    H.reset(); H.setEnv(); enableDeliveries();
+    H.reset(); env(); enableDeliveries();
     requestLead({ created_at: minutesAgo(120), submitted_at: minutesAgo(120), marketing_consent_token_hash: "a".repeat(64), marketing_consent_token_expires_at: new Date(Date.now() + 7 * 864e5 - 3600e3).toISOString() });
     requestLead();
     assert.strictEqual((await send()).state, "recently_sent");
@@ -304,7 +322,7 @@ test("database failure: 'not subscribed' page, no internal detail shown or logge
 });
 
 test("missing server configuration: fails closed", async () => {
-    H.setEnv({ SUPABASE_SERVICE_ROLE_KEY: undefined });
+    env({ SUPABASE_SERVICE_ROLE_KEY: undefined });
     const r = await post("G".repeat(43));
     assert.strictEqual(r.statusCode, 500);
 });
@@ -323,6 +341,107 @@ test("unsubscribing withdraws a PENDING request and destroys its outstanding tok
     const after = await post(token);
     assert.strictEqual(after.statusCode, 400);
     assert.strictEqual(lead.marketing_consent, false);
+});
+
+/* ---------- Independent switches ---------- */
+
+const sequenceRun = () => H.load("netlify/functions/email-sequence.js").handler({});
+const onboardingRun = () => H.load("netlify/functions/customer-onboarding.js").handler({});
+const lessons = () => H.mail.sent.filter((m) => !/Please confirm|Skin Report/.test(m.payload.subject));
+const features = async () => JSON.parse((await H.load("netlify/functions/email-features.js").handler({ httpMethod: "GET" })).body);
+
+test("confirmation ON + lessons OFF: the confirmation email works and the person can confirm, but no lesson is sent", async () => {
+    env({ EMAIL_SEQUENCE_ENABLED: undefined });
+    enableDeliveries();
+    assert.deepStrictEqual(await features(), { consentConfirmation: true }, "the quiz offers the box");
+    const lead = requestLead({ next_email_due: minutesAgo(60) });
+    await submitQuiz();
+    assert.strictEqual(confirmations().length, 1);
+    const page = await post(tokenFrom(confirmations()[0]));
+    assert.strictEqual(page.statusCode, 200);
+    assert.strictEqual(lead.marketing_consent, true, "double opt-in completed while the lessons are off");
+    assert(/have not started yet/.test(page.body), "no promise of a lesson date while the lessons are off");
+    assert(!/within the next day or two/.test(page.body));
+    const sentBefore = H.mail.sent.length;
+    const run = await sequenceRun();
+    assert.strictEqual(run.statusCode, 200);
+    assert.strictEqual(H.mail.sent.length, sentBefore, "confirmed consent alone never triggers a lesson");
+    assert.strictEqual(lessons().length, 0);
+});
+
+test("confirmation ON + lessons ON: the confirm page promises the first lesson soon", async () => {
+    enableDeliveries();
+    requestLead();
+    await submitQuiz();
+    const page = await post(tokenFrom(confirmations()[0]));
+    assert(/within the next day or two/.test(page.body));
+});
+
+test("confirmation OFF (lessons ON): no confirmation email, the box is not offered, nothing to confirm", async () => {
+    env({ EMAIL_CONFIRMATION_ENABLED: undefined });
+    enableDeliveries();
+    assert.deepStrictEqual(await features(), { consentConfirmation: false }, "the quiz hides the box");
+    const lead = requestLead();
+    await submitQuiz();
+    assert.strictEqual(confirmations().length, 0);
+    assert.strictEqual(lead.marketing_consent_token_hash, null);
+    assert.strictEqual(lead.marketing_consent, false);
+    await sequenceRun();
+    assert.strictEqual(lessons().length, 0, "an unconfirmed request never receives lessons");
+});
+
+test("feature endpoint: exposes only the confirmation switch, never cached; other switches do not change it", async () => {
+    env({ EMAIL_CONFIRMATION_ENABLED: undefined, EMAIL_SEQUENCE_ENABLED: "true", CUSTOMER_ONBOARDING_ENABLED: "true" });
+    const fn = H.load("netlify/functions/email-features.js");
+    const r = await fn.handler({ httpMethod: "GET" });
+    assert.strictEqual(r.statusCode, 200);
+    assert.strictEqual(r.headers["Cache-Control"], "no-store");
+    assert.deepStrictEqual(JSON.parse(r.body), { consentConfirmation: false });
+    assert.strictEqual((await fn.handler({ httpMethod: "POST" })).statusCode, 405);
+    assert.strictEqual(H.db.ops.length, 0, "no database access");
+});
+
+test("lessons ON: only confirmed, active consent receives lessons (pending, withdrawn and unsubscribed never do)", async () => {
+    const due = { email_status: "Sent", last_email_sent: minutesAgo(25 * 60), email_sequence_day: 1, next_email_due: minutesAgo(60) };
+    H.addLead({ ...due, email: "pending@example.com", marketing_consent: false, marketing_consent_requested_at: minutesAgo(26 * 60) });
+    H.addLead({ ...due, email: "withdrawn@example.com", marketing_consent: true, marketing_consent_withdrawn_at: minutesAgo(10) });
+    H.addLead({ ...due, email: "never@example.com", marketing_consent: false });
+    H.addLead({ ...due, email: "gone@example.com", marketing_consent: true, status: "Unsubscribed" });
+    H.addLead({ ...due, email: "confirmed@example.com", marketing_consent: true, marketing_consent_at: minutesAgo(25 * 60) });
+    await sequenceRun();
+    assert.deepStrictEqual(H.mail.sent.map((m) => m.payload.to), ["confirmed@example.com"]);
+});
+
+test("unsubscribe suppresses every marketing send: no lessons, no new confirmation email", async () => {
+    enableDeliveries();
+    const c = H.load("netlify/lib/email-common.js");
+    const due = { email_status: "Sent", last_email_sent: minutesAgo(25 * 60), email_sequence_day: 1, next_email_due: minutesAgo(60), submitted_at: minutesAgo(25 * 60), created_at: minutesAgo(25 * 60) };
+    const subscribed = H.addLead({ ...due, marketing_consent: true, marketing_consent_at: minutesAgo(24 * 60) });
+    const u = await H.load("netlify/functions/unsubscribe.js").handler({ httpMethod: "POST", queryStringParameters: { l: subscribed.id, t: c.signLink("unsubscribe", subscribed.id) } });
+    assert.strictEqual(u.statusCode, 200);
+    assert.strictEqual(subscribed.marketing_consent, false);
+
+    await sequenceRun();
+    assert.strictEqual(lessons().length, 0, "no lesson after unsubscribing");
+
+    // A new quiz with the box ticked: the requested report still arrives,
+    // but no confirmation email goes to an unsubscribed address.
+    requestLead();
+    await submitQuiz();
+    assert.strictEqual(reports().length, 1);
+    assert.strictEqual(confirmations().length, 0);
+    await sequenceRun();
+    assert.strictEqual(lessons().length, 0);
+});
+
+test("CUSTOMER_ONBOARDING_ENABLED stays independent: confirmation and lessons ON do not switch onboarding on", async () => {
+    env({ EMAIL_SEQUENCE_ENABLED: "true", CUSTOMER_ONBOARDING_ENABLED: undefined });
+    H.db.tables.purchases = [{ id: "purchase-1", email: "buyer@example.com", lead_id: null, product_code: "21-days-to-glow", provider: "selar", provider_order_ref: "SEL-1", verified_at: new Date().toISOString(), verified_by: "admin", refunded_at: null }];
+    await onboardingRun();
+    assert.strictEqual(H.mail.sent.length, 0);
+    const lib = H.load("netlify/lib/consent-confirmation.js");
+    env({ EMAIL_CONFIRMATION_ENABLED: undefined, CUSTOMER_ONBOARDING_ENABLED: "true" });
+    assert.strictEqual(lib.isConfirmationEnabled(), false, "onboarding does not switch confirmation on");
 });
 
 module.exports = suite;

@@ -9757,7 +9757,9 @@ async function submitQuiz() {
   // Optional, separate marketing consent (unticked by default). The
   // requested report is sent either way; lessons only with this opt-in.
   const consentBox = document.getElementById("marketingConsent");
-  const marketingConsent = Boolean(consentBox && consentBox.checked);
+  // Only an ENABLED box counts: js/consent-optin.js keeps it hidden and
+  // disabled while confirmation emails are switched off.
+  const marketingConsent = Boolean(consentBox && consentBox.checked && !consentBox.disabled);
 
   track("quiz_complete", { form: "homepage" });
 

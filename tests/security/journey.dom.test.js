@@ -51,6 +51,67 @@ test("quiz.html: explains the report email and offers the same optional, unticke
     assert(/email you a copy of your results/.test(d.querySelector(".quiz-email-note").textContent));
 });
 
+/* ---------- Opt-in box only while confirmation emails are on ---------- */
+
+// Runs js/consent-optin.js on the real page markup with a fake
+// /.netlify/functions/email-features answer.
+async function pageWithOptIn(file, answer) {
+    const dom = new JSDOM(read(file), { url: "https://local.test/" + file, runScripts: "outside-only" });
+    const w = dom.window;
+    const requests = [];
+    w.fetch = (url, opts) => {
+        requests.push({ url, opts });
+        if (answer === "reject") return Promise.reject(new Error("offline"));
+        if (answer === "500") return Promise.resolve({ ok: false, json: async () => ({ consentConfirmation: true }) });
+        return Promise.resolve({ ok: true, json: async () => answer });
+    };
+    w.eval(read("js/consent-optin.js"));
+    for (let i = 0; i < 5; i++) await new Promise((r) => setImmediate(r));
+    const d = w.document;
+    const box = d.getElementById("marketingConsent");
+    return { d, box, block: box.closest("[data-marketing-optin]"), requests };
+}
+
+for (const file of ["index.html", "quiz.html"]) {
+
+    test(`${file}: the opt-in box ships hidden and disabled, and its script loads before the quiz script`, async () => {
+        const d = new JSDOM(read(file)).window.document;
+        const box = d.getElementById("marketingConsent");
+        const block = box.closest("[data-marketing-optin]");
+        assert(block, "box inside the [data-marketing-optin] block");
+        assert(block.hidden && box.disabled && !box.checked);
+        assert(block.querySelector(".quiz-confirm-note"), "the confirmation promise is inside the hidden block too");
+        const scripts = [...d.querySelectorAll("script[src]")].map((s) => s.getAttribute("src"));
+        const quizScript = file === "index.html" ? "js/script.js" : "js/quiz.js";
+        assert(scripts.includes("js/consent-optin.js"));
+        if (file === "index.html") assert(scripts.indexOf("js/consent-optin.js") < scripts.indexOf(quizScript));
+    });
+
+    test(`${file}: confirmation emails ON → box shown and usable, unticked`, async () => {
+        const p = await pageWithOptIn(file, { consentConfirmation: true });
+        assert.strictEqual(p.requests.length, 1);
+        assert.strictEqual(p.requests[0].url, "/.netlify/functions/email-features");
+        assert.strictEqual(p.requests[0].opts.credentials, "omit");
+        assert.strictEqual(p.block.hidden, false);
+        assert.strictEqual(p.box.disabled, false);
+        assert.strictEqual(p.box.checked, false, "never pre-ticked");
+    });
+
+    for (const [label, answer] of [["OFF", { consentConfirmation: false }], ["unknown answer", { consentConfirmation: "true" }], ["server error", "500"], ["network failure", "reject"]]) {
+        test(`${file}: confirmation emails ${label} → no box, no confirmation promise, nothing can be ticked`, async () => {
+            const p = await pageWithOptIn(file, answer);
+            assert.strictEqual(p.block.hidden, true);
+            assert.strictEqual(p.box.disabled, true);
+            assert.strictEqual(p.box.checked, false);
+        });
+    }
+}
+
+test("quiz callers count only an ENABLED, ticked box as a request", async () => {
+    assert(/consentBox\.checked && !consentBox\.disabled/.test(read("js/script.js")), "js/script.js");
+    assert(/box\.checked && !box\.disabled/.test(read("js/quiz.js")), "js/quiz.js");
+});
+
 test("analytics: only allow-listed events and parameters; no email, name or quiz answers ever leave the page", async () => {
     const p = await pageWithAnalytics("");
     assert.strictEqual(p.window.emTrack("lead_submit", { success: true, email: "ada@example.com", name: "Ada", concern: "Acne", skinType: "Oily" }), true);
@@ -110,6 +171,13 @@ test("automation guards: lessons filter AND claim on consent; onboarding schedul
     const settings = toml.split(/\r?\n/).filter((line) => !line.trim().startsWith("#")).join("\n");
     assert(!/EMAIL_SEQUENCE_ENABLED\s*=\s*"?true/.test(settings), "the sequence must not be switched on in netlify.toml");
     assert(!/CUSTOMER_ONBOARDING_ENABLED\s*=\s*"?true/.test(settings));
+    assert(!/EMAIL_CONFIRMATION_ENABLED\s*=\s*"?true/.test(settings), "confirmation emails must not be switched on in netlify.toml");
+    // Each sender reads only its own switch.
+    const lib = read("netlify/lib/consent-confirmation.js");
+    assert(/process\.env\.EMAIL_CONFIRMATION_ENABLED === "true"/.test(lib));
+    assert(!/process\.env\.(EMAIL_SEQUENCE_ENABLED|CUSTOMER_ONBOARDING_ENABLED)/.test(lib), "confirmation does not depend on the other switches");
+    assert(!/EMAIL_CONFIRMATION_ENABLED/.test(seq), "lessons depend only on EMAIL_SEQUENCE_ENABLED");
+    assert(!/EMAIL_CONFIRMATION_ENABLED|EMAIL_SEQUENCE_ENABLED/.test(onb), "onboarding depends only on its own switch");
 });
 
 test("schedules: both scheduled functions run at 07:00 UTC = 08:00 Africa/Lagos (Netlify cron is UTC)", async () => {

@@ -120,8 +120,9 @@ protections of migrations 1–6 — to undo migration 7 only, use
 | `EMAIL_LINK_SECRET` | recommended | ≥ 32 characters (64 hex recommended). Can be added at any time: links sent earlier stay valid (the previous derived key is still accepted). |
 | `EMAIL_LINK_SECRET_PREVIOUS` | only while rotating | the old secret, so its links keep working. |
 | `EMAIL_LINK_ACCEPT_DERIVED` | optional | `false` ~60 days after setting `EMAIL_LINK_SECRET`, to stop accepting older links. |
-| `EMAIL_SEQUENCE_ENABLED` | to send lessons | must be exactly `true`; without it the scheduled run sends nothing. |
-| `EMAIL_SEQUENCE_START_AFTER` | recommended with the above | ISO date/time, e.g. the moment you enable the sequence. Leads that joined earlier are not emailed; later ones always continue. |
+| `EMAIL_CONFIRMATION_ENABLED` | to offer the 14-day lessons box and send consent confirmation emails | must be exactly `true`; without it the quiz pages hide the box and no confirmation email is sent. Independent of the two switches below. Requires migration 7. |
+| `EMAIL_SEQUENCE_ENABLED` | to send lessons | must be exactly `true`; without it the scheduled run sends nothing. Lessons go only to confirmed subscribers. |
+| `EMAIL_SEQUENCE_START_AFTER` | recommended with the above | ISO date/time. Leads that joined earlier are not emailed; later ones always continue. Set it to the moment `EMAIL_CONFIRMATION_ENABLED` was switched on, so people who confirmed before the lessons started are included. |
 | `EMAIL_SEQUENCE_MAX_OVERDUE_DAYS` | optional | used only without `EMAIL_SEQUENCE_START_AFTER`; default 7; `0` = no limit. |
 | `EMAIL_OPEN_ALLOW_LEGACY` | optional | `false` ~30 days after deploy to stop counting legacy `?email=` opens. |
 | `EMAIL_CLAIM_COMPAT_MODE` | avoid | only if the database cannot accept `Sending` and you choose not to change it. |

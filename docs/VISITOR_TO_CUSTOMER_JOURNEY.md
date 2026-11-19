@@ -11,7 +11,7 @@ labelled **planned** or **needs an integration**.
 | Visitor | Opens any page | Google Analytics (homepage only) | observed (GA, homepage) |
 | Quiz lead | Submits a quiz with a valid email | `leads` row (identity id, answers) | observed |
 | Pending subscriber | Ticks the **optional** 14-day lessons box on a quiz | `leads.marketing_consent_requested_at` (server time), source, wording version; `marketing_consent = false` | observed (after migration 7) |
-| Marketing subscriber | Presses Confirm on the page linked from the confirmation email (double opt-in) | `leads.marketing_consent = true`, `marketing_consent_at` (server time) | observed (after migration 7, with `EMAIL_SEQUENCE_ENABLED=true`) |
+| Marketing subscriber | Presses Confirm on the page linked from the confirmation email (double opt-in) | `leads.marketing_consent = true`, `marketing_consent_at` (server time) | observed (after migration 7, with `EMAIL_CONFIRMATION_ENABLED=true`; lessons follow only with `EMAIL_SEQUENCE_ENABLED=true`) |
 | Registered user | Signs up (Supabase Auth) | `auth.users`, `profiles` | observed |
 | Confirmed user | Clicks the confirmation link | `auth.users.email_confirmed_at` | observed |
 | Checkout visitor | Clicks a Selar product link | GA `checkout_click` (product slug only); `product_clicks` for clicks inside emails | **intent only — never a purchase** |
@@ -55,6 +55,9 @@ were added. `quiz_start` / `quiz_complete` events measure quiz drop-off.
 * The form says what happens: "one email, because you asked for it".
 * **Separate, optional, unticked** consent box for the 14-day lessons
   (wording version `quiz-optin-2026-11-17`, see EMAIL_LIFECYCLE_PLAN.md).
+  The box is offered only while confirmation emails are switched on
+  (`EMAIL_CONFIRMATION_ENABLED`); otherwise it is hidden and nothing is
+  promised or recorded [journey.dom: "…ships hidden and disabled…"].
   Ticking it only records a **request**; lessons start only after the person
   confirms from a separate email (double opt-in, 2026-11-18). The database
   sets the request and confirmation times and accepts only known sources and

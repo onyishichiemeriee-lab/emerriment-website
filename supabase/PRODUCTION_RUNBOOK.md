@@ -95,7 +95,8 @@ Site configuration → Environment variables → Add a variable:
 |---|---|---|
 | `EMAIL_LINK_SECRET` | `node -e "process.stdout.write(require('crypto').randomBytes(32).toString('hex'))" \| clip`, paste; tick "Contains secret values" if offered | now |
 | `EMAIL_FROM` | `EMerriment <hello@emerriment.com>` (agreed address) | after Resend shows Verified |
-| `EMAIL_SEQUENCE_START_AFTER` | ISO activation time | when activating the sequence |
+| `EMAIL_CONFIRMATION_ENABLED` | `true` | after migration 7; shows the opt-in box and sends confirmation emails (independent of the lessons) |
+| `EMAIL_SEQUENCE_START_AFTER` | the time `EMAIL_CONFIRMATION_ENABLED` was switched on | when activating the sequence |
 | `EMAIL_SEQUENCE_ENABLED` | `true` | last, after all prerequisites |
 
 Also tick "Contains secret values" for `RESEND_API_KEY`,

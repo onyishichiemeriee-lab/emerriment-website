@@ -11,6 +11,10 @@ no daylight saving). Scheduled functions run at **07:00 UTC = 08:00 Lagos**.
 | `email-sequence` | `0 7 * * *` | daily 07:00 UTC | daily 08:00 Africa/Lagos | `EMAIL_SEQUENCE_ENABLED=true` (not set) |
 | `customer-onboarding` | `0 7 * * *` | daily 07:00 UTC | daily 08:00 Africa/Lagos | `CUSTOMER_ONBOARDING_ENABLED=true` (not set) |
 
+Consent confirmation emails are not scheduled: `send-email` sends them with
+the quiz report, only while `EMAIL_CONFIRMATION_ENABLED=true` (not set). The
+three switches are independent of one another.
+
 Lagos is UTC+1 all year (no daylight saving), so the local time never
 shifts. All times are **stored** as UTC instants (`timestamptz`, ISO
 strings): `next_email_due`, `submitted_at`, `marketing_consent_at`,
@@ -28,7 +32,7 @@ as UTC instants".
 | Account / security (Supabase Auth) | confirm signup, reset password | none — requested by the user | not affected by marketing unsubscribe |
 | Requested transactional | quiz report | none — requested on the form | link present; still sent after a marketing unsubscribe because it was explicitly requested [lifecycle: "L: …"] |
 | Customer service | onboarding after a **verified** purchase | none (relates to the purchase); unsubscribed addresses are skipped | link when the purchase is linked to a lead |
-| Consent confirmation | "Please confirm: EMerriment skin education emails" (one per request) | none — the person ticked the box asking for it; sent only while `EMAIL_SEQUENCE_ENABLED=true` | not needed (single email, no promotion); ignoring it subscribes nobody |
+| Consent confirmation | "Please confirm: EMerriment skin education emails" (one per request) | none — the person ticked the box asking for it; sent only while `EMAIL_CONFIRMATION_ENABLED=true` (the box is hidden otherwise) | not needed (single email, no promotion); ignoring it subscribes nobody |
 | Marketing / education | 14-day lessons, future newsletters, re-engagement | **confirmed opt-in** (double opt-in: `leads.marketing_consent = true` only after the person presses Confirm) | one click; withdraws consent on every lead with the address |
 
 ### Consent wording (version `quiz-optin-2026-11-17`)
@@ -53,11 +57,22 @@ email asking you to confirm. No lessons are sent until you do."
    one per request (`email_deliveries (lead, confirm, 0)`, Resend key
    `consent-confirm-lead-<id>`); none if the address is already subscribed,
    unsubscribed, or was sent one in the last 24 h. Off unless
-   `EMAIL_SEQUENCE_ENABLED=true`; fails closed without migration 7.
+   `EMAIL_CONFIRMATION_ENABLED=true` (independent of the lessons); fails
+   closed without migration 7.
 3. **Confirm** — the link opens `/.netlify/functions/confirm-subscription`,
    a page with a Confirm button. Opening the link (for example a mail
    scanner) changes nothing; only the button's POST activates consent. The
-   database sets `marketing_consent_at` and destroys the token.
+   database sets `marketing_consent_at` and destroys the token. Confirming
+   sends nothing itself: lessons follow only while
+   `EMAIL_SEQUENCE_ENABLED=true` (the page says so when they have not
+   started yet).
+
+The opt-in box ships hidden and disabled on both forms; `js/consent-optin.js`
+shows it only when `/.netlify/functions/email-features` answers
+`{"consentConfirmation": true}` (any other answer, error or network failure
+keeps it hidden). The quiz scripts count only a ticked, enabled box, so while
+confirmations are off nothing promises a confirmation email and no request is
+recorded.
 
 Stored per lead: `marketing_consent` (active), `marketing_consent_requested_at`,
 `marketing_consent_source`, `marketing_consent_version`, `marketing_consent_at`
