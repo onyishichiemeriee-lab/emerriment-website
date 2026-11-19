@@ -43,8 +43,13 @@ select 103, 'BLOCKER', 'A platform', 'auth.users exists (purchases.user_id FK)',
        'present', coalesce(to_regclass('auth.users')::text, 'MISSING'),
        to_regclass('auth.users') is not null
 union all
-select 104, 'BLOCKER', 'A platform', 'SQL Editor session is a trusted direct connection (request_role = '''')',
-       '''''',
+-- '#' is a sentinel: the value shown is request_role() || '#' (NULL shown
+-- as '<null>#'). '#' alone therefore means request_role() returned exactly
+-- '' — no JWT role, i.e. the SQL Editor's trusted direct connection. The
+-- marker is needed because an empty string and NULL both come back as NULL
+-- through query_to_xml/xpath. An API role would show as e.g. 'anon#'.
+select 104, 'BLOCKER', 'A platform', 'SQL Editor session is a trusted direct connection (request_role() = '''', shown as sentinel ''#'')',
+       '''#''',
        case when to_regprocedure('emerriment_private.request_role()') is null then 'request_role() MISSING'
             else '''' || (xpath('/row/v/text()', query_to_xml(
                      'select coalesce(emerriment_private.request_role(), ''<null>'') || ''#'' as v', false, true, '')))[1]::text || '''' end,
