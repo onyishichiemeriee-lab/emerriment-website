@@ -1,40 +1,56 @@
 -- =====================================================================
--- EMerriment migration 7 — marketing consent, verified purchases,
--- customer onboarding delivery records
+-- EMerriment migration 7 — marketing consent (double opt-in), verified
+-- purchases, customer onboarding and confirmation delivery records
 -- ---------------------------------------------------------------------
 -- STATUS: PREPARED, NOT APPLIED.
 -- Requires 20261110085900 … 20261113090000 (checked below).
 --
--- 1. Marketing consent on public.leads (separate from the requested
---    quiz report):
---      marketing_consent          boolean, default false
---      marketing_consent_at       set by the database (never the browser)
---      marketing_consent_source   where it was given (allow-list)
---      marketing_consent_version  which consent wording was shown
---                                 (allow-list; wording kept in
---                                 EMAIL_LIFECYCLE_PLAN.md)
---      marketing_consent_withdrawn_at  set by the unsubscribe function
---    Visitors can only submit the choice, source and version; the
---    timestamps cannot be written through the API.
+-- 1. Marketing consent on public.leads — DOUBLE OPT-IN, separate from the
+--    requested quiz report. Ticking the quiz box only records a REQUEST;
+--    consent becomes active only when the person confirms from the email
+--    sent to that address.
+--      marketing_consent                   ACTIVE (confirmed) consent;
+--                                          default false
+--      marketing_consent_requested_at      box ticked (database time)
+--      marketing_consent_source            where (allow-list)
+--      marketing_consent_version           which wording was shown
+--                                          (allow-list; wording kept in
+--                                          EMAIL_LIFECYCLE_PLAN.md)
+--      marketing_consent_at                confirmed (database time)
+--      marketing_consent_token_hash        SHA-256 (hex) of the single-use
+--                                          confirmation token; the token
+--                                          itself is never stored
+--      marketing_consent_token_expires_at  token expiry (at most 8 days)
+--      marketing_consent_withdrawn_at      unsubscribed (database time)
 --
 --    Who may do what (caller = emerriment_private.request_role(), the JWT
 --    role PostgREST sets; '' = a direct database connection such as the
 --    SQL Editor, which carries no JWT):
 --      * INSERT through the API (visitor, signed-in user, administrator,
---        service role): treated exactly like a quiz submission — only the
---        allow-listed source and wording version, server timestamp, no
---        withdrawal. An administrator has no more power than a visitor.
---      * UPDATE: consent is never switched ON and its evidence (time,
---        source, version) is never rewritten, by anyone. Withdrawal
---        (true → false) only by the service role (the unsubscribe
---        function) or a direct database connection; the withdrawal time
---        is the server time. Repeat or no-op withdrawals change nothing.
---        Administrators and signed-in users cannot change consent at all
---        (they mark a lead "Unsubscribed" instead, which every sender
---        honours).
---      * A CHECK constraint keeps the evidence consistent: consent = true
---        always has a time, source and version; a withdrawal time only
---        exists where consent was once recorded.
+--        service role): a quiz submission. Visitors may only send the
+--        source and wording version (column privileges); with them the
+--        lead records a pending REQUEST (database time). Consent is
+--        always false on insert; confirmation, token and withdrawal
+--        fields are cleared. An administrator has no more power than a
+--        visitor.
+--      * ACTIVATION (false → true): only the service role — the
+--        confirm-subscription function, after the person clicks
+--        "Confirm" — and only while the row holds a pending request,
+--        an unexpired token, no withdrawal and is not Unsubscribed. The
+--        database sets the confirmation time and destroys the token
+--        (single use). Administrators, signed-in users and the SQL
+--        Editor cannot activate consent.
+--      * TOKEN: issued or cleared only by the service role (or a direct
+--        connection), and only for a pending request.
+--      * WITHDRAWAL: by the server (unsubscribe) or a direct connection,
+--        or automatically when any caller marks the lead "Unsubscribed";
+--        database time; outstanding tokens are destroyed. Repeat
+--        withdrawals change nothing.
+--      * The request evidence (time, source, version) and the
+--        confirmation time are never rewritten, by anyone.
+--      * At most one ACTIVE consent per address (unique index), so a
+--        repeated quiz or confirmation never creates a second subscriber.
+--      * A CHECK constraint keeps all of this consistent whoever writes.
 --
 -- 2. public.purchases — VERIFIED purchases only (written by the service
 --    role: a future signed Selar webhook, or an administrator recording a
@@ -42,11 +58,13 @@
 --    never creates a row. No browser access except admin read (CMS).
 --
 -- 3. public.email_deliveries can also record customer onboarding emails
---    (kind 'customer', keyed by purchase) with the same at-most-once
---    unique key as the report and the lesson sequence.
+--    (kind 'customer', keyed by purchase) and consent confirmation emails
+--    (kind 'confirm', keyed by lead) with the same at-most-once unique
+--    keys as the report and the lesson sequence.
 --
 -- Non-destructive: no row is deleted or changed; existing leads keep
--- marketing_consent = false (nobody is enrolled retroactively).
+-- marketing_consent = false with no request (nobody is enrolled
+-- retroactively, and nobody is sent a confirmation email).
 -- Safe to re-run.
 -- Rollback: supabase/rollback/emerriment_migration7_rollback.sql
 --   (migration 7 ONLY; keeps all data and migrations 1–6).
@@ -71,31 +89,58 @@ $$;
 -- 1. Consent columns
 -- ---------------------------------------------------------------------
 alter table public.leads add column if not exists marketing_consent boolean not null default false;
-alter table public.leads add column if not exists marketing_consent_at timestamptz;
+alter table public.leads add column if not exists marketing_consent_requested_at timestamptz;
 alter table public.leads add column if not exists marketing_consent_source text;
 alter table public.leads add column if not exists marketing_consent_version text;
+alter table public.leads add column if not exists marketing_consent_at timestamptz;
+alter table public.leads add column if not exists marketing_consent_token_hash text;
+alter table public.leads add column if not exists marketing_consent_token_expires_at timestamptz;
 alter table public.leads add column if not exists marketing_consent_withdrawn_at timestamptz;
 
 comment on column public.leads.marketing_consent is
-    'EMerriment: explicit opt-in to educational emails (separate from the requested quiz report).';
+    'EMerriment: ACTIVE opt-in to educational emails, confirmed by the person from their email (double opt-in). Separate from the requested quiz report.';
+comment on column public.leads.marketing_consent_token_hash is
+    'EMerriment: SHA-256 (hex) of the single-use confirmation token. The token itself is never stored.';
 
 create index if not exists emerriment_leads_marketing_consent_idx
     on public.leads (next_email_due) where marketing_consent;
 
--- Evidence stays consistent whoever writes the row. Every existing lead
--- has marketing_consent = false and empty evidence, so this validates.
+-- One active subscriber per address: a repeated quiz or a second
+-- confirmation can never create a duplicate subscriber.
+create unique index if not exists emerriment_leads_active_consent_address_idx
+    on public.leads (lower(btrim(email))) where marketing_consent;
+
+-- Token look-up (and no two leads can hold the same token).
+create unique index if not exists emerriment_leads_consent_token_idx
+    on public.leads (marketing_consent_token_hash) where marketing_consent_token_hash is not null;
+
+-- Consistency whoever writes the row. Every existing lead has
+-- marketing_consent = false and all consent fields empty, so this validates.
 alter table public.leads drop constraint if exists leads_marketing_consent_evidence_check;
 alter table public.leads
     add constraint leads_marketing_consent_evidence_check check (
-        (not marketing_consent
-         or (marketing_consent_at is not null
-             and marketing_consent_source is not null
-             and marketing_consent_version is not null))
-        and (marketing_consent_withdrawn_at is null or marketing_consent_at is not null)
+        -- a request always has its time, source and wording version
+        (marketing_consent_requested_at is null) = (marketing_consent_source is null)
+        and (marketing_consent_source is null) = (marketing_consent_version is null)
+        -- active consent = a request confirmed at a recorded time
+        and (not marketing_consent
+             or (marketing_consent_requested_at is not null and marketing_consent_at is not null
+                 and marketing_consent_withdrawn_at is null))
+        and (marketing_consent_at is null or marketing_consent_requested_at is not null)
+        -- a token belongs to a pending request and always expires
+        and ((marketing_consent_token_hash is null) = (marketing_consent_token_expires_at is null))
+        and (marketing_consent_token_hash is null
+             or (marketing_consent_token_hash ~ '^[0-9a-f]{64}$'
+                 and marketing_consent_requested_at is not null
+                 and not marketing_consent
+                 and marketing_consent_withdrawn_at is null))
+        -- a withdrawal only exists where something was requested
+        and (marketing_consent_withdrawn_at is null or marketing_consent_requested_at is not null)
     );
 
--- 1a. Consent guard for inserts. SECURITY DEFINER only to read the
--- request role from the private helper schema; it reads no table.
+-- 1a. Insert guard: every API insert is a quiz submission. SECURITY
+-- DEFINER only to read the request role from the private helper schema;
+-- it reads no table.
 create or replace function public.emerriment_guard_lead_consent()
 returns trigger
 language plpgsql
@@ -107,17 +152,19 @@ declare
 begin
 
     -- Direct database connection (SQL Editor, restore from backup): no
-    -- JWT. Trusted; the CHECK constraint still enforces the evidence.
+    -- JWT. Trusted; the CHECK constraint still enforces consistency.
     if caller = '' then
-        if coalesce(new.marketing_consent, false) and new.marketing_consent_at is null then
-            new.marketing_consent_at := now();
-        end if;
         return new;
     end if;
 
-    -- Every API request — visitor, signed-in user, administrator or
-    -- service role — is treated as a quiz submission.
-    if coalesce(new.marketing_consent, false) then
+    -- Never active, confirmed, tokenised or withdrawn on insert.
+    new.marketing_consent := false;
+    new.marketing_consent_at := null;
+    new.marketing_consent_token_hash := null;
+    new.marketing_consent_token_expires_at := null;
+    new.marketing_consent_withdrawn_at := null;
+
+    if new.marketing_consent_source is not null or new.marketing_consent_version is not null then
 
         if new.marketing_consent_version is null
            or new.marketing_consent_version not in ('quiz-optin-2026-11-17') then
@@ -129,19 +176,14 @@ begin
             raise exception 'Unknown consent source.' using errcode = 'P0001';
         end if;
 
-        -- Server time, never a client clock.
-        new.marketing_consent_at := now();
+        -- A pending request, at server time (never a client clock).
+        new.marketing_consent_requested_at := now();
 
     else
 
-        new.marketing_consent := false;
-        new.marketing_consent_at := null;
-        new.marketing_consent_source := null;
-        new.marketing_consent_version := null;
+        new.marketing_consent_requested_at := null;
 
     end if;
-
-    new.marketing_consent_withdrawn_at := null;
 
     return new;
 
@@ -156,8 +198,8 @@ create trigger emerriment_guard_lead_consent
     for each row
     execute function public.emerriment_guard_lead_consent();
 
--- 1b. Consent guard for updates: consent is given once, on the quiz form,
--- and can afterwards only be withdrawn by the server.
+-- 1b. Update guard: activation only by confirmation, withdrawal only by
+-- the server (or "Unsubscribed"), evidence never rewritten.
 create or replace function public.emerriment_guard_lead_consent_change()
 returns trigger
 language plpgsql
@@ -166,44 +208,113 @@ set search_path = ''
 as $$
 declare
     caller text := emerriment_private.request_role();
+    trusted boolean := caller in ('service_role', '');
+    was_unsubscribed boolean := coalesce(old.status::text, '') = 'Unsubscribed';
+    unsubscribing boolean := coalesce(new.status::text, '') = 'Unsubscribed' and not was_unsubscribed;
+    token_changed boolean :=
+        new.marketing_consent_token_hash is distinct from old.marketing_consent_token_hash
+        or new.marketing_consent_token_expires_at is distinct from old.marketing_consent_token_expires_at;
+    withdrawing boolean;
 begin
 
-    -- Unchanged consent (for example a CMS edit of notes or status that
-    -- sends the whole row): nothing to check.
-    if new.marketing_consent is not distinct from old.marketing_consent
-       and new.marketing_consent_at is not distinct from old.marketing_consent_at
+    -- Nothing about consent changed (for example a CMS edit of notes,
+    -- or a status other than Unsubscribed): nothing to check.
+    if not unsubscribing
+       and not token_changed
+       and new.marketing_consent is not distinct from old.marketing_consent
+       and new.marketing_consent_requested_at is not distinct from old.marketing_consent_requested_at
        and new.marketing_consent_source is not distinct from old.marketing_consent_source
        and new.marketing_consent_version is not distinct from old.marketing_consent_version
+       and new.marketing_consent_at is not distinct from old.marketing_consent_at
        and new.marketing_consent_withdrawn_at is not distinct from old.marketing_consent_withdrawn_at then
         return new;
     end if;
 
-    -- The evidence of a consent is never rewritten, by anyone.
-    if new.marketing_consent_at is distinct from old.marketing_consent_at
+    -- The evidence of a request is never rewritten, by anyone.
+    if new.marketing_consent_requested_at is distinct from old.marketing_consent_requested_at
        or new.marketing_consent_source is distinct from old.marketing_consent_source
        or new.marketing_consent_version is distinct from old.marketing_consent_version then
         raise exception 'Marketing consent records cannot be changed.' using errcode = 'P0001';
     end if;
 
-    -- Consent is never switched on afterwards (only a new quiz submission
-    -- by the person records it).
+    -- Activation: only the confirmation step (service role), only for a
+    -- pending request holding a live token.
     if new.marketing_consent and not old.marketing_consent then
-        raise exception 'Marketing consent can only be given by the person on the quiz form.' using errcode = 'P0001';
+
+        if caller <> 'service_role' then
+            raise exception 'Marketing consent is only activated when the person confirms from their email.'
+                using errcode = 'P0001';
+        end if;
+
+        if old.marketing_consent_requested_at is null
+           or old.marketing_consent_withdrawn_at is not null
+           or was_unsubscribed
+           or unsubscribing
+           or old.marketing_consent_token_hash is null
+           or old.marketing_consent_token_expires_at is null
+           or old.marketing_consent_token_expires_at <= now()
+           or token_changed then
+            raise exception 'This consent confirmation is not valid.' using errcode = 'P0001';
+        end if;
+
+        -- Server time; the token is destroyed (single use).
+        new.marketing_consent_at := now();
+        new.marketing_consent_token_hash := null;
+        new.marketing_consent_token_expires_at := null;
+        return new;
+
     end if;
 
-    -- What remains is a withdrawal: server side only.
-    if caller not in ('service_role', '') then
-        raise exception 'Only the unsubscribe process can withdraw marketing consent; mark the lead Unsubscribed instead.'
+    -- The confirmation time is only ever set by the activation above.
+    if new.marketing_consent_at is distinct from old.marketing_consent_at then
+        raise exception 'Marketing consent records cannot be changed.' using errcode = 'P0001';
+    end if;
+
+    withdrawing := (old.marketing_consent and not new.marketing_consent)
+        or new.marketing_consent_withdrawn_at is distinct from old.marketing_consent_withdrawn_at;
+
+    if (withdrawing or token_changed) and not trusted then
+        raise exception 'Only the server can change marketing consent; mark the lead Unsubscribed instead.'
             using errcode = '42501';
     end if;
 
-    if old.marketing_consent and not new.marketing_consent then
-        -- Server time, never a client clock.
-        new.marketing_consent_withdrawn_at := now();
-    else
-        -- Not consenting already (or still consenting): the withdrawal
-        -- time stays as it was, so repeat unsubscribes change nothing.
-        new.marketing_consent_withdrawn_at := old.marketing_consent_withdrawn_at;
+    -- Withdrawal (unsubscribe function, SQL Editor, or "Unsubscribed" set
+    -- by anyone): active or pending consent ends at server time and any
+    -- outstanding confirmation token is destroyed.
+    if withdrawing or unsubscribing then
+
+        if old.marketing_consent
+           or (old.marketing_consent_requested_at is not null and old.marketing_consent_withdrawn_at is null) then
+            new.marketing_consent := false;
+            new.marketing_consent_withdrawn_at := coalesce(old.marketing_consent_withdrawn_at, now());
+        else
+            -- Nothing to withdraw (or already withdrawn): unchanged.
+            new.marketing_consent := old.marketing_consent;
+            new.marketing_consent_withdrawn_at := old.marketing_consent_withdrawn_at;
+        end if;
+
+        new.marketing_consent_token_hash := null;
+        new.marketing_consent_token_expires_at := null;
+        return new;
+
+    end if;
+
+    -- Issuing a confirmation token (clearing one is always allowed).
+    if new.marketing_consent_token_hash is not null then
+
+        if old.marketing_consent_requested_at is null
+           or old.marketing_consent
+           or old.marketing_consent_withdrawn_at is not null
+           or was_unsubscribed then
+            raise exception 'There is no pending consent request to confirm.' using errcode = 'P0001';
+        end if;
+
+        if new.marketing_consent_token_expires_at is null
+           or new.marketing_consent_token_expires_at <= now()
+           or new.marketing_consent_token_expires_at > now() + interval '8 days' then
+            raise exception 'A confirmation token must expire within 8 days.' using errcode = 'P0001';
+        end if;
+
     end if;
 
     return new;
@@ -215,14 +326,21 @@ revoke all on function public.emerriment_guard_lead_consent_change() from public
 
 drop trigger if exists emerriment_guard_lead_consent_change on public.leads;
 create trigger emerriment_guard_lead_consent_change
-    before update of marketing_consent, marketing_consent_at, marketing_consent_source,
-                     marketing_consent_version, marketing_consent_withdrawn_at
+    before update of status, marketing_consent, marketing_consent_requested_at,
+                     marketing_consent_source, marketing_consent_version, marketing_consent_at,
+                     marketing_consent_token_hash, marketing_consent_token_expires_at,
+                     marketing_consent_withdrawn_at
     on public.leads
     for each row
     execute function public.emerriment_guard_lead_consent_change();
 
--- Visitors may submit the choice, source and version (never timestamps).
-grant insert (marketing_consent, marketing_consent_source, marketing_consent_version)
+-- Visitors may submit only the request (source and wording version).
+-- Consent itself, the times and the token are never writable by them.
+revoke insert (marketing_consent, marketing_consent_requested_at, marketing_consent_at,
+               marketing_consent_token_hash, marketing_consent_token_expires_at,
+               marketing_consent_withdrawn_at)
+    on public.leads from anon, authenticated;
+grant insert (marketing_consent_source, marketing_consent_version)
     on public.leads to anon, authenticated;
 
 
@@ -273,7 +391,7 @@ alter table public.email_deliveries alter column lead_id drop not null;
 
 alter table public.email_deliveries drop constraint if exists email_deliveries_kind_check;
 alter table public.email_deliveries
-    add constraint email_deliveries_kind_check check (kind in ('report', 'sequence', 'customer'));
+    add constraint email_deliveries_kind_check check (kind in ('report', 'sequence', 'customer', 'confirm'));
 
 alter table public.email_deliveries drop constraint if exists email_deliveries_target_check;
 alter table public.email_deliveries

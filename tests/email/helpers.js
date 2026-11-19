@@ -64,6 +64,7 @@ function matches(row, filters) {
             case "gte": return v != null && cmpTime(v) >= cmpTime(val);
             case "lte": return v != null && cmpTime(v) <= cmpTime(val);
             case "lt": return v != null && cmpTime(v) < cmpTime(val);
+            case "gt": return v != null && cmpTime(v) > cmpTime(val);
             case "ilike": return typeof v === "string" && likeToRegex(val).test(v);
             default: throw new Error("unsupported op " + op);
         }
@@ -90,6 +91,7 @@ class Query {
     gte(c, v) { this.filters.push(["gte", c, v]); return this; }
     lte(c, v) { this.filters.push(["lte", c, v]); return this; }
     lt(c, v) { this.filters.push(["lt", c, v]); return this; }
+    gt(c, v) { this.filters.push(["gt", c, v]); return this; }
     ilike(c, v) { this.filters.push(["ilike", c, v]); return this; }
     order(c, o) { this.ord = [c, o || {}]; return this; }
     limit(n) { this.lim = n; return this; }

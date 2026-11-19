@@ -119,11 +119,11 @@ test("[js/quiz.js] no opt-in: lead carries no consent fields (database default =
     assert(!("marketing_consent" in row) && !("marketing_consent_source" in row));
 });
 
-test("[js/quiz.js] explicit opt-in: consent, source quiz_page and wording version are sent", async () => {
+test("[js/quiz.js] ticked box: a REQUEST only (source quiz_page + wording version), never consent itself", async () => {
     const s = setup("js/quiz.js", { consent: true });
     await s.run();
     const row = s.calls.inserts.find((i) => i.table === "leads").rows;
-    assert.strictEqual(row.marketing_consent, true);
+    assert(!("marketing_consent" in row), "double opt-in: the browser never sends consent itself");
     assert.strictEqual(row.marketing_consent_source, "quiz_page");
     assert.strictEqual(row.marketing_consent_version, "quiz-optin-2026-11-17");
     assert(!("marketing_consent_at" in row), "the timestamp is set by the database");

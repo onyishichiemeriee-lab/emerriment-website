@@ -9,9 +9,9 @@ been executed in production yet.
 | Item | State |
 |---|---|
 | Code on branch `production/official-domain-finalization` | committed locally, **not pushed or deployed** |
-| Migration `20261117090000_emerriment_marketing_consent_and_purchases.sql` | prepared, **not applied** (consent update guard added 2026-11-18) |
+| Migration `20261117090000_emerriment_marketing_consent_and_purchases.sql` | prepared, **not applied** (consent update guard and double opt-in added 2026-11-18) |
 | Rollback for migration 7 only | `supabase/rollback/emerriment_migration7_rollback.sql` (see §5) |
-| `EMAIL_SEQUENCE_ENABLED` | not set (lessons off) |
+| `EMAIL_SEQUENCE_ENABLED` | not set (lessons **and consent confirmation emails** off) |
 | `CUSTOMER_ONBOARDING_ENABLED` | not set (onboarding off) |
 | `EMAIL_REPLY_TO` | not set (no reply inbox exists) |
 
@@ -34,27 +34,34 @@ been executed in production yet.
    message.
 5. **Approval — one real test submission per form** (an address you control):
    * homepage, box **unticked** → report arrives; `marketing_consent = false`.
-   * quiz.html, box **ticked** → report arrives; `marketing_consent = true`,
-     `marketing_consent_at` set, source `quiz_page`, version
-     `quiz-optin-2026-11-17`.
-   * Click unsubscribe in the second report → both leads `Unsubscribed`,
-     `marketing_consent = false`; `marketing_consent_withdrawn_at` set (server
-     time) on the lead that had consented; its consent time, source and
-     version unchanged.
+   * quiz.html, box **ticked** → report arrives; a **pending request**:
+     `marketing_consent = false`, `marketing_consent_requested_at` set,
+     source `quiz_page`, version `quiz-optin-2026-11-17`. No confirmation
+     email yet (`EMAIL_SEQUENCE_ENABLED` is not set).
+   * Click unsubscribe in the second report → both leads `Unsubscribed`;
+     `marketing_consent_withdrawn_at` set (server time) on the lead with the
+     request; its request time, source and version unchanged.
 
 ## 2. Activating the 14-day lessons (later, separate approval)
 
 1. Decide the start: set `EMAIL_SEQUENCE_START_AFTER` to the activation
    moment (ISO time) **(approval — env var)**.
-2. Create one opted-in test lead with your own address **by taking the
-   quiz with the box ticked** (consent cannot be switched on afterwards by
-   SQL, the CMS or the server — the database refuses it); set
-   `EMAIL_SEQUENCE_ENABLED=true` **(approval)** and redeploy.
-3. Next 08:00 Lagos run: one lesson to the test lead only; check Resend and
+2. Set `EMAIL_SEQUENCE_ENABLED=true` **(approval)** and redeploy. This also
+   switches on the consent confirmation emails.
+3. Create one subscribed test lead with your own address: **take the quiz
+   with the box ticked**, open the confirmation email, check that opening
+   the link alone changes nothing (`marketing_consent` still `false`), then
+   press Confirm → `marketing_consent = true`, `marketing_consent_at` set,
+   token columns empty. Pressing Confirm again shows "no longer valid".
+   (Consent cannot be switched on by SQL, the CMS or the server — the
+   database refuses it.)
+4. Next 08:00 Lagos run: one lesson to the test lead only; check Resend and
    the function log summary (`sent`, `skipped_no_consent`, …).
-4. Watch for a week; unsubscribe link and suppression re-checked.
+5. Watch for a week; unsubscribe link and suppression re-checked.
 
-Rollback: remove `EMAIL_SEQUENCE_ENABLED` (next run sends nothing).
+Rollback: remove `EMAIL_SEQUENCE_ENABLED` (next run sends nothing; no new
+confirmation emails; already-sent confirmation links still work and record
+consent, which simply waits until lessons are switched on again).
 
 ## 3. Activating customer onboarding (later, separate approval)
 
@@ -79,7 +86,7 @@ purchase on your own address. Rollback: remove the variable.
 | A | Visitor completes the quiz | homepage-quiz "anonymous visitor…"; journey.dom "homepage quiz…" |
 | B | Valid email → requested report | send-email suite; homepage-quiz; quiz-pages "one report email request" |
 | C | Declines consent → no lessons | homepage-quiz "C: …"; quiz-pages "no opt-in…"; lifecycle "C: …"; journey.pglite "C: …" |
-| D | Opts in → eligible for lessons | homepage-quiz "D: …"; quiz-pages "explicit opt-in…"; lifecycle "D: …"; journey.pglite "D: …" |
+| D | Ticks the box → pending request; eligible for lessons only after confirming | homepage-quiz "D: …"; quiz-pages "ticked box…"; lifecycle "D: …"; journey.pglite "D: …", "explicit confirmation activates consent…"; consent-confirmation suite (21 tests: one email per request, scanner-safe page, single use, expiry, unsubscribe) |
 | E | Registers and confirms | auth-pages.dom (signup, expired link, resend confirmation) |
 | F | Logs in, dashboard | auth-pages.dom "fresh login…", "dashboard after login…" |
 | G | Unsubscribes → suppressed everywhere | lifecycle "G: …"; tracking suite (unsubscribe) |

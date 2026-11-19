@@ -22,6 +22,8 @@ const {
     releaseDelivery
 } = require("../lib/email-deliveries");
 
+const { sendConsentConfirmation } = require("../lib/consent-confirmation");
+
 
 /* =========================================
    EMerriment Email Function
@@ -576,6 +578,19 @@ exports.handler = async (event) => {
 
     const { resend, supabase } = clients;
 
+    // Marketing consent confirmation (double opt-in): a separate email,
+    // only for a quiz that ticked the optional box. Runs after the report
+    // attempt whatever its outcome and can never change the report's
+    // response (it never throws).
+    const finish = async (response) => {
+        try {
+            await sendConsentConfirmation(supabase, resend, request.email);
+        } catch (error) {
+            console.error("SEND EMAIL: consent confirmation step failed.");
+        }
+        return response;
+    };
+
     let leadId = null;
     let claim = null;
     let reservation = null;
@@ -596,7 +611,7 @@ exports.handler = async (event) => {
 
         if (!isLeadEligible(lead, now)) {
             console.warn("SEND EMAIL: no eligible lead for request.");
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
         }
 
         leadId = lead.id;
@@ -605,7 +620,7 @@ exports.handler = async (event) => {
 
         if (hasCompetingLead(leads, leadId, now)) {
             console.warn("SEND EMAIL: address limit active.", { leadId });
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
         }
 
         /* ---------- Atomic claim ---------- */
@@ -614,7 +629,7 @@ exports.handler = async (event) => {
 
         if (!claim) {
             console.warn("SEND EMAIL: lead already claimed.", { leadId });
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
         }
 
         /* ---------- Post-claim re-check ----------
@@ -641,7 +656,7 @@ exports.handler = async (event) => {
 
             claim = null;
 
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
 
         }
 
@@ -680,7 +695,7 @@ exports.handler = async (event) => {
             claim = null;
             reservation = null;
 
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
 
         }
 
@@ -729,7 +744,7 @@ exports.handler = async (event) => {
             claim = null;
             reservation = null;
 
-            return RESPONSES.deliveryFailed();
+            return finish(RESPONSES.deliveryFailed());
 
         }
 
@@ -760,7 +775,7 @@ exports.handler = async (event) => {
             { leadId, emailId: delivery.id }
         );
 
-        return RESPONSES.sent();
+        return finish(RESPONSES.sent());
 
     } catch (error) {
 
@@ -793,7 +808,7 @@ exports.handler = async (event) => {
             }
         );
 
-        return RESPONSES.serverError();
+        return finish(RESPONSES.serverError());
 
     }
 

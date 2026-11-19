@@ -749,8 +749,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // only need permission to insert it.
     const savedLead = null;
 
+    // Ticked box = a REQUEST (double opt-in): consent becomes active only
+    // after the person confirms from the separate confirmation email.
     if (data.marketing_consent === true) {
-        leadPayload.marketing_consent = true;
         leadPayload.marketing_consent_source = "quiz_page";
         leadPayload.marketing_consent_version = "quiz-optin-2026-11-17";
     }
@@ -765,9 +766,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Before the consent migration the columns do not exist: save the
     // quiz without them (no consent recorded = no lessons).
-    if (leadError && leadPayload.marketing_consent &&
+    if (leadError && leadPayload.marketing_consent_source &&
         (leadError.code === "PGRST204" || /marketing_consent/.test(String(leadError.message || "")))) {
-        delete leadPayload.marketing_consent;
         delete leadPayload.marketing_consent_source;
         delete leadPayload.marketing_consent_version;
         ({ error: leadError } = await supabaseClient.from("leads").insert(leadPayload));

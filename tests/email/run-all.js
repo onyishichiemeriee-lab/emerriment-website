@@ -10,7 +10,8 @@ const suites = [
     require("./tracking.test"),
     require("./homepage-quiz.test"),
     require("./quiz-pages.test"),
-    require("./lifecycle.test")
+    require("./lifecycle.test"),
+    require("./consent-confirmation.test")
 ];
 
 (async () => {

@@ -133,9 +133,11 @@ code; until the migrations are applied, the new code falls back where it can.
 
 `20261117090000_emerriment_marketing_consent_and_purchases.sql`: separate
 marketing consent, verified purchases, customer onboarding delivery
-records, and two consent guards on `leads` (insert: quiz rules for every
-API caller; update: consent never switched on or rewritten, withdrawal only
-by the server). Release order, approvals and test plan:
+and consent-confirmation delivery records, and two consent guards on
+`leads` implementing double opt-in (insert: only a pending request, quiz
+rules for every API caller; update: activation only by the server with a
+live single-use token, evidence never rewritten, withdrawal by the server
+or on `Unsubscribed`). Release order, approvals and test plan:
 `docs/PRODUCTION_ACTIVATION_CHECKLIST.md`; journey and lifecycle design:
 `docs/VISITOR_TO_CUSTOMER_JOURNEY.md`, `docs/EMAIL_LIFECYCLE_PLAN.md`.
 

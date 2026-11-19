@@ -10,7 +10,8 @@ labelled **planned** or **needs an integration**.
 |---|---|---|---|
 | Visitor | Opens any page | Google Analytics (homepage only) | observed (GA, homepage) |
 | Quiz lead | Submits a quiz with a valid email | `leads` row (identity id, answers) | observed |
-| Marketing subscriber | Ticks the **optional** 14-day lessons box on a quiz | `leads.marketing_consent = true`, server timestamp, source, wording version | observed (after migration 7) |
+| Pending subscriber | Ticks the **optional** 14-day lessons box on a quiz | `leads.marketing_consent_requested_at` (server time), source, wording version; `marketing_consent = false` | observed (after migration 7) |
+| Marketing subscriber | Presses Confirm on the page linked from the confirmation email (double opt-in) | `leads.marketing_consent = true`, `marketing_consent_at` (server time) | observed (after migration 7, with `EMAIL_SEQUENCE_ENABLED=true`) |
 | Registered user | Signs up (Supabase Auth) | `auth.users`, `profiles` | observed |
 | Confirmed user | Clicks the confirmation link | `auth.users.email_confirmed_at` | observed |
 | Checkout visitor | Clicks a Selar product link | GA `checkout_click` (product slug only); `product_clicks` for clicks inside emails | **intent only — never a purchase** |
@@ -54,9 +55,12 @@ were added. `quiz_start` / `quiz_complete` events measure quiz drop-off.
 * The form says what happens: "one email, because you asked for it".
 * **Separate, optional, unticked** consent box for the 14-day lessons
   (wording version `quiz-optin-2026-11-17`, see EMAIL_LIFECYCLE_PLAN.md).
-  The database sets the consent time and accepts only known sources and
-  wording versions [journey.pglite: "D: explicit opt-in…", "consent cannot be
-  recorded with an unknown wording version or source"].
+  Ticking it only records a **request**; lessons start only after the person
+  confirms from a separate email (double opt-in, 2026-11-18). The database
+  sets the request and confirmation times and accepts only known sources and
+  wording versions [journey.pglite: "D: checkbox → a PENDING request only…",
+  "a request needs an allow-listed wording version and source", "explicit
+  confirmation activates consent…"; consent-confirmation suite].
 * quiz.html previously took an email without explanation and sent nothing;
   it now explains and sends the requested report [quiz-pages: "one report
   email request"].

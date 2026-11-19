@@ -48,12 +48,16 @@ const {
    - A failed send releases the claim and is
      retried on the next run; the day only
      advances after Resend accepts the email.
-   - Only leads that explicitly opted in
-     (leads.marketing_consent = true, migration
-     20261117090000) receive lessons. Consent is
-     checked in the query AND again in the claim,
-     immediately before sending. If the consent
-     column does not exist yet, nothing is sent.
+   - Only leads with CONFIRMED consent receive
+     lessons (double opt-in: leads.marketing_consent
+     = true is set only when the person confirms
+     from the confirmation email, migration
+     20261117090000). Pending, expired and
+     withdrawn requests stay false. Consent (and no
+     withdrawal) is checked in the query AND again
+     in the claim, immediately before sending. If
+     the consent columns do not exist yet, nothing
+     is sent.
    - Verified customers (public.purchases) receive
      customer onboarding instead of these lessons.
    - Unsubscribed addresses are skipped.
@@ -269,7 +273,7 @@ async function processLead(supabase, resend, lead, unsubscribed, customers = new
         return "skipped_missing_lesson";
     }
 
-    if (lead.marketing_consent !== true) {
+    if (lead.marketing_consent !== true || lead.marketing_consent_withdrawn_at) {
         return "skipped_no_consent";
     }
 
@@ -328,6 +332,7 @@ async function processLead(supabase, resend, lead, unsubscribed, customers = new
         // Consent re-checked atomically, immediately before sending
         // (unsubscribing also withdraws consent).
         .eq("marketing_consent", true)
+        .is("marketing_consent_withdrawn_at", null)
         .select("id");
 
     if (claimError) {
@@ -577,6 +582,7 @@ exports.handler = async () => {
             .from("leads")
             .select("*")
             .eq("marketing_consent", true)
+            .is("marketing_consent_withdrawn_at", null)
             .gte("email_sequence_day", FIRST_DAY)
             .lte("email_sequence_day", LAST_DAY)
             .lte("next_email_due", now);

@@ -1,6 +1,6 @@
 # EMerriment — email lifecycle plan
 
-Last updated 2026-11-17. Sender `EMerriment <hello@mail.emerriment.com>`
+Last updated 2026-11-18. Sender `EMerriment <hello@mail.emerriment.com>`
 (SPF, DKIM, DMARC pass). Timezone for scheduling: **Africa/Lagos** (UTC+1,
 no daylight saving). Scheduled functions run at **07:00 UTC = 08:00 Lagos**.
 
@@ -28,7 +28,8 @@ as UTC instants".
 | Account / security (Supabase Auth) | confirm signup, reset password | none — requested by the user | not affected by marketing unsubscribe |
 | Requested transactional | quiz report | none — requested on the form | link present; still sent after a marketing unsubscribe because it was explicitly requested [lifecycle: "L: …"] |
 | Customer service | onboarding after a **verified** purchase | none (relates to the purchase); unsubscribed addresses are skipped | link when the purchase is linked to a lead |
-| Marketing / education | 14-day lessons, future newsletters, re-engagement | **explicit opt-in** (`leads.marketing_consent = true`) | one click; withdraws consent on every lead with the address |
+| Consent confirmation | "Please confirm: EMerriment skin education emails" (one per request) | none — the person ticked the box asking for it; sent only while `EMAIL_SEQUENCE_ENABLED=true` | not needed (single email, no promotion); ignoring it subscribes nobody |
+| Marketing / education | 14-day lessons, future newsletters, re-engagement | **confirmed opt-in** (double opt-in: `leads.marketing_consent = true` only after the person presses Confirm) | one click; withdraws consent on every lead with the address |
 
 ### Consent wording (version `quiz-optin-2026-11-17`)
 > "Yes, also send me EMerriment's free 14-day skin education emails (one short
@@ -38,21 +39,45 @@ Shown unticked on the homepage quiz (`source = homepage_quiz`) and quiz.html
 (`source = quiz_page`). Changing the wording requires a new version string in
 the database allow-list (migration) and in both forms.
 
-Stored per lead: `marketing_consent`, `marketing_consent_at` (database time),
-`marketing_consent_source`, `marketing_consent_version`,
-`marketing_consent_withdrawn_at`. Existing leads have `marketing_consent =
-false` — nobody is enrolled retroactively.
+Below the box both forms say: "If you tick the box, we'll send one short
+email asking you to confirm. No lessons are sent until you do."
+
+### Double opt-in (changed 2026-11-18)
+1. **Request** — ticking the box records `marketing_consent_requested_at`
+   (database time), `marketing_consent_source` and
+   `marketing_consent_version`. `marketing_consent` stays `false`.
+2. **Confirmation email** — `send-email` sends it after the report attempt,
+   whatever the report's outcome (`netlify/lib/consent-confirmation.js`,
+   template `emails/consent-confirmation.js`). A single-use random token
+   (32 bytes); only its SHA-256 hash and a 7-day expiry are stored. At most
+   one per request (`email_deliveries (lead, confirm, 0)`, Resend key
+   `consent-confirm-lead-<id>`); none if the address is already subscribed,
+   unsubscribed, or was sent one in the last 24 h. Off unless
+   `EMAIL_SEQUENCE_ENABLED=true`; fails closed without migration 7.
+3. **Confirm** — the link opens `/.netlify/functions/confirm-subscription`,
+   a page with a Confirm button. Opening the link (for example a mail
+   scanner) changes nothing; only the button's POST activates consent. The
+   database sets `marketing_consent_at` and destroys the token.
+
+Stored per lead: `marketing_consent` (active), `marketing_consent_requested_at`,
+`marketing_consent_source`, `marketing_consent_version`, `marketing_consent_at`
+(confirmed), `marketing_consent_token_hash`, `marketing_consent_token_expires_at`,
+`marketing_consent_withdrawn_at`. Existing leads have no request and
+`marketing_consent = false` — nobody is enrolled retroactively and nobody is
+sent a confirmation.
 
 Who can change it (enforced by the database, migration 7):
-* Consent is recorded only when a quiz submission inserts a lead with the
-  box ticked: allow-listed source and wording, server time. An
-  administrator or the server inserting a lead gets exactly the same rules.
-* Afterwards nobody — administrator, server or SQL Editor — can switch
-  consent on or rewrite its time, source or version.
-* Withdrawal only by the server (the unsubscribe function) or the SQL
-  Editor, with the server time; repeat unsubscribes keep the first time.
-  Administrators mark a lead `Unsubscribed` instead (every sender honours
-  that status).
+* A request is recorded only when a quiz submission inserts a lead with the
+  box ticked: allow-listed source and wording, server time. Consent is
+  always `false` on insert, for every caller including administrators.
+* Activation only by the service role (the confirmation page), only with a
+  live token, no withdrawal and not `Unsubscribed`. Administrators, signed-in
+  users and the SQL Editor cannot activate consent.
+* At most one active subscriber per address (unique index).
+* The request evidence and the confirmation time are never rewritten.
+* Withdrawal by the server (unsubscribe function) or the SQL Editor, or
+  automatically when anyone marks the lead `Unsubscribed`; server time;
+  outstanding tokens destroyed; repeat unsubscribes keep the first time.
 
 ## 2. Sequences
 
@@ -72,7 +97,7 @@ Who can change it (enforced by the database, migration 7):
 | | |
 |---|---|
 | Trigger | Daily schedule (07:00 UTC) |
-| Eligibility | `marketing_consent = true` (checked in the query and again in the claim right before sending), not unsubscribed, not a verified customer, joined after `EMAIL_SEQUENCE_START_AFTER`, lesson due |
+| Eligibility | confirmed `marketing_consent = true` and no withdrawal (checked in the query and again in the claim right before sending), not unsubscribed, not a verified customer, joined after `EMAIL_SEQUENCE_START_AFTER`, lesson due |
 | Timing | Lesson 1 ≥ 24 h after the quiz; then one per daily run (20 h gap, fixed 2026-11-17 — the old 24 h gap meant every other day) |
 | CTA | Each lesson links to EMerriment content |
 | Unsubscribe | Link + `List-Unsubscribe` header in every lesson |

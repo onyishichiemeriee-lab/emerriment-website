@@ -33,11 +33,15 @@ SQL files. Data is synthetic.
 ### Journey rules (`journey.pglite.test.js`, migration 7)
 
 On the production-shaped copy with all eight migration files:
-* consent captured only on quiz inserts (allow-listed source and wording,
-  server time); forged timestamps refused by column privileges;
-* nobody (signed-in user, administrator, service role, SQL Editor) can
-  switch consent on or rewrite its evidence afterwards; withdrawal only by
-  the service role, with the server time; the exact updates made by
+* double opt-in: a quiz insert records only a pending request
+  (allow-listed source and wording, server time); consent itself, times and
+  tokens are refused by column privileges;
+* activation only by the service role with a live, unexpired token (the
+  confirmation page); the token is destroyed on use; signed-in users,
+  administrators and the SQL Editor cannot activate; one active subscriber
+  per address; evidence never rewritten;
+* withdrawal by the service role (server time) or automatically on
+  `Unsubscribed`, destroying outstanding tokens; the exact updates made by
   `unsubscribe.js` work; existing leads stay opted out;
 * purchases not creatable or readable from a browser; one per order;
   customer delivery records at most once;

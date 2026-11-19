@@ -233,14 +233,17 @@ test("[js/script.js] C: consent box left unticked → no consent fields (report 
     await s.run();
     const row = s.calls.inserts.find((i) => i.table === "leads").rows[0];
     assert(!("marketing_consent" in row), "consent sent although unticked");
+    assert(!("marketing_consent_source" in row) && !("marketing_consent_version" in row), "a request sent although unticked");
     assert.strictEqual(s.calls.fetches.length, 1, "the requested report is still sent");
+    assert(!/please confirm/.test(s.calls.alerts.join(" ")), "no confirmation message without the box");
 });
 
-test("[js/script.js] D: consent ticked → consent, source homepage_quiz and wording version; never a timestamp", async () => {
+test("[js/script.js] D: consent ticked → a REQUEST only (source homepage_quiz + wording version); never consent itself or a timestamp", async () => {
     const s = setup({ consent: true });
     await s.run();
     const row = s.calls.inserts.find((i) => i.table === "leads").rows[0];
-    assert.strictEqual(row.marketing_consent, true);
+    assert(!("marketing_consent" in row), "double opt-in: the browser never sends consent itself");
+    assert(!("marketing_consent_requested_at" in row));
     assert.strictEqual(row.marketing_consent_source, "homepage_quiz");
     assert.strictEqual(row.marketing_consent_version, "quiz-optin-2026-11-17");
     assert(!("marketing_consent_at" in row));
@@ -253,9 +256,11 @@ test("[js/script.js] database without the consent columns yet: quiz still saved 
     await s.run();
     const leadInserts = s.calls.inserts.filter((i) => i.table === "leads");
     assert.strictEqual(leadInserts.length, 2);
-    assert(!("marketing_consent" in leadInserts[1].rows[0]), "retry must drop the consent fields");
+    assert(!("marketing_consent_source" in leadInserts[1].rows[0]) && !("marketing_consent_version" in leadInserts[1].rows[0]), "retry must drop the request fields");
     assert.strictEqual(s.calls.fetches.length, 1);
-    assert.deepStrictEqual(s.calls.alerts, ["🎉 Your skin report has been generated and sent to your email."]);
+    assert.strictEqual(s.calls.alerts.length, 1);
+    assert(s.calls.alerts[0].startsWith("🎉 Your skin report has been generated and sent to your email."));
+    assert(/please confirm using the separate email/.test(s.calls.alerts[0]), "explains the confirmation step");
 });
 
 module.exports = suite;

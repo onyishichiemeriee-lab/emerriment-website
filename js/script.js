@@ -9871,11 +9871,11 @@ next_email_due: new Date(
       notes: null
     };
 
-  // Consent fields only when the visitor opted in (database wording
-  // version "quiz-optin-2026-11-17"; source and time are checked/set by
-  // the database).
+  // Ticked box = a REQUEST for the 14-day lessons (double opt-in): only
+  // the source and wording version are sent; the database records the
+  // request time, and consent becomes active only after the person
+  // confirms from the separate confirmation email.
   if (marketingConsent) {
-    leadRow.marketing_consent = true;
     leadRow.marketing_consent_source = "homepage_quiz";
     leadRow.marketing_consent_version = "quiz-optin-2026-11-17";
   }
@@ -9887,7 +9887,6 @@ next_email_due: new Date(
   // Before the consent migration is applied the columns do not exist:
   // save the quiz without them (no consent recorded = no lessons).
   if (error && marketingConsent && (error.code === "PGRST204" || /marketing_consent/.test(String(error.message || "")))) {
-    delete leadRow.marketing_consent;
     delete leadRow.marketing_consent_source;
     delete leadRow.marketing_consent_version;
     ({ data, error } = await supabaseClient.from("leads").insert([leadRow]));
@@ -10016,10 +10015,14 @@ next_email_due: new Date(
 
   if (loadingEl) loadingEl.style.display = "none";
 
+  const confirmNote = marketingConsent
+    ? " You also asked for the 14-day skin education emails: please confirm using the separate email we send you. Nothing is sent until you confirm."
+    : "";
+
   if (emailSent) {
-    alert("🎉 Your skin report has been generated and sent to your email.");
+    alert("🎉 Your skin report has been generated and sent to your email." + confirmNote);
   } else {
-    alert("Your quiz results are saved and shown below, but we couldn't send your email right now.");
+    alert("Your quiz results are saved and shown below, but we couldn't send your email right now." + confirmNote);
   }
 
   document.getElementById("results").scrollIntoView({
