@@ -10,7 +10,8 @@ const suites = [
     require("./auth-pages.dom.test"),
     require("./journey.dom.test"),
     require("./environment-isolation.test"),
-    require("./staging-auth-config.test")
+    require("./staging-auth-config.test"),
+    require("./ai-and-preview-isolation.test")
 ];
 
 (async () => {

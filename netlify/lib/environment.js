@@ -29,6 +29,11 @@
    Marketing switches
      EMAIL_CONFIRMATION_ENABLED, EMAIL_SEQUENCE_ENABLED and
      CUSTOMER_ONBOARDING_ENABLED count only in production.
+
+   OpenAI
+     OpenAI API calls are allowed in production only. Elsewhere (deploy
+     previews, branch deploys, local, unknown context) the key is never
+     read and no request is made, even if EMERRIMENT_OPENAI_KEY is present.
 ========================================= */
 "use strict";
 
@@ -143,6 +148,17 @@ function createMailer(apiKey) {
     return new Resend(apiKey);
 }
 
+// OpenAI (paid, external) may be called from production only.
+function openAiAllowed() {
+    return isProduction();
+}
+
+// The OpenAI key, or null outside production (it is never even read there).
+function getOpenAiKey() {
+    if (!openAiAllowed()) return null;
+    return process.env.EMERRIMENT_OPENAI_KEY || null;   // production: exactly as before
+}
+
 function marketingSwitch(name) {
     if (!MARKETING_SWITCHES.has(name)) throw new Error("unknown marketing switch " + name);
     return isProduction() && process.env[name] === "true";
@@ -181,6 +197,8 @@ module.exports = {
     createServiceClient,
     emailDeliveryAllowed,
     createMailer,
+    openAiAllowed,
+    getOpenAiKey,
     marketingSwitch,
     getSiteUrl
 };

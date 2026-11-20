@@ -5,7 +5,7 @@
 
 "use strict";
 
-const { createServiceClient } = require("../lib/environment");
+const { createServiceClient, openAiAllowed, getOpenAiKey } = require("../lib/environment");
 
 // This deploy's own Supabase project only (production in production,
 // staging elsewhere; never production from a preview).
@@ -53,13 +53,25 @@ const OPENAI_API_URL =
 /* =========================================
    EMERRIMENT AI MODE
 =========================================
-   mock = development mode (NO OpenAI API calls)
-   live = real OpenAI API
+   mock  = development mode (NO OpenAI API calls)
+   local = Ollama on this machine (development; not OpenAI)
+   live  = real OpenAI API — PRODUCTION ONLY. In any other context
+           (deploy preview, branch deploy, local, unknown) a mode that
+           would call OpenAI falls back to mock, even if a key is present
+           (netlify/lib/environment.js: openAiAllowed).
 ========================================= */
 
-const AI_MODE =
-    (process.env.EMERRIMENT_AI_MODE || "mock")
-        .toLowerCase();
+function resolveAiMode() {
+    const requested = (process.env.EMERRIMENT_AI_MODE || "mock").toLowerCase();
+    if (requested === "mock" || requested === "local") return requested;
+    if (!openAiAllowed()) {
+        console.log("🛑 OpenAI is disabled outside production; using mock mode.");
+        return "mock";
+    }
+    return requested;
+}
+
+const AI_MODE = resolveAiMode();
 
 console.log(
     "🤖 EMerriment AI MODE:",
@@ -246,8 +258,9 @@ exports.handler = async (event) => {
            AI MODE
         ----------------------------------------- */
 
+        // null outside production: the key is never read there.
         const key =
-            process.env.EMERRIMENT_OPENAI_KEY;
+            getOpenAiKey();
 
         console.log(
             "🤖 EMerriment AI MODE:",
@@ -627,8 +640,18 @@ ${message}
 
 
         /* -----------------------------------------
-           CALL OPENAI
+           CALL OPENAI (production only — last line of defence)
         ----------------------------------------- */
+
+        if (!openAiAllowed() || !key) {
+            return jsonResponse(
+                503,
+                {
+                    success: false,
+                    error: "AI service is not available in this environment."
+                }
+            );
+        }
 
         const response =
             await fetch(

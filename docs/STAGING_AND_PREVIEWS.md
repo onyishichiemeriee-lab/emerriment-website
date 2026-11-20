@@ -27,8 +27,13 @@ Functions (9)  netlify/lib/environment.js
   Switches   EMAIL_CONFIRMATION_ENABLED / EMAIL_SEQUENCE_ENABLED /
              CUSTOMER_ONBOARDING_ENABLED count only in production
   Links      production: URL; elsewhere the deploy's own URL, never emerriment.com
+  OpenAI     production only (openAiAllowed / getOpenAiKey); elsewhere mock, key never read
   Context    from the build file; cannot be overridden at run time; unknown = not production
 ```
+
+Deploy previews receive **no server secrets at all** (§3): only the public
+staging URL and anon key for the browser build. Their functions therefore get
+no Supabase client and answer "not configured".
 
 Scheduled functions (`email-sequence`, `customer-onboarding`) run only on
 the published production deploy; even if one ran elsewhere it could not
@@ -45,30 +50,63 @@ send (switches off, email blocked).
 | Marketing switches | honoured in any context | production only |
 | Email links and confirmation pages | `URL` → emerriment.com in previews | the deploy's own URL |
 | Link signatures derived from the service-role key | could derive production signatures from an inherited key | only from a key the guard accepts |
-| OpenAI (`ai-chat`) | production key in previews | **not isolated in code** — scope the key to production (below) |
+| OpenAI (`ai-chat`) | production key in previews | key production-only in Netlify **and** blocked in code outside production (mock, key never read, guard before the request) |
+| Server secrets in previews | every production secret in "all contexts" | **none**: previews get only the public staging URL + anon key |
 
-## 3. Netlify variables — exact scopes (to set up later, with approval)
+## 3. Netlify variables — verified matrix (applied 2026-11-19)
 
-Production secrets must be **Production only**. Today all 9 variables are
-"all contexts"; until that changes, previews are still protected by the code
-(production credentials are refused, email blocked), but scope them anyway.
+Netlify **Free plan**: values can differ per deploy context, but scopes
+cannot be restricted (Pro/Enterprise only) — every value a context receives is
+readable by that context's build **and** functions, and by any code in a PR
+that is built as a preview. Therefore deploy previews receive **no server
+secrets**: the staging `service_role` key is deliberately **not** in Netlify,
+and production secrets exist in the **Production** context only. Secret flags
+are used in addition to, never instead of, context isolation.
 
-| Variable | Production | Deploy Previews | Branch deploys | Notes |
+| Variable | Production | Deploy Previews | Branch deploys / local (`dev`) | Secret flag |
 |---|---|---|---|---|
-| `SUPABASE_URL` | production URL | **staging URL** | **staging URL** | same name, per-context values |
-| `SUPABASE_SERVICE_ROLE_KEY` | production key | **staging service key** | **staging service key** | secret |
-| `STAGING_SUPABASE_PROJECT_REF` | — (unset) | staging project ref | staging project ref | functions refuse anything else |
-| `STAGING_PUBLIC_SUPABASE_URL` | — | staging URL | staging URL | read at build time (browser) |
-| `STAGING_PUBLIC_SUPABASE_ANON_KEY` | — | staging **anon** key | staging **anon** key | public; never a service key |
-| `RESEND_API_KEY` | production key | **unset** | **unset** | email is blocked anyway |
-| `EMAIL_FROM`, `EMAIL_REPLY_TO` | production | unset | unset | |
-| `EMAIL_LINK_SECRET` | production secret | **separate** random secret | **separate** random secret | |
-| `EMERRIMENT_OPENAI_KEY` / `OPENAI_API_KEY` | production key | unset, or a separate low-limit key | same as previews | not isolated by code |
-| `BREVO_API_KEY` | production (unused by code) | unset | unset | |
-| `EMERRIMENT_AI_MODE`, `OPENAI_MODEL` | as now | as you like | as you like | not secrets |
-| `EMAIL_CONFIRMATION_ENABLED`, `EMAIL_SEQUENCE_ENABLED`, `CUSTOMER_ONBOARDING_ENABLED` | unset until each activation step | **never** | **never** | ignored outside production anyway |
+| `SUPABASE_URL` | production URL | — | — | no |
+| `SUPABASE_SERVICE_ROLE_KEY` | production key | — | — | **yes** |
+| `RESEND_API_KEY` | production key | — | — | **yes** |
+| `EMAIL_LINK_SECRET` | production secret | — | — | **yes** |
+| `EMERRIMENT_OPENAI_KEY` | production key | — | — | **yes** |
+| `EMAIL_FROM` | production sender | — | — | no |
+| `STAGING_PUBLIC_SUPABASE_URL` | — | `https://ayxakyyvomlzrsfznpeq.supabase.co` | — | no (written into browser code) |
+| `STAGING_PUBLIC_SUPABASE_ANON_KEY` | — | staging **anon** JWT (role `anon`, ref staging) | — | no (written into browser code) |
+| `EMERRIMENT_AI_MODE` | `mock` (all contexts) | `mock` | `mock` | no |
 
-Keep "Deploy previews from forks: require approval" (`untrusted_flow: review`, current setting).
+Not set anywhere, on purpose: a preview `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`,
+`STAGING_SUPABASE_PROJECT_REF`, a preview `EMAIL_LINK_SECRET`, `EMAIL_REPLY_TO`,
+`OPENAI_MODEL`, and the three switches `EMAIL_CONFIRMATION_ENABLED`,
+`EMAIL_SEQUENCE_ENABLED`, `CUSTOMER_ONBOARDING_ENABLED` (set them in Production
+only, at each activation step). Deleted 2026-11-19 as unused: `BREVO_API_KEY`
+and `OPENAI_API_KEY` (a duplicate of the production OpenAI key; only the local
+Supabase Studio config names it, from your own environment).
+
+Verified with Netlify's per-context listing: production receives the six
+production variables + `EMERRIMENT_AI_MODE`; deploy-preview receives only the two
+`STAGING_PUBLIC_*` values + `EMERRIMENT_AI_MODE`; branch-deploy and `dev` receive
+only `EMERRIMENT_AI_MODE`. The production values were written back unchanged
+(SHA-256 fingerprints checked before writing; secret values are write-only
+afterwards). Variable changes reach only **new** deploys; the published deploy
+keeps the values it was built with.
+
+**Preview functions that need the database or email are intentionally
+unavailable** (`send-email`, `confirm-subscription`, `unsubscribe`,
+`email-open`, `track-click`, `email-sequence`, `customer-onboarding`): without a
+server key they get no Supabase client and answer "not configured" (500) or
+"skipped" — the report page then says the email could not be sent. All of these
+are already blocked or meaningless in previews (no email is sent there, so there
+are no links; switches and schedules are production-only). What previews do test
+against staging: every page, the browser Supabase client with RLS (sign-up,
+log-in, dashboard, CMS, quiz leads inserted with the anon key), and `ai-chat` in
+mock mode. Server-side database behaviour is covered by the offline suites
+(fake Supabase, PGlite) and, if ever needed, `netlify dev` against staging with
+the staging key in your own shell only — never in Netlify.
+
+To change a value later, use Site configuration → Environment variables →
+the variable → per-context values; never add an "All" value for a production
+secret, and keep "Deploy previews from forks: require approval" (`untrusted_flow: review`).
 
 ## 4. Staging project
 
@@ -108,7 +146,7 @@ Rules for every command:
 | Data | 3 articles, 3 products, 3 leads (synthetic), 3 accounts + profiles |
 | 03b / supplementary suites | 382 pass, 0 fail, 1 skip / 39 pass, 0 fail |
 | Auth settings (§4.8) | **applied and verified** 2026-11-19 — Site URL `http://localhost:8888`, the two redirect patterns, "Confirm email" off, built-in mailer |
-| Netlify | old agent preview deploy deleted; **new deploy previews disabled** (`skip_prs = true`); variables **not yet scoped** (§4.6) |
+| Netlify | old agent preview deploy deleted; **new deploy previews disabled** (`skip_prs = true`); variables **isolated** 2026-11-19 — public-only previews (§3) |
 
 ### 4.3 Rebuild procedure (in order)
 
@@ -378,10 +416,9 @@ schema-only import brings the table but no rows, and that production record is
 
 1. **Staging Auth settings** — exactly as in §4.8 (staging project only), verified
    with the read-only `config diff`.
-2. **Netlify variables** (section 3, approval): staging URL, anon key, service
-   key and `STAGING_SUPABASE_PROJECT_REF` for Deploy Previews (and Branch deploys
-   only if they are ever enabled); production secrets scoped to Production only;
-   `RESEND_API_KEY` and the three email switches unset outside production.
+2. **Netlify variables** — **done 2026-11-19**: the public-only matrix in §3
+   (production secrets Production-only and secret-flagged; previews get only the
+   two `STAGING_PUBLIC_*` values; no server secret in any non-production context).
 3. `npm run test:email`, `npm run test:security` and `npm run test:db` pass.
 4. The branch with the isolation code is pushed; only then re-enable deploy
    previews (Site configuration → Build & deploy → Continuous deployment →
@@ -396,12 +433,13 @@ schema-only import brings the table but no rows, and that production record is
 * a quiz with an `@example.test` address creates a lead **in staging**;
   production `select count(*) from leads` is unchanged (`production-isolation.sql`);
 * Resend dashboard shows no new email; the report page says the email
-  could not be sent (expected in previews).
+  could not be sent (expected in previews: no server key, no email);
+* the AI assistant answers in mock mode; OpenAI usage shows no new request.
 
 **Cleanup:** delete synthetic rows (`delete from public.leads where email like '%@example.test';`),
 or delete the whole staging project. Rotate the staging service key if it was
-ever shared. Remove the preview-scoped variables if staging is retired —
-previews then fail closed (no database).
+ever shared (it is not stored in Netlify). Remove the two `STAGING_PUBLIC_*`
+variables if staging is retired — previews then fail closed (no database).
 
 ### 4.8 Staging Auth configuration
 
@@ -527,8 +565,10 @@ Before merging to `main` (production deploy):
 
 - Production deploy permalinks (`<id>--emerriment216.netlify.app`) and any
   other host fail closed in the browser by design.
-- `ai-chat` calls OpenAI with whatever key the context has — isolate by
-  scoping the key (section 3).
+- `ai-chat` calls OpenAI in production only (code guard + Production-only key);
+  previews answer in mock mode.
+- Netlify Free plan: no scope restriction, so anything a preview receives is
+  readable by PR code — hence previews receive only public values (§3).
 - Supabase Auth emails on staging are real but limited to team members'
   addresses (built-in mailer, §4.8). (The three test accounts were created
   confirmed through the Admin API; no email was sent.)
