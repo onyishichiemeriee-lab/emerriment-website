@@ -367,19 +367,21 @@ const ContextEngine = {
             };
 
 
+            // Presence and counts only — never the profile, quiz results,
+            // history or memories themselves.
+            const countOf = (v) =>
+                Array.isArray(v) ? v.length : v && typeof v === "object" ? Object.keys(v).length : v ? 1 : 0;
+
             console.log(
                 "🧠 EMerriment Context Engine built:",
-                context
-            );
-
-            console.log(
-                "🧠 Context Engine skin profile:",
-                context.skinProfile
-            );
-
-            console.log(
-                "🧠 Context Engine quiz results:",
-                context.quizResults
+                {
+                    skinProfile: !!context.skinProfile,
+                    quizResults: countOf(context.quizResults),
+                    savedArticles: countOf(context.savedArticles),
+                    readingHistory: countOf(context.readingHistory),
+                    conversationHistory: countOf(context.conversationHistory),
+                    memories: countOf(context.memory || context.memories)
+                }
             );
 
 

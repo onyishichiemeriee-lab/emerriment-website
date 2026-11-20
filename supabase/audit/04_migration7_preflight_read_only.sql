@@ -1,6 +1,12 @@
 -- =====================================================================
 -- EMerriment — migration 7 PREFLIGHT (READ-ONLY)
 -- ---------------------------------------------------------------------
+-- HISTORICAL GATE: run on production 2026-11-19 (49 PASS, 0 FAIL) before
+-- migration 7 was applied the same day. It checks the state BEFORE
+-- migration 7, so on production or staging today its "not yet applied"
+-- and history rows FAIL by design. Do not use it as a gate again; for the
+-- current state use supabase/audit/03b_comprehensive_live_security_checks.sql.
+-- ---------------------------------------------------------------------
 -- For: supabase/migrations/20261117090000_emerriment_marketing_consent_and_purchases.sql
 --      (final version: double opt-in, consent insert + update guards,
 --       purchases, 'customer' and 'confirm' delivery kinds)

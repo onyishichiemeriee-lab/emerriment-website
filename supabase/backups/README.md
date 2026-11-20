@@ -14,10 +14,17 @@ Migration 7 is additive (it adds columns, a table and rules; it deletes
 nothing), so the in-project backup is the relevant safety net for it. An
 independent copy is still recommended before any production change.
 
-## Backup 20261119 (before migration 7) — PREPARED, NOT RUN
+## Backup 20261119 (before migration 7) — CREATED AND VERIFIED 2026-11-19
 
-The suffix `20261119` is the planned backup date and only a label; the
-real time is in `manifest_20261119.backed_up_at`.
+Created on production by the owner on 2026-11-19, before migration 7 was
+applied, and independently verified with `20261119_verify_backup.sql`
+(23 table copies match, every BLOCKER PASS; re-verified after migration 7).
+Do not run the create script again — it refuses when the backup exists or
+migration 7 is applied. The instructions below are kept as the record of
+how it was made and how to restore from it.
+
+The suffix `20261119` is the backup date label; the exact time is in
+`manifest_20261119.backed_up_at`.
 
 Files:
 * `20261119_create_backup_before_migration7.sql` — creates the backup in

@@ -28,6 +28,7 @@ Functions (9)  netlify/lib/environment.js
              CUSTOMER_ONBOARDING_ENABLED count only in production
   Links      production: URL; elsewhere the deploy's own URL, never emerriment.com
   OpenAI     production only (openAiAllowed / getOpenAiKey); elsewhere mock, key never read
+  AI logs    no message, profile, memories, history, replies or raw provider data in any context
   Context    from the build file; cannot be overridden at run time; unknown = not production
 ```
 

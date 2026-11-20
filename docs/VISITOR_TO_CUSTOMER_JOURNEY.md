@@ -48,6 +48,22 @@ social links ───┘    AI assistant                    │
 Quiz, encyclopedia and AI assistant are free and need no account. No popups
 were added. `quiz_start` / `quiz_complete` events measure quiz drop-off.
 
+**AI assistant — logging and privacy (2026-11-19).** The assistant still
+uses the visitor's message, skin profile, quiz results, history and saved
+memories to answer, and memories are still saved; only *logging* changed.
+Server logs (`netlify/functions/ai-chat.js`) never contain the message, user
+id, skin profile, quiz results, conversation history, memories or their
+values, AI replies, raw OpenAI/Ollama responses or error text, or safety
+analyses. They keep what an operator needs: AI mode, presence/counts of
+context parts (e.g. `skinProfile: true, memories: 2`), the detected intent
+category, success/failure, HTTP status, provider error type/code and error
+categories. The browser scripts (`ai/js/ai-api.js`, `ai/js/context-engine.js`)
+follow the same rule in the visitor's console (memory *categories* such as
+`skinType`, never values). OpenAI is called from production only (deploy
+previews and every other context answer in mock mode). Enforced by
+`tests/security/ai-log-privacy.test.js` and
+`tests/security/ai-and-preview-isolation.test.js`.
+
 ### Stage C — Lead capture (changed 2026-11-17)
 * Valid email required; invalid or missing email → inline message, nothing
   saved or sent [homepage-quiz: "invalid or missing email"].

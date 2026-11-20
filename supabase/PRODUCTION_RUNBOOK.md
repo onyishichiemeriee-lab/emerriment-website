@@ -130,7 +130,25 @@ Order with the deploy: either order is safe. Until the branch is deployed,
 the CMS "toggle admin" button and the article rating average need the new
 code; until the migrations are applied, the new code falls back where it can.
 
-### Migration 7 (2026-11-17, prepared — not applied)
+### Migration 7 (prepared 2026-11-17; applied to production 2026-11-19)
+
+Applied record:
+1. Read-only preflight `audit/04_migration7_preflight_read_only.sql` — every
+   BLOCKER PASS (it describes the state *before* migration 7; run now, its
+   "not yet applied" and history rows fail by design).
+2. Backup `backups/20261119_create_backup_before_migration7.sql` created by
+   the owner and independently verified (`backups/20261119_verify_backup.sql`:
+   23 table copies match, every BLOCKER PASS).
+3. Migration applied by the owner in the SQL Editor (the file as of commit
+   `b196a25`; since then only its status comment changed).
+4. Validated: `03b_comprehensive_live_security_checks.sql` 384/384 PASS;
+   backup verification still all BLOCKER PASS.
+5. History: `npx supabase@3.1.0 migration repair --status applied 20261117090000 --remote`
+   (CLI reported `Repaired migration history: [20261117090000] => applied`);
+   `migration list`: 8/8.
+
+Staging received the same objects through the schema import and has its
+history recorded by `migration repair` only (`docs/STAGING_AND_PREVIEWS.md`).
 
 `20261117090000_emerriment_marketing_consent_and_purchases.sql`: separate
 marketing consent, verified purchases, customer onboarding delivery

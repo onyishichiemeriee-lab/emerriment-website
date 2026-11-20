@@ -1,15 +1,16 @@
 # EMerriment — production activation checklist (journey and email lifecycle)
 
-Last updated 2026-11-18. Every step marked **approval** is a production
-change that the owner must approve explicitly. Nothing in this checklist has
-been executed in production yet.
+Last updated 2026-11-19. Every step marked **approval** is a production
+change that the owner must approve explicitly. Steps 0–2 of §1 (preflight,
+backup, migration 7, verification, history) are **done** (2026-11-19); the
+deploy (step 3 onwards) and every email activation (§2–§4) are not.
 
 ## 0. Current state
 
 | Item | State |
 |---|---|
-| Code on branch `production/official-domain-finalization` | committed locally, **not pushed or deployed** |
-| Migration `20261117090000_emerriment_marketing_consent_and_purchases.sql` | prepared, **not applied** (consent update guard and double opt-in added 2026-11-18) |
+| Code on branch `production/official-domain-finalization` | pushed; draft PR #2 to `main`; **not deployed** (production still runs `main@5eec0b3`) |
+| Migration `20261117090000_emerriment_marketing_consent_and_purchases.sql` | **applied to production 2026-11-19** (after preflight and the verified backup; 03b 384/384; history 8/8). Staging: same objects via the schema import, history recorded |
 | Rollback for migration 7 only | `supabase/rollback/emerriment_migration7_rollback.sql` (see §6) |
 | `EMAIL_CONFIRMATION_ENABLED` | not set (no confirmation emails; the quiz pages **hide** the 14-day lessons box) |
 | `EMAIL_SEQUENCE_ENABLED` | not set (lessons off) |
@@ -29,12 +30,14 @@ off, people can complete double opt-in; their consent waits for the lessons.
 
 ## 1. Order of release
 
-0. **Read-only preflight** (no approval needed, changes nothing): run
+0. **Done 2026-11-19 — read-only preflight** (historical record; changes nothing): run
    `supabase/audit/04_migration7_preflight_read_only.sql` in the SQL Editor.
    Every `BLOCKER` row must be `PASS`; keep the result with the approval.
    Also `npx supabase@3.1.0 migration list --remote`: 7 remote versions,
-   `20261117090000` local only.
-1. **Approval — backup, then apply migration 7** (SQL Editor, as before):
+   `20261117090000` local only. (Now that migration 7 is applied, this
+   preflight fails its "not yet applied" rows by design — do not re-run it
+   as a gate.)
+1. **Done 2026-11-19 — backup, then apply migration 7** (SQL Editor; owner):
    * Backup first: `supabase/backups/20261119_create_backup_before_migration7.sql`
      (refuses to overwrite, refuses after migration 7, refuses if RLS could
      hide rows; 23 rows with `copy_matches = true`), then the read-only
@@ -46,7 +49,9 @@ off, people can complete double opt-in; their consent waits for the lessons.
    * Apply the whole migration file. Then
      `npx supabase@3.1.0 migration repair --status applied 20261117090000 --remote`
      **(approval)**, or apply it with `db push` once — not both.
-2. Verify: `03b_comprehensive_live_security_checks.sql` (expect all PASS) and:
+2. **Done 2026-11-19 — verify** (03b 384/384 PASS; backup verification all
+   BLOCKER PASS; history recorded, `migration list` 8/8). Checks used:
+   `03b_comprehensive_live_security_checks.sql` (expect all PASS) and:
    ```sql
    select count(*) filter (where marketing_consent) as opted_in, count(*) as leads from leads;  -- expect opted_in = 0
    select to_regclass('public.purchases') is not null as purchases_table;               -- expect true

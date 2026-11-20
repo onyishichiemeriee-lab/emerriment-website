@@ -11,7 +11,8 @@ const suites = [
     require("./journey.dom.test"),
     require("./environment-isolation.test"),
     require("./staging-auth-config.test"),
-    require("./ai-and-preview-isolation.test")
+    require("./ai-and-preview-isolation.test"),
+    require("./ai-log-privacy.test")
 ];
 
 (async () => {

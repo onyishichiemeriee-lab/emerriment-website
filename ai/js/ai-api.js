@@ -110,9 +110,10 @@ async function sendToAI(message) {
                         message.trim()
                     );
 
+                // Never the memory content: whether something was processed only.
                 console.log(
-                    "🧠 Conversation memory processing:",
-                    memoryResult
+                    "🧠 Conversation memory processed:",
+                    { processed: !!memoryResult }
                 );
 
             } catch (memoryError) {
@@ -160,8 +161,11 @@ async function sendToAI(message) {
                     .buildContext(user.id);
 
             console.log(
-                "🧠 AI API conversation history:",
-                context.conversationHistory
+                "🧠 AI context built:",
+                {
+                    conversationHistory: Array.isArray(context && context.conversationHistory) ? context.conversationHistory.length : 0,
+                    skinProfile: !!(context && context.skinProfile)
+                }
             );
 
         }
@@ -172,9 +176,13 @@ if (window.SafetyEngine) {
     try {
         safetyResult = window.SafetyEngine.analyze(message.trim());
 
+        // Risk level and flag count only — the analysis can quote the message.
         console.log(
-            "🛡️ EMerriment Safety Result:",
-            safetyResult
+            "🛡️ EMerriment safety check:",
+            {
+                level: (safetyResult && (safetyResult.riskLevel || safetyResult.level)) || null,
+                flags: safetyResult && Array.isArray(safetyResult.flags) ? safetyResult.flags.length : 0
+            }
         );
 
     } catch (safetyError) {
@@ -261,12 +269,9 @@ if (window.SafetyEngine) {
 
         if (!response.ok) {
 
-            const errorText =
-                await response.text();
-
             console.error(
                 "AI server response:",
-                errorText
+                { status: response.status }
             );
 
             throw new Error(
@@ -284,9 +289,10 @@ if (window.SafetyEngine) {
             await response.json();
 
 
+        // Never the reply itself.
         console.log(
             "🤖 EMerriment AI response:",
-            data
+            { success: !!(data && data.success), mode: data && data.mode }
         );
 
 
@@ -295,8 +301,8 @@ if (window.SafetyEngine) {
         ----------------------------------------- */
 
         console.log(
-            "🧠 MEMORY ACTION RECEIVED:",
-            data.memoryAction
+            "🧠 Memory action received:",
+            { action: data && data.memoryAction ? data.memoryAction.action || null : null }
         );
 
         console.log(
@@ -341,10 +347,10 @@ const isQuestionForMemory =
 
                     if (saved) {
 
+                        // The memory category only — never its value.
                         console.log(
                             "🧠 AI memory saved:",
-                            key,
-                            value
+                            { key }
                         );
 
                     } else {
@@ -411,8 +417,7 @@ async function streamAIResponse(
 ) {
 
     console.log(
-        "Streaming will be added later:",
-        message
+        "Streaming will be added later."
     );
 
 }

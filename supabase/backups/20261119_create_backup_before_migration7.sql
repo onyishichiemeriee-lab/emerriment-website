@@ -1,10 +1,15 @@
 -- =====================================================================
 -- EMerriment — in-database backup BEFORE migration 7 (suffix 20261119)
 -- ---------------------------------------------------------------------
--- STATUS: PREPARED, NOT RUN. Run only with the owner's approval, after
+-- STATUS: RUN 2026-11-19 on production by the owner (SQL Editor) and
+-- independently verified with 20261119_verify_backup.sql (23 table copies
+-- match, every BLOCKER PASS), after
 -- supabase/audit/04_migration7_preflight_read_only.sql passed (49 PASS,
 -- 0 FAIL) and before
--- supabase/migrations/20261117090000_emerriment_marketing_consent_and_purchases.sql.
+-- supabase/migrations/20261117090000_emerriment_marketing_consent_and_purchases.sql
+-- was applied. Do NOT run it again: it refuses when backup 20261119
+-- exists or migration 7 is applied (it is kept as the record of what was
+-- copied and as the template for a future pre-change backup).
 -- The suffix is a label; manifest_20261119.backed_up_at records the time.
 --
 -- WHAT IT CREATES (inside the private schema emerriment_backup, next to

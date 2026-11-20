@@ -2,7 +2,23 @@
 -- EMerriment migration 7 — marketing consent (double opt-in), verified
 -- purchases, customer onboarding and confirmation delivery records
 -- ---------------------------------------------------------------------
--- STATUS: PREPARED, NOT APPLIED.
+-- STATUS: APPLIED to production (Supabase SQL Editor); verified 2026-11-19.
+--   Production (ioeulnjrozkbetaongbv): applied 2026-11-19 by the owner in
+--     the SQL Editor, after the read-only preflight passed and the
+--     2026-11-19 backup was created and independently verified. The file
+--     applied was this one as of commit b196a25 (SHA-256 bfbd237f2f81…;
+--     only this status comment has changed since — no SQL). Validated
+--     afterwards: 03b 384/384, backup verification all BLOCKER PASS;
+--     history recorded with `migration repair --status applied
+--     20261117090000` (CLI, 2026-11-19). `migration list`: 8/8.
+--   Staging (ayxakyyvomlzrsfznpeq): not run as a migration — staging was
+--     built from production's schema-only export (which already contains
+--     these objects); history recorded with `migration repair` only
+--     (docs/STAGING_AND_PREVIEWS.md §4.3, step 05).
+--   Any future environment: apply the migrations in order (or import a
+--     schema that contains them) and record history; never run this file
+--     twice where it is recorded as applied (it is idempotent, but there
+--     is no need).
 -- Requires 20261110085900 … 20261113090000 (checked below).
 --
 -- 1. Marketing consent on public.leads — DOUBLE OPT-IN, separate from the

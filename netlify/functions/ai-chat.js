@@ -39,7 +39,7 @@ async function getApprovedProducts(productIds) {
         .eq("is_approved", true);
 
     if (error) {
-        console.error("Approved product lookup failed:", error.message);
+        console.error("Approved product lookup failed:", { code: error.code || null });
         return [];
     }
 
@@ -60,6 +60,54 @@ const OPENAI_API_URL =
            would call OpenAI falls back to mock, even if a key is present
            (netlify/lib/environment.js: openAiAllowed).
 ========================================= */
+
+/* =========================================
+   LOG PRIVACY
+=========================================
+   Server logs never contain the visitor's message, user id, skin
+   profile, quiz results, conversation history, memories, AI replies,
+   raw provider responses or safety analyses. They record only what an
+   operator needs: mode, context, success/failure, status codes, error
+   categories and counts.
+========================================= */
+
+const countOf = (value) =>
+    Array.isArray(value) ? value.length
+        : value && typeof value === "object" ? Object.keys(value).length
+            : value ? 1 : 0;
+
+// Which parts of the request context were supplied — presence and counts only.
+function contextSummary(context) {
+    const c = context && typeof context === "object" ? context : {};
+    return {
+        keys: Object.keys(c).length,
+        skinProfile: !!c.skinProfile,
+        memories: countOf(c.memory),
+        quizResults: countOf(c.quizResults),
+        conversationHistory: countOf(c.conversationHistory),
+        savedArticles: countOf(c.savedArticles),
+        readingHistory: countOf(c.readingHistory)
+    };
+}
+
+// An error reduced to its category — never its payload.
+function errorCategory(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || error.code || "Error").slice(0, 60),
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}
+
+// A provider (OpenAI / Ollama) error body reduced to type/code — never its text.
+function providerErrorCategory(status, data) {
+    const e = data && typeof data === "object" ? (data.error || data) : null;
+    return {
+        status,
+        type: e && typeof e.type === "string" ? e.type.slice(0, 60) : undefined,
+        code: e && typeof e.code === "string" ? e.code.slice(0, 60) : undefined
+    };
+}
 
 function resolveAiMode() {
     const requested = (process.env.EMERRIMENT_AI_MODE || "mock").toLowerCase();
@@ -281,17 +329,7 @@ exports.handler = async (event) => {
 
             console.log(
                 "OPENAI KEY CHECK:",
-                {
-                    exists: !!key,
-
-                    length:
-                        key?.length,
-
-                    looksLikeJWT:
-                        key
-                            ? key.split(".").length === 3
-                            : false
-                }
+                { exists: !!key }
             );
 
 
@@ -354,21 +392,10 @@ exports.handler = async (event) => {
             body.context || {};
 
 
+        // Presence and counts only — never the context itself.
         console.log(
-            "🧠 AI RECEIVED CONTEXT:",
-            JSON.stringify(context, null, 2)
-        );
-
-
-        console.log(
-            "🧠 AI RECEIVED SKIN PROFILE:",
-            context.skinProfile
-        );
-
-
-        console.log(
-            "🧠 AI RECEIVED MEMORIES:",
-            context.memory
+            "🧠 AI context received:",
+            contextSummary(context)
         );
 
 
@@ -503,12 +530,10 @@ console.log("⏱️ Ollama fetch finished:", new Date().toISOString());
 
 if (!ollamaResponse.ok) {
 
-            const errorText =
-                await ollamaResponse.text();
-
+            // The body is not logged (it may echo the prompt).
             console.error(
                 "❌ Ollama response error:",
-                errorText
+                { status: ollamaResponse.status }
             );
 
             throw new Error(
@@ -543,7 +568,7 @@ if (!ollamaResponse.ok) {
 
         console.error(
             "❌ Local AI / Ollama error:",
-            localError
+            errorCategory(localError)
         );
 
         return jsonResponse(
@@ -715,9 +740,10 @@ ${message}
 
         catch (error) {
 
+            // Never the body: it may contain the reply or echo the prompt.
             console.error(
                 "❌ Invalid AI response:",
-                responseText
+                { status: response.status, bytes: String(responseText || "").length }
             );
 
 
@@ -743,7 +769,7 @@ ${message}
 
             console.error(
                 "❌ AI API error:",
-                data
+                providerErrorCategory(response.status, data)
             );
 
 
@@ -777,7 +803,7 @@ ${message}
 
             console.error(
                 "❌ AI returned no text.",
-                data
+                { status: response.status, outputItems: countOf(data && data.output) }
             );
 
 
@@ -829,7 +855,7 @@ ${message}
 
         console.error(
             "❌ EMERRIMENT AI FUNCTION ERROR:",
-            error
+            errorCategory(error)
         );
 
 
@@ -1337,7 +1363,8 @@ async function getProductRecommendations(message, context = {}) {
         const { data, error } = await query.limit(20);
 
         if (error) {
-            console.error("Approved product search failed:", error.message);
+            // The code only: the message can echo the visitor's search terms.
+            console.error("Approved product search failed:", { code: error.code || null });
             return [];
         }
 
@@ -1766,10 +1793,9 @@ async function generateDemoResponse(
 
     const intent =
         detectIntent(message);
-        console.log("🧭 AI INTENT:", intent);
-console.log("🧭 AI QUESTION:", message);
 
 
+    // A fixed category label only (greeting, product, acne, …) — never the message.
     console.log(
         "🧠 EMerriment detected intent:",
         intent
@@ -3020,7 +3046,7 @@ function extractOutputText(data) {
 
         console.error(
             "❌ Failed to extract AI response text:",
-            error
+            errorCategory(error)
         );
 
         return "";
