@@ -107,7 +107,8 @@ Rules for every command:
 | Migration history | 8/8 recorded (repair only; no migration re-run) |
 | Data | 3 articles, 3 products, 3 leads (synthetic), 3 accounts + profiles |
 | 03b / supplementary suites | 382 pass, 0 fail, 1 skip / 39 pass, 0 fail |
-| Auth dashboard settings, Netlify variables | **not done** (§4.6) |
+| Auth settings (§4.8) | **applied and verified** 2026-11-19 — Site URL `http://localhost:8888`, the two redirect patterns, "Confirm email" off, built-in mailer |
+| Netlify | old agent preview deploy deleted; **new deploy previews disabled** (`skip_prs = true`); variables **not yet scoped** (§4.6) |
 
 ### 4.3 Rebuild procedure (in order)
 
@@ -375,19 +376,17 @@ schema-only import brings the table but no rows, and that production record is
 
 ### 4.6 Before Netlify deploy previews may use staging
 
-1. **Staging Auth settings (dashboard, staging project):** Site URL
-   `https://emerriment216.netlify.app`; Redirect URLs
-   `https://deploy-preview-*--emerriment216.netlify.app/**` and
-   `https://*--emerriment216.netlify.app/**`. Decide on "Confirm email": staging
-   Auth sends **real** emails through Supabase's mailer for sign-ups and
-   password resets made on a preview — turn it off or use only addresses you
-   control. Leave custom SMTP unset.
+1. **Staging Auth settings** — exactly as in §4.8 (staging project only), verified
+   with the read-only `config diff`.
 2. **Netlify variables** (section 3, approval): staging URL, anon key, service
-   key and `STAGING_SUPABASE_PROJECT_REF` for Deploy Previews and Branch deploys;
-   production secrets scoped to Production only; `RESEND_API_KEY` and the three
-   email switches unset outside production.
+   key and `STAGING_SUPABASE_PROJECT_REF` for Deploy Previews (and Branch deploys
+   only if they are ever enabled); production secrets scoped to Production only;
+   `RESEND_API_KEY` and the three email switches unset outside production.
 3. `npm run test:email`, `npm run test:security` and `npm run test:db` pass.
-4. Prove isolation on one preview (section 4.7).
+4. The branch with the isolation code is pushed; only then re-enable deploy
+   previews (Site configuration → Build & deploy → Continuous deployment →
+   Deploy Previews; currently off, `skip_prs = true`, since 2026-11-19).
+5. Prove isolation on one preview (section 4.7).
 
 ### 4.7 Prove isolation on a preview (after §4.6)
 
@@ -403,6 +402,97 @@ schema-only import brings the table but no rows, and that production record is
 or delete the whole staging project. Rotate the staging service key if it was
 ever shared. Remove the preview-scoped variables if staging is retired —
 previews then fail closed (no database).
+
+### 4.8 Staging Auth configuration
+
+Status: **applied and verified** (2026-11-19). Applied in the Supabase
+dashboard of **EMerriment staging** (`ayxakyyvomlzrsfznpeq`) only, after checking
+the project name; verified with the read-only `config diff`: exactly
+`site_url`, `additional_redirect_urls` and `email.enable_confirmations` changed;
+MFA (TOTP on), OTP length 8, email frequency 1 min, sign-ups allowed, manual
+linking and anonymous sign-ins off, providers and SMTP (unset) unchanged;
+production Auth unchanged; the three test accounts and the single administrator
+intact. To re-apply on a rebuilt staging project, use the same dashboard pages.
+Do **not** use `supabase config push`: it uploads the whole
+`supabase/config.toml` and would also change unrelated staging settings (OTP
+length, MFA, pooler, storage).
+
+| Setting | Dashboard location (staging) | Value |
+|---|---|---|
+| Site URL | Authentication → URL Configuration → Site URL (Save changes) | `http://localhost:8888` |
+| Redirect URLs | Authentication → URL Configuration → Redirect URLs → Add URL (both in one dialog) → Save URLs | `https://deploy-preview-*--emerriment216.netlify.app/**` and `http://localhost:8888/**` |
+| Confirm email | Authentication → Sign In / Providers → User Signups → "Confirm email" (Save changes) | **off** |
+| Custom SMTP | Authentication → Emails → SMTP Settings | **unset** (built-in mailer) |
+| Everything else (MFA TOTP on, OTP length 8, email frequency 1 min, …) | — | unchanged |
+
+Verify (read-only; must show exactly these values and nothing else changed). The
+dashboard's redirect list may look empty until the page is reloaded; the CLI
+reads the saved configuration:
+
+```bash
+npx supabase@3.1.0 config diff --remote=ayxakyyvomlzrsfznpeq     # site_url, additional_redirect_urls, email.enable_confirmations=false; no smtp
+npx supabase@3.1.0 config diff --remote=ioeulnjrozkbetaongbv     # production: identical to before
+```
+
+**Why these values**
+
+* **Site URL `http://localhost:8888`** (Netlify Dev): Supabase sends links that
+  carry no `redirectTo` to the Site URL. The site's signup deliberately sends no
+  `emailRedirectTo`, so any staging confirmation link would land there — a local,
+  non-production address. Never use a production host here
+  (`emerriment.com`, `www.emerriment.com`, `emerriment216.netlify.app`): on those
+  hosts the browser guard switches to the production project.
+* **Redirect URLs** use Supabase's glob syntax: `*` matches any characters
+  except the separators `.` and `/`; `**` matches anything. So
+  `deploy-preview-*--emerriment216.netlify.app/**` matches every Netlify deploy
+  preview of this site (`deploy-preview-<PR number>--emerriment216.netlify.app`,
+  any path, e.g. `/reset-password.html`) and nothing else: not the production
+  hosts, not production deploy permalinks (`<deploy id>--emerriment216.netlify.app`),
+  not other Netlify sites, not look-alike domains. Branch deploys are off
+  (`allowed_branches = [main]`), so no `*--emerriment216` pattern is needed.
+  The password-reset page is requested on the current origin
+  (`js/auth.js`: `window.location.origin + "/reset-password.html"`), which these
+  patterns cover for previews and `netlify dev`.
+* **Confirm email off** — consequences:
+  * a staging sign-up is confirmed at once and receives a session; the sign-up
+    page then opens `dashboard.html` (no "check your inbox" step);
+  * no confirmation email is ever sent by staging;
+  * anyone who can open a deploy preview can create a staging account. Such
+    accounts are ordinary users (the signup trigger always sets
+    `is_admin = false`; API users cannot change it), and staging holds only
+    synthetic data;
+  * the three test accounts were created confirmed and are unaffected.
+* **Custom SMTP unset** — the built-in mailer stays, with Supabase's documented
+  limits: it only delivers to addresses of the Supabase organisation's team
+  members (others fail with "Email address not authorized"), about 2 messages
+  per hour, best effort with no delivery guarantee. Consequences: password-reset
+  and email-change emails requested on staging reach team members only — the
+  `@example.test` accounts cannot receive them (test the reset flow with a team
+  member's own address, or locally). Staging must never reuse production's SMTP
+  (production sends through Resend as `auth@mail.emerriment.com`): staging mail
+  would then look like real EMerriment mail and use production's sending domain
+  and credentials.
+* **Production stays separate:** production Auth (Site URL
+  `https://emerriment.com`, exact `/reset-password.html` redirect URLs, custom
+  Resend SMTP, "Confirm email" on) is configured for real customers. Staging
+  wildcards, a localhost Site URL or disabled confirmation must never be copied
+  there, and no step in this document changes production Auth.
+
+**Application behaviour checked (2026-11-19)**
+
+* Sign-up (`js/auth.js`): no `emailRedirectTo`; with a returned session it reports
+  success and `signup.html` opens `dashboard.html`; without one it shows the
+  "check your inbox" text (that text names the production sender
+  `auth@mail.emerriment.com`; it is not shown on staging once confirmation is off).
+* Log-in: `signInWithPassword`; the "email not confirmed" branch cannot occur on
+  staging once confirmation is off.
+* Password reset: `redirectTo` = current origin + `/reset-password.html`, not
+  influenced by user input; covered by the redirect patterns above.
+* No auth flow builds an absolute `emerriment.com` URL: redirects after login and
+  logout are relative (`dashboard.html`, `login.html`), so a preview stays on its
+  own host.
+* Unused file: `admin/auth.js` (loaded by no page) still names `/update-password.html`,
+  which does not exist; it is not part of any flow.
 
 ## 5. Local development
 
@@ -439,8 +529,9 @@ Before merging to `main` (production deploy):
   other host fail closed in the browser by design.
 - `ai-chat` calls OpenAI with whatever key the context has — isolate by
   scoping the key (section 3).
-- Supabase Auth emails on staging are real; see §4.6 item 1. (The three test
-  accounts were created confirmed through the Admin API; no email was sent.)
+- Supabase Auth emails on staging are real but limited to team members'
+  addresses (built-in mailer, §4.8). (The three test accounts were created
+  confirmed through the Admin API; no email was sent.)
 - The browser guard prevents *this site's code* from using production in a
   preview. Anyone can still call the public production API with the public
   anon key — that is what RLS and the guards from migrations 1–7 protect.

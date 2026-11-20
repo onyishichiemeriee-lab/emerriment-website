@@ -9,7 +9,8 @@ const suites = [
     require("./auth-regression.test"),
     require("./auth-pages.dom.test"),
     require("./journey.dom.test"),
-    require("./environment-isolation.test")
+    require("./environment-isolation.test"),
+    require("./staging-auth-config.test")
 ];
 
 (async () => {
