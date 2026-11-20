@@ -87,7 +87,7 @@ async function sendToAI(message) {
 
             console.warn(
                 "AI authentication warning:",
-                authError
+                emrSafeError(authError)
             );
 
         }
@@ -120,7 +120,7 @@ async function sendToAI(message) {
 
                 console.warn(
                     "⚠️ Conversation memory processing failed:",
-                    memoryError
+                    emrSafeError(memoryError)
                 );
 
             }
@@ -188,7 +188,7 @@ if (window.SafetyEngine) {
     } catch (safetyError) {
         console.warn(
             "⚠️ Safety Engine analysis failed:",
-            safetyError
+            emrSafeError(safetyError)
         );
     }
 }
@@ -367,7 +367,7 @@ const isQuestionForMemory =
 
                 console.error(
                     "❌ AI memory save error:",
-                    memorySaveError
+                    emrSafeError(memorySaveError)
                 );
 
             }
@@ -394,7 +394,7 @@ const isQuestionForMemory =
 
         console.error(
             "EMerriment AI API Error:",
-            error
+            emrSafeError(error)
         );
 
 
@@ -437,3 +437,19 @@ window.streamAIResponse =
 console.log(
     "✅ EMerriment AI API initialized."
 );
+
+/* -----------------------------------------
+   Log privacy: an error reduced to its category.
+   Supabase/PostgREST and Auth errors can carry row values,
+   user ids or memory text in message/details/hint, so only
+   name, code and HTTP status are logged — never the payload.
+----------------------------------------- */
+
+function emrSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}

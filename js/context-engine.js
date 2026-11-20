@@ -43,7 +43,7 @@ const ContextEngine = {
 
                 console.warn(
                     "ContextEngine: Auth error:",
-                    userError
+                    emrSafeError(userError)
                 );
 
             }
@@ -96,7 +96,7 @@ const ContextEngine = {
 
                     console.warn(
                         "ContextEngine: Profile error:",
-                        error
+                        emrSafeError(error)
                     );
 
                 }
@@ -110,7 +110,7 @@ const ContextEngine = {
 
                 console.warn(
                     "ContextEngine: Could not load profile:",
-                    error
+                    emrSafeError(error)
                 );
 
             }
@@ -153,7 +153,7 @@ const ContextEngine = {
 
                     console.warn(
                         "ContextEngine: Quiz result error:",
-                        error
+                        emrSafeError(error)
                     );
 
                 }
@@ -167,7 +167,7 @@ const ContextEngine = {
 
                 console.warn(
                     "ContextEngine: Could not load quiz results:",
-                    error
+                    emrSafeError(error)
                 );
 
             }
@@ -253,7 +253,7 @@ const ContextEngine = {
 
                     console.warn(
                         "ContextEngine: Saved articles error:",
-                        error
+                        emrSafeError(error)
                     );
 
                 }
@@ -267,7 +267,7 @@ const ContextEngine = {
 
                 console.warn(
                     "ContextEngine: Could not load saved articles:",
-                    error
+                    emrSafeError(error)
                 );
 
             }
@@ -305,7 +305,7 @@ const ContextEngine = {
 
                     console.warn(
                         "ContextEngine: Reading history error:",
-                        error
+                        emrSafeError(error)
                     );
 
                 }
@@ -319,7 +319,7 @@ const ContextEngine = {
 
                 console.warn(
                     "ContextEngine: Could not load reading history:",
-                    error
+                    emrSafeError(error)
                 );
 
             }
@@ -393,7 +393,7 @@ const ContextEngine = {
 
             console.error(
                 "❌ ContextEngine build error:",
-                error
+                emrSafeError(error)
             );
 
             return this.emptyContext(
@@ -487,3 +487,19 @@ window.ContextEngine =
 console.log(
     "✅ EMerriment Context Engine exposed globally."
 );
+
+/* -----------------------------------------
+   Log privacy: an error reduced to its category.
+   Supabase/PostgREST and Auth errors can carry row values,
+   user ids or memory text in message/details/hint, so only
+   name, code and HTTP status are logged — never the payload.
+----------------------------------------- */
+
+function emrSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}

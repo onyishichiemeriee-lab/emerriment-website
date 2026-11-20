@@ -157,11 +157,112 @@ test("source: ai-chat.js passes no message, context, profile, memory, reply or r
     assert.deepStrictEqual(bad, [], "sensitive console arguments: " + JSON.stringify(bad));
 });
 
+const BROWSER_AI_FILES = ["ai/js/ai-api.js", "ai/js/context-engine.js", "js/context-engine.js", "ai/js/ai-memory.js",
+    "ai/js/ai-database.js", "ai/js/ai.js", "ai/js/knowledge-engine.js", "ai/product-engine.js", "admin/ai/js/ai-admin.js"];
+const RAW_ERROR_NAMES = ["error", "authError", "memoryError", "safetyError", "profileError", "userError", "memorySaveError"];
+
 test("source: browser AI scripts log no memory values, history, safety analysis, profile, quiz results or replies", () => {
-    for (const file of ["ai/js/ai-api.js", "ai/js/context-engine.js", "js/context-engine.js"]) {
-        const bad = rawArgs(file, ["memoryResult", "safetyResult", "data", "context", "value", "message", "errorText", "profile", "quizResults", "memories"]);
+    for (const file of BROWSER_AI_FILES) {
+        const bad = rawArgs(file, ["memoryResult", "safetyResult", "data", "context", "value", "message", "errorText", "profile", "quizResults", "memories", "user", "session"]);
         assert.deepStrictEqual(bad, [], file + ": " + JSON.stringify(bad));
     }
+});
+
+test("source: no AI module hands a raw Supabase/Auth/JS error object to the console (only emrSafeError / errorCategory)", () => {
+    for (const file of [...BROWSER_AI_FILES, "netlify/functions/ai-chat.js"]) {
+        const bad = rawArgs(file, RAW_ERROR_NAMES);
+        assert.deepStrictEqual(bad, [], file + ": " + JSON.stringify(bad));
+        if (file !== "netlify/functions/ai-chat.js" && /emrSafeError\(/.test(read(file))) {
+            assert.ok(/function emrSafeError\(error\)/.test(read(file)), file + " uses emrSafeError without defining it");
+        }
+    }
+});
+
+/* ---------------- Browser AI modules (vm, fake Supabase) ---------------- */
+
+const vm = require("vm");
+const B = {
+    userId: "MARKER-BROWSER-USERID-61aa",
+    email: "marker-browser-user-61aa@example.test",
+    memory: "MARKER-BROWSER-MEMORY-61aa",
+    message: "MARKER-BROWSER-MESSAGE-61aa",
+    profile: "MARKER-BROWSER-PROFILE-61aa",
+};
+const BROWSER_PRIVATE = Object.values(B);
+// A PostgREST-style error whose message/details/hint quote private row values.
+const pgError = () => ({
+    name: "PostgrestError", code: "23505",
+    message: `duplicate key value for ${B.email}`,
+    details: `Key (user_id, memory_key)=(${B.userId}, skinType) already exists. Failing row contains (${B.memory}, ${B.message}, ${B.profile}).`,
+    hint: `retry for ${B.email}`,
+});
+const authError = () => ({ name: "AuthApiError", status: 401, code: "bad_jwt", message: `invalid session for ${B.email} (${B.userId})` });
+
+function fakeSupabase({ user = { id: B.userId, email: B.email }, auth = null } = {}) {
+    const result = () => ({ data: null, error: pgError() });
+    const chain = new Proxy({}, {
+        get(_, prop) {
+            if (prop === "then") return (resolve) => resolve(result());
+            return () => chain;
+        }
+    });
+    return {
+        auth: {
+            getUser: async () => (auth ? { data: { user: null }, error: auth } : { data: { user }, error: null }),
+            getSession: async () => ({ data: { session: null }, error: null }),
+        },
+        from: () => chain,
+        rpc: () => chain,
+    };
+}
+function loadBrowser(files, supabase) {
+    const out = [];
+    const capture = (...args) => out.push(args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" "));
+    const ctx = { console: { log: capture, info: capture, warn: capture, error: capture, debug: capture }, setTimeout, clearTimeout, Promise, Date, JSON, Math, Object, Array, String, Number, Boolean, RegExp, Error, Map, Set, URL, encodeURIComponent };
+    ctx.window = ctx; ctx.supabaseClient = supabase; ctx.document = { getElementById: () => null, querySelector: () => null, addEventListener() {} };
+    ctx.addEventListener = () => {}; ctx.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
+    vm.createContext(ctx);
+    for (const f of files) vm.runInContext(read(f), ctx, { filename: f });
+    return { ctx, logs: () => out.join("\n") };
+}
+const browserLeaks = (logs) => BROWSER_PRIVATE.filter((p) => logs.includes(p) || logs.toLowerCase().includes(p.toLowerCase()));
+
+test("ai-memory.js: a failing save logs code 23505, never the user id, email, memory value or row details", async () => {
+    const { ctx, logs } = loadBrowser(["ai/js/ai-memory.js"], fakeSupabase());
+    const saved = await ctx.AIMemory.save("skinType", B.memory, 1);
+    assert.strictEqual(saved, false, "the failed save must still report failure");
+    assert.deepStrictEqual(browserLeaks(logs()), [], "private data in the console: " + logs());
+    assert.ok(/AIMemory Save Error/.test(logs()) && /23505/.test(logs()), "operational error line missing");
+});
+
+test("ai-memory.js: an authentication error logs its category, not the email or user id", async () => {
+    const { ctx, logs } = loadBrowser(["ai/js/ai-memory.js"], fakeSupabase({ auth: authError() }));
+    const user = await ctx.AIMemory.getCurrentUser();
+    assert.strictEqual(user, null);
+    assert.deepStrictEqual(browserLeaks(logs()), [], logs());
+    assert.ok(/AuthApiError/.test(logs()) && /401/.test(logs()), "auth error category missing");
+});
+
+test("ai-database.js: a failing message save logs the error code, never the message text or row", async () => {
+    const { ctx, logs } = loadBrowser(["ai/js/ai-database.js"], fakeSupabase());
+    await vm.runInContext(`saveMessage("user", ${JSON.stringify(B.message)})`, ctx);
+    assert.deepStrictEqual(browserLeaks(logs()), [], logs());
+    assert.ok(/23505/.test(logs()), "error code missing");
+});
+
+test("context-engine.js (both copies): failing profile/quiz/history/memory reads log codes only", async () => {
+    for (const file of ["ai/js/context-engine.js", "js/context-engine.js"]) {
+        const { ctx, logs } = loadBrowser([file], fakeSupabase());
+        await ctx.ContextEngine.buildContext(B.userId);
+        assert.deepStrictEqual(browserLeaks(logs()), [], file + ": " + logs());
+        assert.ok(/23505/.test(logs()), file + ": error codes missing");
+    }
+});
+
+test("context-engine.js: an authentication error does not leak the email or user id", async () => {
+    const { ctx, logs } = loadBrowser(["ai/js/context-engine.js"], fakeSupabase({ auth: authError() }));
+    await ctx.ContextEngine.buildContext();
+    assert.deepStrictEqual(browserLeaks(logs()), [], logs());
 });
 
 module.exports = suite;

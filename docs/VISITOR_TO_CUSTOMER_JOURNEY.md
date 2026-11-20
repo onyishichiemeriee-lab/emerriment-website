@@ -57,12 +57,21 @@ values, AI replies, raw OpenAI/Ollama responses or error text, or safety
 analyses. They keep what an operator needs: AI mode, presence/counts of
 context parts (e.g. `skinProfile: true, memories: 2`), the detected intent
 category, success/failure, HTTP status, provider error type/code and error
-categories. The browser scripts (`ai/js/ai-api.js`, `ai/js/context-engine.js`)
-follow the same rule in the visitor's console (memory *categories* such as
-`skinType`, never values). OpenAI is called from production only (deploy
-previews and every other context answer in mock mode). Enforced by
-`tests/security/ai-log-privacy.test.js` and
-`tests/security/ai-and-preview-isolation.test.js`.
+categories. The browser AI scripts (`ai/js/ai-api.js`, `ai-memory.js`,
+`ai-database.js`, `ai.js`, `context-engine.js`, `knowledge-engine.js`,
+`ai/product-engine.js`, the legacy `js/context-engine.js` and the admin
+`admin/ai/js/ai-admin.js`) follow the same rule in the browser console:
+memory *categories* such as `skinType`, never values; counts and flags
+instead of profiles, quiz results or history; and Supabase / Auth errors only
+as `{kind, code, status}` (`emrSafeError`) — their `message`, `details` and
+`hint` are never logged, because PostgREST quotes the failing row there (user
+id, memory value, message text) and Auth errors can name the account.
+OpenAI is called from production only (deploy previews and every other
+context answer in mock mode). Enforced by
+`tests/security/ai-log-privacy.test.js` (server behaviour with marker values,
+the browser memory / message / context modules run against a fake Supabase
+returning errors that quote marker data, and source checks of every AI
+script) and `tests/security/ai-and-preview-isolation.test.js`.
 
 ### Stage C — Lead capture (changed 2026-11-17)
 * Valid email required; invalid or missing email → inline message, nothing

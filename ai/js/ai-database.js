@@ -27,7 +27,7 @@ async function createConversation(title = "New Conversation") {
         .single();
 
     if (error) {
-        console.error("Create conversation:", error);
+        console.error("Create conversation:", emrSafeError(error));
         return null;
     }
 
@@ -65,7 +65,7 @@ async function saveMessage(role, content) {
 
     if (error) {
 
-        console.error("Save message:", error);
+        console.error("Save message:", emrSafeError(error));
 
     }
 
@@ -99,7 +99,7 @@ async function loadConversations() {
 
     if (error) {
 
-        console.error(error);
+        console.error(emrSafeError(error));
 
         return [];
 
@@ -133,7 +133,7 @@ async function loadMessages(conversationId) {
 
     if (error) {
 
-        console.error(error);
+        console.error(emrSafeError(error));
 
         return [];
 
@@ -182,7 +182,7 @@ async function deleteConversation(conversationId) {
 
     if (error) {
 
-        console.error(error);
+        console.error(emrSafeError(error));
 
     }
 
@@ -292,4 +292,20 @@ async function archiveConversation(id) {
 
         .eq("id", id);
 
+}
+
+/* -----------------------------------------
+   Log privacy: an error reduced to its category.
+   Supabase/PostgREST and Auth errors can carry row values,
+   user ids or memory text in message/details/hint, so only
+   name, code and HTTP status are logged — never the payload.
+----------------------------------------- */
+
+function emrSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
 }

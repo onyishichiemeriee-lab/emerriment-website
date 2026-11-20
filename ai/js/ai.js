@@ -192,7 +192,7 @@ async function sendUserMessage() {
 
         console.error(
             "EMerriment AI Error:",
-            error
+            emrSafeError(error)
         );
 
 
@@ -543,7 +543,7 @@ async function loadUserSkinProfile() {
 
             console.warn(
                 "AI profile error:",
-                profileError
+                emrSafeError(profileError)
             );
 
         }
@@ -573,7 +573,7 @@ async function loadUserSkinProfile() {
 
         console.error(
             "Failed to load skin profile:",
-            error
+            emrSafeError(error)
         );
 
 
@@ -660,3 +660,19 @@ window.hideTyping =
 console.log(
     "✅ EMerriment AI controller loaded."
 );
+
+/* -----------------------------------------
+   Log privacy: an error reduced to its category.
+   Supabase/PostgREST and Auth errors can carry row values,
+   user ids or memory text in message/details/hint, so only
+   name, code and HTTP status are logged — never the payload.
+----------------------------------------- */
+
+function emrSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}
