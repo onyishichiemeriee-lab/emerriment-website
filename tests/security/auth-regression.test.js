@@ -176,8 +176,16 @@ test("session handling: persisted, auto-refreshed, and recovered from email link
 
 test("authentication files were not modified by the security work", async () => {
     const { execFileSync } = require("child_process");
-    const changed = execFileSync("git", ["diff", "--name-only", "9795f887c86b36f1365d5e5ba0a40b52a1cf4bad", "--",
-        "js/supabase.js",
+    // js/supabase.js: only its CONFIGURATION changed (2026-11-19: no hard-coded
+    // project; the URL and public key come from /js/supabase-config.js). The
+    // authentication part — getSupabaseClient() and everything after it —
+    // must stay byte-identical to the baseline.
+    const BASE = "9795f887c86b36f1365d5e5ba0a40b52a1cf4bad";
+    const authPart = (s) => { const i = s.indexOf("function getSupabaseClient"); assert(i > 0, "getSupabaseClient missing"); return s.slice(i).replace(/\r\n/g, "\n"); };
+    const baseline = execFileSync("git", ["show", BASE + ":js/supabase.js"], { cwd: H.ROOT, encoding: "utf8" });
+    assert.strictEqual(authPart(fs.readFileSync(path.join(H.ROOT, "js", "supabase.js"), "utf8")), authPart(baseline),
+        "js/supabase.js: the authentication part changed");
+    const changed = execFileSync("git", ["diff", "--name-only", BASE, "--",
         // forgot-password.html: only the supabase-js CDN version pin changed (static-security pin test).
         // Changed on purpose and covered by tests/security/auth-pages.dom.test.js:
         // Dashboard/ + dashboard.html (2026-11-17 loader, error notice, parallel loading),

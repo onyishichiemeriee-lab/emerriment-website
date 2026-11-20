@@ -28,18 +28,12 @@ const DEFAULT_SITE_URL = "https://emerriment.com";
 // domain is configured through EMAIL_FROM.
 const DEFAULT_SENDER = "EMerriment <onboarding@resend.dev>";
 
+// Production: URL (else emerriment.com). Deploy previews, branch deploys
+// and local development: their own address, never the production domain
+// (netlify/lib/environment.js).
 function getSiteUrl() {
 
-    const candidate = process.env.URL;
-
-    if (
-        typeof candidate === "string" &&
-        /^https:\/\/[A-Za-z0-9.-]+(:\d+)?$/.test(candidate.replace(/\/+$/, ""))
-    ) {
-        return candidate.replace(/\/+$/, "");
-    }
-
-    return DEFAULT_SITE_URL;
+    return require("./environment").getSiteUrl();
 
 }
 
@@ -248,9 +242,13 @@ function explicitSecret(name) {
 // not set, and always accepted when verifying so links sent before
 // EMAIL_LINK_SECRET was introduced keep working. HMAC is one-way, so the
 // service-role key cannot be recovered from it.
+// Only a key the environment guard accepts for this deploy is used, so a
+// preview can never derive production link signatures from an inherited
+// production service-role key.
 function derivedSecret() {
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const config = require("./environment").getServerSupabaseConfig();
+    const serviceKey = config.ok ? config.key : null;
 
     if (typeof serviceKey === "string" && serviceKey.length > 0) {
         return crypto
@@ -393,6 +391,13 @@ function unsubscribeHeaders(tracking) {
 // or failure. Provider errors are never returned
 // or logged, because they can contain addresses.
 async function sendWithResend(resend, message, idempotencyKey) {
+
+    // Outside production nothing is ever sent, whatever keys or switches
+    // are configured: no provider call is made at all.
+    if (!require("./environment").emailDeliveryAllowed()) {
+        console.warn("EMAIL: delivery blocked outside production (no provider call).");
+        return { ok: false, blocked: true };
+    }
 
     try {
 

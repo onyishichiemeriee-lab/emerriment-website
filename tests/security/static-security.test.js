@@ -416,7 +416,11 @@ test("email-sequence: schedule registered in netlify.toml, but sending requires 
     const fn = read("netlify/functions/email-sequence.js");
     const code = fn.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
     assert(!/exports\.config\s*=/.test(code), "ineffective exports.config left in place");
-    assert(fn.includes('return process.env.EMAIL_SEQUENCE_ENABLED === "true";'), "sending must require EMAIL_SEQUENCE_ENABLED=true");
+    // The switch is read through the environment guard, which additionally
+    // requires the PRODUCTION deploy context (never on from a preview).
+    assert(fn.includes('return marketingSwitch("EMAIL_SEQUENCE_ENABLED");'), "sending must require EMAIL_SEQUENCE_ENABLED=true");
+    const env = read("netlify/lib/environment.js");
+    assert(/return isProduction\(\) && process\.env\[name\] === "true";/.test(env), "marketing switches: production AND exactly \"true\"");
     const handler = fn.split("exports.handler")[1];
     assert(handler.indexOf("if (!isSequenceEnabled())") < handler.indexOf("processLead("), "gate must come before any send");
 });

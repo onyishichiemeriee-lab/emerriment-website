@@ -1,6 +1,13 @@
 [build]
 publish = "."
 functions = "netlify/functions"
+# Writes js/runtime-config.js (browser: which Supabase project this deploy
+# may use) and netlify/lib/deploy-context.json (functions: build context)
+# from Netlify's CONTEXT. Production → production project; deploy previews
+# and branch deploys → staging only (STAGING_PUBLIC_SUPABASE_URL /
+# STAGING_PUBLIC_SUPABASE_ANON_KEY), otherwise fail-closed. See
+# docs/STAGING_AND_PREVIEWS.md.
+command = "node scripts/write-runtime-config.js"
 
 [dev]
 publish = "."
@@ -113,6 +120,13 @@ force = true
 
 [[redirects]]
 from = "/docs/*"
+to = "/404"
+status = 404
+force = true
+
+# Build tooling is not part of the website.
+[[redirects]]
+from = "/scripts/*"
 to = "/404"
 status = 404
 force = true

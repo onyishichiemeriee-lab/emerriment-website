@@ -23,8 +23,7 @@
 ========================================= */
 "use strict";
 
-const { createClient } = require("@supabase/supabase-js");
-const { Resend } = require("resend");
+const { createServiceClient, createMailer, emailDeliveryAllowed, marketingSwitch } = require("../lib/environment");
 
 const onboarding = require("../../emails/customer-onboarding");
 const {
@@ -50,23 +49,24 @@ const PRODUCT_NAMES = {
     "fade-and-glow": "Fade & Glow Bundle"
 };
 
+// Production only: outside production the switch is always off.
 function isEnabled() {
-    return process.env.CUSTOMER_ONBOARDING_ENABLED === "true";
+    return marketingSwitch("CUSTOMER_ONBOARDING_ENABLED");
 }
 
 function respond(statusCode, body) {
     return { statusCode, body: JSON.stringify(body) };
 }
 
+// This deploy's own Supabase project only; Resend in production only
+// (netlify/lib/environment.js).
 function getClients() {
     const resendKey = process.env.RESEND_API_KEY;
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!resendKey || !supabaseUrl || !serviceRoleKey) return null;
-    return {
-        resend: new Resend(resendKey),
-        supabase: createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
-    };
+    const emailAllowed = emailDeliveryAllowed();
+    if (emailAllowed && !resendKey) return null;
+    const supabase = createServiceClient("customer-onboarding");
+    if (!supabase) return null;
+    return { resend: emailAllowed ? createMailer(resendKey) : null, supabase };
 }
 
 async function loadUnsubscribed(supabase) {

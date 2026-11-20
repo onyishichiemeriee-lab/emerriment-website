@@ -1,6 +1,4 @@
-const { Resend } = require("resend");
-
-const { createClient } = require("@supabase/supabase-js");
+const { createServiceClient, createMailer, emailDeliveryAllowed } = require("../lib/environment");
 
 const emails = require("../../emails");
 
@@ -120,35 +118,32 @@ const ALLOWED_FIELDS = new Set([
 let resendClient = null;
 let supabaseClient = null;
 
+// Supabase: this deploy's own project only (production in production,
+// staging elsewhere — netlify/lib/environment.js). Email: a Resend client
+// exists in production only; elsewhere every send is blocked.
 function getClients() {
 
     const resendKey = process.env.RESEND_API_KEY;
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const emailAllowed = emailDeliveryAllowed();
 
-    if (!resendKey || !supabaseUrl || !serviceRoleKey) {
+    if (emailAllowed && !resendKey) {
         return null;
     }
 
-    if (!resendClient) {
-        resendClient = new Resend(resendKey);
+    if (!supabaseClient) {
+        supabaseClient = createServiceClient("send-email");
     }
 
     if (!supabaseClient) {
-        supabaseClient = createClient(
-            supabaseUrl,
-            serviceRoleKey,
-            {
-                auth: {
-                    persistSession: false,
-                    autoRefreshToken: false
-                }
-            }
-        );
+        return null;
+    }
+
+    if (emailAllowed && !resendClient) {
+        resendClient = createMailer(resendKey);
     }
 
     return {
-        resend: resendClient,
+        resend: emailAllowed ? resendClient : null,
         supabase: supabaseClient
     };
 

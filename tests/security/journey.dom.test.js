@@ -163,7 +163,9 @@ test("automation guards: lessons filter AND claim on consent; onboarding schedul
     assert((seq.match(/\.eq\("marketing_consent", true\)/g) || []).length >= 2, "consent in the query and in the claim");
     assert(/isMissingConsentColumn/.test(seq));
     const onb = read("netlify/functions/customer-onboarding.js");
-    assert(/process\.env\.CUSTOMER_ONBOARDING_ENABLED === "true"/.test(onb));
+    assert(/marketingSwitch\("CUSTOMER_ONBOARDING_ENABLED"\)/.test(onb));
+    assert(/return isProduction\(\) && process\.env\[name\] === "true";/.test(read("netlify/lib/environment.js")),
+        "switches count only in production and only as exactly \"true\"");
     assert(/from\("purchases"\)/.test(onb));
     const toml = read("netlify.toml");
     assert(/\[functions\."customer-onboarding"\]\s*\r?\nschedule = "0 7 \* \* \*"/.test(toml));
@@ -174,8 +176,8 @@ test("automation guards: lessons filter AND claim on consent; onboarding schedul
     assert(!/EMAIL_CONFIRMATION_ENABLED\s*=\s*"?true/.test(settings), "confirmation emails must not be switched on in netlify.toml");
     // Each sender reads only its own switch.
     const lib = read("netlify/lib/consent-confirmation.js");
-    assert(/process\.env\.EMAIL_CONFIRMATION_ENABLED === "true"/.test(lib));
-    assert(!/process\.env\.(EMAIL_SEQUENCE_ENABLED|CUSTOMER_ONBOARDING_ENABLED)/.test(lib), "confirmation does not depend on the other switches");
+    assert(/marketingSwitch\("EMAIL_CONFIRMATION_ENABLED"\)/.test(lib));
+    assert(!/(EMAIL_SEQUENCE_ENABLED|CUSTOMER_ONBOARDING_ENABLED)/.test(lib.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")), "confirmation does not depend on the other switches");
     assert(!/EMAIL_CONFIRMATION_ENABLED/.test(seq), "lessons depend only on EMAIL_SEQUENCE_ENABLED");
     assert(!/EMAIL_CONFIRMATION_ENABLED|EMAIL_SEQUENCE_ENABLED/.test(onb), "onboarding depends only on its own switch");
 });

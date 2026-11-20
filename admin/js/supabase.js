@@ -8,13 +8,11 @@
 
 /* =========================================
    SUPABASE CONFIGURATION
+   The project URL and public key come from the per-deploy runtime
+   configuration, checked by /js/supabase-config.js (loaded first by
+   every page). Nothing is hard-coded here and there is no fallback:
+   without a valid configuration no client is created.
 ========================================= */
-
-const SUPABASE_URL =
-    "https://ioeulnjrozkbetaongbv.supabase.co";
-
-const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvZXVsbmpyb3prYmV0YW9uZ2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQxMzQsImV4cCI6MjA5NTMwMDEzNH0.I3WhW8lnThCZVo1bFHwbl6X8t5xT9tspnTdoR3nlSNc";
 
 
 /* =========================================
@@ -27,24 +25,30 @@ if (!window.supabase) {
         "❌ Supabase library has not loaded."
     );
 
+} else if (!window.EmerrimentSupabase) {
+
+    console.error(
+        "❌ /js/supabase-config.js has not loaded; no Supabase client created."
+    );
+
 } else {
 
-    window.supabaseClient =
-        window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_ANON_KEY,
-            {
-                auth: {
+    const client =
+        window.EmerrimentSupabase.createClient({
+            auth: {
 
-                    persistSession: true,
+                persistSession: true,
 
-                    autoRefreshToken: true,
+                autoRefreshToken: true,
 
-                    detectSessionInUrl: true
+                detectSessionInUrl: true
 
-                }
             }
-        );
+        });
+
+    if (client) {
+        window.supabaseClient = client;
+    }
 
 }
 

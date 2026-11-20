@@ -51,7 +51,11 @@ off, people can complete double opt-in; their consent waits for the lessons.
    select count(*) filter (where marketing_consent) as opted_in, count(*) as leads from leads;  -- expect opted_in = 0
    select to_regclass('public.purchases') is not null as purchases_table;               -- expect true
    ```
-3. **Approval — deploy** the branch (merge to `main`). The code works with or
+3. **Approval — deploy** the branch (merge to `main`). Since the staging /
+   preview isolation work, every Netlify build runs
+   `node scripts/write-runtime-config.js`: the production build log must show
+   `context=production, browser Supabase=production project`. PR previews
+   must use staging or stay off — see `docs/STAGING_AND_PREVIEWS.md` §6. The code works with or
    without the migration, but consent is only recorded after step 1.
 4. Live checks (no email): smoke test 48/48 both addresses;
    `/.netlify/functions/email-features` returns `{"consentConfirmation":false}`;

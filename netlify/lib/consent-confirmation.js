@@ -89,7 +89,9 @@ function buildConfirmUrl(token) {
 const isUnsubscribed = (lead) => String(lead.status || "") === STATUS_UNSUBSCRIBED;
 
 // Independent of EMAIL_SEQUENCE_ENABLED and CUSTOMER_ONBOARDING_ENABLED.
-const isConfirmationEnabled = () => process.env.EMAIL_CONFIRMATION_ENABLED === "true";
+// Production only: outside production the switch is always off
+// (netlify/lib/environment.js).
+const isConfirmationEnabled = () => require("./environment").marketingSwitch("EMAIL_CONFIRMATION_ENABLED");
 
 // The request this quiz submission made, if confirmation is due.
 function pendingRequest(leads, now) {

@@ -1,5 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
-const { Resend } = require("resend");
+const { createServiceClient, createMailer, emailDeliveryAllowed, marketingSwitch } = require("../lib/environment");
 
 // Import all email lessons
 const emails = require("../../emails");
@@ -143,9 +142,10 @@ async function loadCustomerAddresses(supabase) {
    and logged as a warning (never silent).
 ----------------------------------------- */
 
+// Production only: outside production the switch is always off.
 function isSequenceEnabled() {
 
-    return process.env.EMAIL_SEQUENCE_ENABLED === "true";
+    return marketingSwitch("EMAIL_SEQUENCE_ENABLED");
 
 }
 
@@ -196,24 +196,26 @@ function maxOverdueMs() {
 const ABANDONED_REPORT_CLAIM_MS = 35 * 60 * 1000;
 
 
+// This deploy's own Supabase project only; Resend in production only
+// (netlify/lib/environment.js).
 function getClients() {
 
     const resendKey = process.env.RESEND_API_KEY;
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const emailAllowed = emailDeliveryAllowed();
 
-    if (!resendKey || !supabaseUrl || !serviceRoleKey) {
+    if (emailAllowed && !resendKey) {
+        return null;
+    }
+
+    const supabase = createServiceClient("email-sequence");
+
+    if (!supabase) {
         return null;
     }
 
     return {
-        resend: new Resend(resendKey),
-        supabase: createClient(supabaseUrl, serviceRoleKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false
-            }
-        })
+        resend: emailAllowed ? createMailer(resendKey) : null,
+        supabase
     };
 
 }

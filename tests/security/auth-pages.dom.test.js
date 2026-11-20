@@ -60,6 +60,18 @@ function makeFrom(rows) {
     };
 }
 
+// Pages run through the real /js/supabase-config.js guard with a
+// staging-style runtime configuration (a fake non-production project and
+// a matching anon test token), exactly as on a deploy preview.
+const TEST_PROJECT_REF = "stagingtestproject01";
+const b64url = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+const TEST_RUNTIME_JS = "window.EMERRIMENT_RUNTIME = Object.freeze(" + JSON.stringify({
+    context: "deploy-preview",
+    supabaseUrl: `https://${TEST_PROJECT_REF}.supabase.co`,
+    supabaseAnonKey: `${b64url({ alg: "HS256", typ: "JWT" })}.${b64url({ iss: "supabase", ref: TEST_PROJECT_REF, role: "anon" })}.test-signature-not-real`,
+    reason: null
+}) + ");";
+
 function resolveExact(rel) {
     const file = path.join(H.ROOT, rel);
     return fs.existsSync(file) ? file : null;
@@ -74,6 +86,7 @@ async function load(page, { signedIn = true, rows = {}, supabaseLoads = true, be
             const u = new URL(url);
             if (u.hostname !== "local.test") return Promise.resolve(Buffer.from(""));
             const rel = decodeURIComponent(u.pathname).replace(/^\//, "");
+            if (rel === "js/runtime-config.js") return Promise.resolve(Buffer.from(TEST_RUNTIME_JS));
             const file = resolveExact(rel);
             if (!file) events.missing.push(rel);
             return Promise.resolve(file ? fs.readFileSync(file) : Buffer.from(""));

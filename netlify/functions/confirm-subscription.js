@@ -1,4 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
+const { createServiceClient, marketingSwitch } = require("../lib/environment");
 
 const { getSiteUrl } = require("../lib/email-common");
 const { isTokenShape, hashToken } = require("../lib/consent-confirmation");
@@ -27,18 +27,10 @@ const { isTokenShape, hashToken } = require("../lib/consent-confirmation");
 const MAX_BODY_BYTES = 2048;
 
 
+// This deploy's own Supabase project only (netlify/lib/environment.js).
 function getSupabase() {
 
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!url || !key) {
-        return null;
-    }
-
-    return createClient(url, key, {
-        auth: { persistSession: false, autoRefreshToken: false }
-    });
+    return createServiceClient("confirm-subscription");
 
 }
 
@@ -102,7 +94,7 @@ If you didn't ask for this, just close this page.</p>`,
     // switch (EMAIL_SEQUENCE_ENABLED); promise a date only while it is on.
     confirmed: () =>
         page(200, "You're subscribed",
-            process.env.EMAIL_SEQUENCE_ENABLED === "true"
+            marketingSwitch("EMAIL_SEQUENCE_ENABLED")
                 ? `<p style="line-height:1.7;">Thank you for confirming. Your first lesson arrives within the next day or two.
 You can unsubscribe at any time from any lesson.</p>`
                 : `<p style="line-height:1.7;">Thank you for confirming. The 14-day lessons have not started yet; your first lesson

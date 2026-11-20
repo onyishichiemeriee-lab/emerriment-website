@@ -5,24 +5,12 @@
 
 "use strict";
 
-const { createClient } = require("@supabase/supabase-js");
+const { createServiceClient } = require("../lib/environment");
 
+// This deploy's own Supabase project only (production in production,
+// staging elsewhere; never production from a preview).
 function getSupabaseAdmin() {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !serviceRoleKey) {
-        console.error("Product verification: Supabase configuration is missing.");
-        return null;
-    }
-
-    return createClient(supabaseUrl, serviceRoleKey, {
-        auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false
-        }
-    });
+    return createServiceClient("ai-chat");
 }
 
 async function getApprovedProducts(productIds) {
