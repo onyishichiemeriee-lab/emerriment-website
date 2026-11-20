@@ -330,14 +330,20 @@ including personal data, to a computer. Options:
 
 1. **Pro plan**: daily backups and point-in-time recovery in the
    dashboard — no files to manage.
-2. **Supabase CLI dump** from your own machine (uses the linked project;
-   asks for the database password), stored encrypted:
+2. **Supabase CLI dump** from your own machine (names production
+   explicitly; CLI 3.1.0 runs `pg_dump` in Docker, so Docker Desktop or
+   Podman must be installed), stored encrypted:
    ```bash
-   npx supabase@3.1.0 db dump --linked -f emerriment_schema_20261119.sql
-   npx supabase@3.1.0 db dump --linked --data-only -f emerriment_data_20261119.sql
+   npx supabase@3.1.0 db dump --remote=ioeulnjrozkbetaongbv -f emerriment_schema_20261119.sql
+   npx supabase@3.1.0 db dump --remote=ioeulnjrozkbetaongbv --data-only -f emerriment_data_20261119.sql
    ```
    Restoring these goes into a fresh project (or an emergency rebuild),
    schema first, then data.
+   Without Docker: the schema-only export can use the standalone PostgreSQL
+   17 client tools and `supabase/staging/00_export_production_schema.sh`
+   (verify-full TLS, credential never written to disk; see
+   `docs/STAGING_AND_PREVIEWS.md` §4.3). That script exports **structure
+   only**; a data dump downloads personal data and is not scripted here.
 3. **Table Editor → Export → CSV** per table (data only, no structure).
 
 Keep such files out of this repository and out of synced folders that are

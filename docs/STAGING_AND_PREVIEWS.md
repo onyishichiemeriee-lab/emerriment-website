@@ -70,58 +70,334 @@ Production secrets must be **Production only**. Today all 9 variables are
 
 Keep "Deploy previews from forks: require approval" (`untrusted_flow: review`, current setting).
 
-## 4. Staging project — manual setup
+## 4. Staging project
 
-1. **Create** a new Supabase project (your action), e.g. "EMerriment staging",
-   same region. Note its project ref, URL, anon key and service-role key.
-2. **Auth settings (staging):** Site URL `https://emerriment216.netlify.app`;
-   Redirect URLs `https://deploy-preview-*--emerriment216.netlify.app/**` and
-   `https://*--emerriment216.netlify.app/**`. Either turn **off** "Confirm
-   email" for staging, or use only addresses you control — staging Auth sends
-   real emails through Supabase's mailer.
-3. **Schema** — a new project has none of EMerriment's base tables, which
-   existed in production before migration 1, so the migrations alone cannot
-   build staging. Copy production's **structure only** (no rows; a read of
-   production metadata — needs your approval), apply it to staging, then
-   record the migration history there:
-   ```bash
-   npx supabase@3.1.0 db dump --linked -f staging-schema.sql
-   npx supabase@3.1.0 db query --remote=<STAGING_REF> --file staging-schema.sql --yes
-   npx supabase@3.1.0 migration repair --status applied 20261110085900 20261110090000 20261110090100 20261110090200 20261110090300 20261110090400 20261113090000 20261117090000 --remote=<STAGING_REF> --yes
-   npx supabase@3.1.0 migration list --remote=<STAGING_REF>
-   ```
-   (`db dump` without `--data-only` writes schema only.) Keep
-   `staging-schema.sql` out of the repository. The local link stays on
-   production — **always pass `--remote=<STAGING_REF>` for staging, never a
-   bare `--remote`.** Future migrations go to staging first:
-   `npx supabase@3.1.0 db push --remote=<STAGING_REF> --skip-vault --dry-run`, then without `--dry-run`.
-4. **Synthetic data:** staging SQL Editor →
-   ```sql
-   set emerriment.seed_target = 'staging';
-   ```
-   then paste `supabase/staging/seed_synthetic.sql` and Run. It refuses on
-   production (backup schema present) or a non-fresh project.
-5. **Accounts for testing:** sign up three staging accounts on a preview
-   (or in the staging dashboard) — one administrator, two ordinary users
-   (the 03b suite needs exactly this). Promote the administrator in the
-   staging SQL Editor, the trusted direct path:
-   `update public.profiles set is_admin = true where id = '<staging user uuid>';`
-   Use addresses you control (or "Confirm email" off, step 2).
-6. **Security verification on staging** (read-only in effect, staging ref only):
-   ```bash
-   npx supabase@3.1.0 db query --remote=<STAGING_REF> --file supabase/audit/03b_comprehensive_live_security_checks.sql --output-format json --yes
-   ```
-   Expect 384/384 PASS (counts depend on the staging tables).
-7. **Netlify:** set the variables in section 3 (approval), keep production
-   values production-only.
-8. **Prove isolation on a preview** (one PR, after steps 1–7):
-   * `/.netlify/functions/email-features` → `{"consentConfirmation":false}`;
-   * no "not connected to a database" notice on pages; sign-in works with a
-     staging account;
-   * a quiz with an `@example.test` address creates a lead **in staging**;
-     production `select count(*) from leads` is unchanged;
-   * Resend dashboard shows no new email; the report page says the email
-     could not be sent (expected in previews).
+### 4.1 The two projects
+
+| | Production | Staging |
+|---|---|---|
+| Name | EMerriment | EMerriment staging |
+| Project ref | `ioeulnjrozkbetaongbv` | `ayxakyyvomlzrsfznpeq` (eu-west-1, Postgres 17) |
+| Serves | emerriment.com, the published Netlify production deploy | deploy previews and branch deploys only (after §4.6) |
+| Data | real visitors, leads and customers | synthetic only (`@example.test`, "Staging …") |
+| Local CLI link (`supabase/.temp`) | **yes — the link points here** | no |
+
+Rules for every command:
+
+* **Staging:** always `--remote=ayxakyyvomlzrsfznpeq`, preferably through
+  `bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq …`,
+  which refuses a bare `--remote`, the production ref and any other ref, and
+  checks that the CLI reports `Target: project ayxakyyvomlzrsfznpeq (not the linked project)`.
+* **Production:** only read-only commands from this procedure
+  (`db query --read-only`, `migration list`, the schema export of step 00),
+  each with `--remote=ioeulnjrozkbetaongbv` and its own approval.
+* Never a bare `--remote` and never a command without `--remote`: both
+  target the linked **production** project.
+* Every remote CLI command creates or refreshes Supabase's temporary
+  database login role `cli_login_postgres` on the project it targets
+  (Supabase-managed; the CLI shows no deletion or expiry).
+
+### 4.2 Current state (2026-11-19)
+
+| Item | Staging |
+|---|---|
+| Schema (public, emerriment_private) | imported from production's schema-only export; matches production (§4.3 step 10) |
+| API-role privileges | aligned with production (0 differences) |
+| Signup trigger, `article-images` bucket + 4 policies, `ensure_rls` | created; policies use the staging administrator's UUID |
+| Migration history | 8/8 recorded (repair only; no migration re-run) |
+| Data | 3 articles, 3 products, 3 leads (synthetic), 3 accounts + profiles |
+| 03b / supplementary suites | 382 pass, 0 fail, 1 skip / 39 pass, 0 fail |
+| Auth dashboard settings, Netlify variables | **not done** (§4.6) |
+
+### 4.3 Rebuild procedure (in order)
+
+Use this to rebuild staging from scratch (a new or emptied staging project).
+Steps that touch a project need explicit approval each time. Scripts live in
+`supabase/staging/` (index: `supabase/staging/README.md`); none contains a
+key, password or customer record. Run from the repository root in Git Bash.
+
+**Prerequisites**
+
+* Node.js, Git Bash, `npx supabase@3.1.0` logged in (`supabase login`).
+* **PostgreSQL 17 client tools without Docker.** CLI 3.1.0's `db dump`
+  normally runs `pg_dump` in Docker. Without Docker, use the standalone EDB
+  binaries (no server, no service, no administrator rights, no PATH change):
+  1. Download `postgresql-17.12-2-windows-x64-binaries.zip` from
+     `get.enterprisedb.com/postgresql/` and its `.sha256` sidecar; the
+     SHA-256 must match (17.12-2: `520c8c6f19abb3b31fa83ec5e486e2f769eedd7593d94e60a7cda8a5bfb4df91`).
+  2. Extract only `pgsql/bin/pg_dump.exe` and the DLLs it loads —
+     `libpq.dll`, `libssl-3-x64.dll`, `libcrypto-3-x64.dll`, `libiconv-2.dll`,
+     `libintl-9.dll`, `liblz4.dll`, `libzstd.dll` — plus the licence file, to
+     `%LOCALAPPDATA%\Programs\pgsql17-client\bin`. Check each file's
+     Authenticode signature is valid (EnterpriseDB Corporation).
+  3. `pg_dump --version` from that folder → `pg_dump (PostgreSQL) 17.x`
+     (must match staging's major version, 17).
+* **Supabase Root 2021 CA** for `verify-full` TLS: Dashboard → Database
+  settings → SSL → Download certificate, or
+  `https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt`.
+  SHA-256 fingerprint `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`
+  (the same root is embedded in the Supabase CLI; the pooler's
+  `*.pooler.supabase.com` certificate chains to it). Keep it outside the repository.
+
+**00 — Export production's schema (approval: reads production metadata)**
+
+```bash
+PG_BIN=/c/Users/<you>/AppData/Local/Programs/pgsql17-client/bin \
+SUPABASE_CA=/c/path/to/prod-ca-2021.crt \
+bash supabase/staging/00_export_production_schema.sh "$TEMP/emerriment-staging-schema.sql"
+node supabase/staging/verify/inspect-dump.js "$TEMP/emerriment-staging-schema.sql"
+```
+
+The script runs `db dump --remote=ioeulnjrozkbetaongbv --schema public,emerriment_private --dry-run`,
+holds the generated wrapper (it contains a temporary credential) in memory only,
+checks the target (production pooler user, no staging ref, schema-only, no SSL
+override), applies exactly two Windows/Git Bash corrections — the schema pattern
+quoted (`--schema='public|emerriment_private'`) and `--quote-all-identifiers`
+spelled in full (the Windows `pg_dump` rejects the abbreviation) — keeps all 26
+Supabase sed filters, and pipes it into bash with `PGSSLMODE=verify-full`.
+Output stays outside the repository; note its SHA-256.
+With Docker installed, `npx supabase@3.1.0 db dump --remote=ioeulnjrozkbetaongbv --schema public,emerriment_private -f <file>`
+is equivalent. There is no `--linked` flag.
+
+`inspect-dump.js` must show: 0 data statements (`INSERT`/`COPY`), only the
+schemas `public` and `emerriment_private`, no `emerriment_backup`, nothing
+defined in `auth`/`storage`/system schemas, no secrets, no email addresses.
+The dump deliberately excludes `auth`, `storage`, `emerriment_backup` and all rows.
+
+**01 — Preflight (read-only): staging is empty**
+
+```bash
+bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq --read-only supabase/staging/01_preflight_fresh_project_read_only.sql
+```
+
+Every row PASS (no tables, functions, policies, app schemas, history, auth users, buckets; Postgres 17).
+
+**02 — Import the schema (approval)**
+
+```bash
+sha256sum "$TEMP/emerriment-staging-schema.sql"          # must equal the value from step 00
+npx supabase@3.1.0 db query --remote=ayxakyyvomlzrsfznpeq --file "$TEMP/emerriment-staging-schema.sql" --output-format json --yes
+```
+
+The file has no transaction control of its own; the CLI sends it as one
+request, which PostgreSQL runs as one transaction (verified 2026-11-19), so a
+failure leaves nothing behind. Output: a single `set_config` row.
+
+**03 — Align API-role privileges**
+
+```bash
+bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq supabase/staging/03_align_privileges.sql
+```
+
+Supabase's default privileges fire while the dump creates each table, so
+`anon`/`authenticated` receive TRUNCATE, REFERENCES, TRIGGER and MAINTAIN that
+production revoked; the dump can only add grants. The script removes exactly
+those extras (166 role/privilege/table combinations) and writes the
+`emerriment_private` schema ACL explicitly (USAGE is already denied to
+anon/authenticated). It refuses unless staging matches the reviewed post-import
+fingerprint and rolls back unless the result equals production's. Default
+privileges are left as they are — identical to production's (future tables need
+explicit revokes in both projects). If production's schema has changed, the
+script refuses; regenerate the list with
+`node supabase/staging/verify/compare-with-production.js --staging=ayxakyyvomlzrsfznpeq --emit-acl-revokes`,
+review it, and update the script and its two fingerprints.
+
+**04 — Signup trigger, storage bucket and policies, RLS event trigger**
+
+```bash
+bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq supabase/staging/04_structural_setup.sql
+```
+
+* `on_auth_user_created` — `AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user()`,
+  as production (the function comes with the dump; it creates a non-admin profile).
+* Bucket `article-images` — public, 5 MB (`5242880`), `image/jpeg, image/png, image/webp, image/gif, image/avif`,
+  no AVIF auto-detection. **No files are copied.**
+* The 4 `storage.objects` policies "Give access to a folder qt2lnz_0…3"
+  (SELECT/INSERT/UPDATE/DELETE on `admin/assets/` of that bucket) — identical
+  to production except the account UUID, which is the placeholder
+  `00000000-0000-0000-0000-000000000000` (matches nobody) until step 08. No
+  production account id is ever copied to staging.
+* `ensure_rls` — `ON ddl_command_end WHEN TAG IN ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')`
+  → `public.rls_auto_enable()`. This is Supabase's "auto-enable RLS on new
+  tables" feature (owner `postgres`, not an extension, not created by any
+  EMerriment migration; it existed before the 2026-11-13 audit). It only ever
+  runs `enable row level security` on new tables in `public`, so it cannot
+  weaken RLS. The six `supabase_admin` platform event triggers already exist
+  in every project.
+
+Refuses unless staging is empty and lacks these objects; rolls back unless the
+post-checks match production.
+
+**05 — Record the migration history (no migration is run)**
+
+The imported schema already contains all eight migrations. Verify, then record:
+
+```bash
+bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq --read-only supabase/staging/verify/migration-markers.sql   # all rows true
+node supabase/staging/verify/compare-with-production.js --staging=ayxakyyvomlzrsfznpeq                                            # only expected differences
+npx supabase@3.1.0 migration repair --status applied 20261110085900 20261110090000 20261110090100 20261110090200 20261110090300 20261110090400 20261113090000 20261117090000 --remote=ayxakyyvomlzrsfznpeq --yes
+npx supabase@3.1.0 migration list --remote=ayxakyyvomlzrsfznpeq                                                                    # 8 local = 8 remote
+```
+
+`migration repair` only writes history rows. Never `db push` or re-run these
+migrations on staging. Future migrations go to staging first:
+`npx supabase@3.1.0 db push --remote=ayxakyyvomlzrsfznpeq --skip-vault --dry-run`, then without `--dry-run`.
+
+**06 — Synthetic data**
+
+```bash
+{ echo "set emerriment.seed_target = 'staging';"; cat supabase/staging/seed_synthetic.sql; } > "$TEMP/emerriment-seed-run.sql"
+bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq "$TEMP/emerriment-seed-run.sql"
+```
+
+Creates 3 articles (2 published, 1 draft), 3 products (2 approved), 3 leads
+(`lead1–3@example.test`, no consent, no requests). Guards: the session marker
+`emerriment.seed_target = 'staging'` is required; refuses if
+`emerriment_backup` exists (production) or there are more than 20 leads;
+requires migration 7. Re-running adds nothing (keyed by slug, name and email).
+
+**07 — Three test accounts (Auth Admin API)**
+
+```bash
+node supabase/staging/07_create_test_accounts.js --remote=ayxakyyvomlzrsfznpeq preflight
+node supabase/staging/07_create_test_accounts.js --remote=ayxakyyvomlzrsfznpeq create
+```
+
+Creates `staging-admin@example.test`, `staging-user-a@example.test` and
+`staging-user-b@example.test` with `email_confirm: true` — confirmed at
+creation, **no email is sent** (`confirmation_sent=false`) — and never inserts
+into `auth.users` directly. The staging `service_role` key is fetched by the CLI
+for the staging ref, kept in memory and checked (its `ref` claim must be
+staging); it is never printed or saved. Passwords are random (32 characters)
+and written only to
+`%USERPROFILE%\.emerriment-staging\staging-test-accounts.json` — outside the
+repository, inheritance removed, readable only by the current Windows user (the
+script verifies the ACL has exactly that one entry). Never print, commit or
+share the file. The tool refuses if staging already has users or the file
+exists; it never resets passwords (do that in the staging dashboard if the
+file is lost). The signup trigger creates the three profiles.
+
+**08 — Promote the administrator; point the storage policies at it**
+
+```bash
+bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq supabase/staging/08_promote_admin_and_storage.sql
+```
+
+The documented bootstrap path: a trusted direct
+`update public.profiles set is_admin = true` by the database owner for
+`staging-admin@example.test` (API users cannot change `is_admin`: no column
+privilege, and the profile guard refuses). Then the 4 storage policies get the
+staging administrator's UUID. Refuses unless auth holds exactly the three
+synthetic accounts with trigger-made, non-admin profiles and the 4 placeholder
+policies; rolls back unless exactly one administrator exists and the only UUID
+in the storage policies is the staging administrator's.
+
+**09 — Security suites (staging; every test write is rolled back)**
+
+```bash
+npx supabase@3.1.0 db query --remote=ayxakyyvomlzrsfznpeq --file supabase/audit/03b_comprehensive_live_security_checks.sql --output-format json --yes
+bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq supabase/staging/09_supplementary_security_checks.sql
+```
+
+Expected (2026-11-19):
+
+* **03b:** 383 total, 382 PASS, 0 FAIL, 1 SKIP, 0 unexpected errors, OVERALL PASS —
+  permissions 62 (+1 skip), identity 10, cross-user isolation 172, AI privacy 30,
+  admin protection 18, leads 20, public content 24, CMS 16, rollback 28. The skip
+  is `PRM-07` (needs `emerriment_backup`, which exists only in production).
+* **Supplementary (09):** 39 PASS, 0 FAIL — signup/profile creation 4,
+  synthetic-only data 6, purchases 10 (only administrators read; nobody but
+  service_role writes), storage 14 (only the staging administrator lists or
+  writes `admin/assets/`; bucket settings unchangeable by API roles), admin
+  escalation 3, rollback 2. `STO-10` and `ADM-02` expect an outright denial
+  (`42501`): Supabase's `storage.protect_delete` trigger rejects direct SQL
+  deletes, and `authenticated` has no column privilege on `profiles.is_admin` —
+  both identical in production. Do not relax these expectations.
+
+**10 — Compare with production; confirm production isolation (read-only)**
+
+```bash
+node supabase/staging/verify/compare-with-production.js --staging=ayxakyyvomlzrsfznpeq
+npx supabase@3.1.0 db query --remote=ioeulnjrozkbetaongbv --read-only --file supabase/staging/verify/production-isolation.sql --output-format json
+npx supabase@3.1.0 migration list --remote=ioeulnjrozkbetaongbv
+```
+
+`compare-with-production.js` runs read-only metadata queries on both projects
+(production always with `--read-only`; counts only, UUIDs masked) and exits 1 on
+any unexpected difference. Reviewed, expected differences: leads count;
+`emerriment_backup` (production only); one CHECK constraint on `purchases`
+printed with different brackets (same expression); the storage-policy account
+UUID; no storage files on staging. Everything else — tables, columns,
+constraints, indexes, 123 policies, 14 functions (compared without carriage
+returns: production's bodies use CRLF), triggers, sequences, comments, table,
+schema and default privileges, signup trigger, bucket, event triggers and
+migration history — must be identical. `production-isolation.sql` must show 0
+for every staging marker (`@example.test` leads, profiles and accounts, seed
+articles/products), no new auth users, no consent records, 8 migration versions,
+4 storage policies with one UUID and no placeholder.
+
+### 4.4 `emerriment_private.rls_baseline` is empty on staging — intentionally
+
+In production, `rls_baseline` records each table's RLS state from *before*
+the security migrations: `emerriment_private.enable_rls()` (migration
+`20261110090000`) wrote it the first time each migration switched RLS on. The
+schema-only import brings the table but no rows, and that production record is
+**not** copied to staging. Consequences:
+
+* No policy, function used by the website, or security suite reads it at run
+  time; 03b and the supplementary suite pass without it (03b only checks that
+  API roles cannot read it).
+* `supabase/rollback/emerriment_security_rollback.sql` restores RLS from this
+  table, so on staging it could not reproduce production's pre-migration state
+  (never run it on staging; it refuses without its explicit session flag).
+  `supabase/audit/02_post_migration_verification.sql` section 4 shows no rows.
+* If a future migration calls `enable_rls()` on staging, it records staging's
+  current state (RLS already on) — harmless, but staging's baseline is then not
+  production's.
+* Copying production's rows (table names and true/false flags, no personal data)
+  would need a separate decision.
+
+### 4.5 What cannot be made fully reproducible
+
+* Creating the staging project and its dashboard settings (§4.6) — manual.
+* Steps 00, 02–08 each need an explicit approval; nothing runs them automatically.
+* Step 03's fingerprints describe the 2026-11-19 production schema; after a
+  production schema change regenerate the REVOKE list (step 03) and review it.
+* The temporary CLI login role `cli_login_postgres` is created/refreshed by
+  Supabase on each remote command; its cleanup is Supabase's.
+* Test-account passwords exist only in the local credentials file on the
+  machine that created them; if lost, reset them in the staging dashboard.
+* The scripts are tested locally without network on a simulated staging
+  database (`node tests/db/staging-scripts.pglite.test.js`, part of
+  `npm run test:db`): guards, idempotency, steps 04/06/08 and all 39
+  supplementary expectations. Step 03's alignment itself can only run on the
+  real import (its refusal path is tested).
+
+### 4.6 Before Netlify deploy previews may use staging
+
+1. **Staging Auth settings (dashboard, staging project):** Site URL
+   `https://emerriment216.netlify.app`; Redirect URLs
+   `https://deploy-preview-*--emerriment216.netlify.app/**` and
+   `https://*--emerriment216.netlify.app/**`. Decide on "Confirm email": staging
+   Auth sends **real** emails through Supabase's mailer for sign-ups and
+   password resets made on a preview — turn it off or use only addresses you
+   control. Leave custom SMTP unset.
+2. **Netlify variables** (section 3, approval): staging URL, anon key, service
+   key and `STAGING_SUPABASE_PROJECT_REF` for Deploy Previews and Branch deploys;
+   production secrets scoped to Production only; `RESEND_API_KEY` and the three
+   email switches unset outside production.
+3. `npm run test:email`, `npm run test:security` and `npm run test:db` pass.
+4. Prove isolation on one preview (section 4.7).
+
+### 4.7 Prove isolation on a preview (after §4.6)
+
+* `/.netlify/functions/email-features` → `{"consentConfirmation":false}`;
+* no "not connected to a database" notice on pages; sign-in works with a
+  staging account (password from the local credentials file);
+* a quiz with an `@example.test` address creates a lead **in staging**;
+  production `select count(*) from leads` is unchanged (`production-isolation.sql`);
+* Resend dashboard shows no new email; the report page says the email
+  could not be sent (expected in previews).
 
 **Cleanup:** delete synthetic rows (`delete from public.leads where email like '%@example.test';`),
 or delete the whole staging project. Rotate the staging service key if it was
@@ -144,9 +420,9 @@ committing: `git checkout js/runtime-config.js netlify/lib/deploy-context.json`
 ## 6. PR and deployment safety checklist
 
 Before opening a PR (deploy previews ON):
-- [ ] staging project ready (section 4, steps 1–6)
+- [ ] staging project ready (§4.3 steps 00–10 done, both suites as expected) and its Auth settings done (§4.6 item 1)
 - [ ] Netlify variables scoped (section 3); production secrets production-only
-- [ ] `npm run test:email` and `npm run test:security` pass (includes the isolation suite)
+- [ ] `npm run test:email`, `npm run test:security` and `npm run test:db` pass (includes the isolation suite and the staging-script tests)
 
 Or, without staging: turn Deploy Previews off before opening the PR — a
 preview would build but fail closed (no database, no email).
@@ -163,7 +439,8 @@ Before merging to `main` (production deploy):
   other host fail closed in the browser by design.
 - `ai-chat` calls OpenAI with whatever key the context has — isolate by
   scoping the key (section 3).
-- Supabase Auth emails on staging are real; see step 2.
+- Supabase Auth emails on staging are real; see §4.6 item 1. (The three test
+  accounts were created confirmed through the Admin API; no email was sent.)
 - The browser guard prevents *this site's code* from using production in a
   preview. Anyone can still call the public production API with the public
   anon key — that is what RLS and the guards from migrations 1–7 protect.

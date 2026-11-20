@@ -1,9 +1,13 @@
 -- =====================================================================
 -- EMerriment — SYNTHETIC seed data for the STAGING project only
 -- ---------------------------------------------------------------------
--- Run in the STAGING project's SQL Editor (never production), after
--- migrations 1–7 were pushed to staging. Fake data only: example.test
--- addresses, placeholder articles and products. No real person.
+-- Run on the STAGING project only (never production), after the schema
+-- import, privilege alignment, structural setup and history repair
+-- (docs/STAGING_AND_PREVIEWS.md §4.3, step 06). Fake data only:
+-- example.test addresses, placeholder articles and products. No real person.
+--   CLI:  prepend  set emerriment.seed_target = 'staging';  and run with
+--         bash supabase/staging/run-on-staging.sh --remote=<staging-ref> <that file>
+--   or SQL Editor of the staging project: run the set line, then this file.
 --
 -- Refuses to run (one transaction, nothing written) unless:
 --   * the session first sets:  set emerriment.seed_target = 'staging';
