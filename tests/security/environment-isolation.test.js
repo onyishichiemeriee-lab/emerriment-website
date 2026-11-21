@@ -175,7 +175,8 @@ test("[5][6] tampered runtimes are refused: production URL in a preview, staging
 });
 
 test("every page that loads Supabase loads the runtime config and guard first", () => {
-    assert.strictEqual(libPages.length, 63, "expected 63 pages that load supabase-js, found " + libPages.length);
+    // 62 since WP4J: the legacy root dashboardCMS.html became a no-script redirect to /dashboard.html.
+    assert.strictEqual(libPages.length, 62, "expected 62 pages that load supabase-js, found " + libPages.length);
     for (const p of libPages) {
         const html = read(p);
         const rc = html.indexOf('src="/js/runtime-config.js"');
@@ -242,7 +243,7 @@ test("[5][9][10] real pages: preview → staging only; misbuilt preview → none
         assert(prod.length >= 1 && prod.every((u) => u === PROD_URL), p + ": production unchanged");
         prodClients += prod.length;
     }
-    assert(previewClients >= 63 && prodClients === previewClients);
+    assert(previewClients >= 62 && prodClients === previewClients);
     await new Promise((r) => setTimeout(r, 50));
     } finally {
         process.removeListener("unhandledRejection", swallow);

@@ -859,6 +859,114 @@ Space out repeated sign-in runs to stay within staging Auth rate limits.
 `https://cdn.jsdelivr.net/npm/chart.js` without a pinned version (supabase-js
 is pinned); pinning or vendoring it is a follow-up.
 
+### 4.14 Frontend dependencies, legacy routes and CSP roadmap (WP4J, 2026-11-21)
+
+Local changes; validated with jsdom suites and a local real-browser run
+against staging (not yet on a preview).
+
+**Pinned, locally served dependencies** (`/js/vendor/`, byte-identical to the
+pinned npm package — checked by `tests/security/frontend-dependencies.test.js`;
+`.gitattributes` keeps them byte-exact):
+
+| Library | Version | Licence | Used by | Was |
+|---|---|---|---|---|
+| DOMPurify | 3.4.17 | Apache-2.0 / MPL-2.0 | article reader, CMS editor | (WP4F) |
+| Chart.js | 4.6.1 (`dist/chart.umd.min.js`, bundles `@kurkle/color`) | MIT (`chart-4.6.1.LICENSE.md`) | `admin/analyticsCMS.html`, legacy `admin/dashboard.html`, `admin/ai/analytics.html` | `cdn.jsdelivr.net/npm/chart.js` — **unversioned** |
+| AOS | 3.0.0-beta.6 (`dist/aos.js`) | MIT | `index.html` | `unpkg.com/aos@next` — a **moving tag**; the pinned file is byte-identical to what `@next` served |
+
+Only supabase-js (`@2.119.0`, pinned) and Google Tag Manager still load from a
+CDN on active pages; the legacy homepage copies still load AOS from unpkg.
+Note: the homepage loads AOS but no element uses `data-aos` — removable.
+
+**Corrected routes.**
+* `dashboardCMS.html` (root) was an outdated copy of `dashboard.html` loading
+  `dashboard/…` in lower case; on case-sensitive hosting no script loaded.
+  It is now a no-script redirect to `/dashboard.html` (meta refresh + link,
+  `noindex`), kept for bookmarks. The "Dashboard" links on `encyclopedia.html`,
+  `encyclopediaCMS.html` and `products.html` now point to `/dashboard.html`.
+* The article reader's navigation used relative links that resolved into the
+  stale `/article/` copies (`/article/index.html`, `/article/quiz.html`, …);
+  it now uses `/index.html`, `/quiz.html`, `/dashboard.html`, `/encyclopedia.html`.
+* `acne.html` and `skin-conditions.html` (in `sitemap.xml`) loaded `style.css`,
+  deleted in July; they now use `css/legal.css` (plus a scoped
+  `.article-page, .resource-page` rule), a charset and a mobile viewport.
+* Dashboard images overflowed 375–414 px phones by 200+ px (no image rule in
+  `css/dashboard.css`); `.dashboard img { max-width: 100%; height: auto }`.
+* A route test checks that every local script/stylesheet referenced by a
+  served page exists with the exact case.
+
+**Legacy inventory (served files only; folders that `netlify.toml` answers
+with 404 — the three `… Authentication …`/backup folders, `tests/`,
+`supabase/`, `docs/`, … — are not served).** 68 served pages:
+* Active entry points: `index.html`, `quiz.html`, `encyclopedia.html`
+  (`encyclopediaCMS.html` is a working duplicate), `article/article.html`,
+  `dashboard.html`, the auth pages, `ai/index.html`, `products.html`,
+  `skin-journey.html`, `privacy.html`, `terms.html`, `acne.html`,
+  `skin-conditions.html`, `thank-you.html`, and the 11 `admin/*CMS.html` pages
+  plus `admin/loginCMS.html`.
+* Legacy duplicate sites, reachable only from each other: `article/*` (except
+  `article/article.html`), `encyclopediaCMS/*`, `skinquiz/*` — old copies of the
+  homepage, quiz, encyclopedia and dashboard (their quiz copies save leads
+  without the consent UI); `Dashboard/dashboard/` (old dashboard modules,
+  loaded by nothing active); `admin/ai/*` and the legacy non-CMS admin pages
+  (`admin/dashboard.html`, `products.html`, `subscribers.html`,
+  `analytics.html`, `add-product.html`, `collections.html`,
+  `email-sequences.html`, `admin/login.html`, `admin/signup.html`, …).
+* 15 groups of byte-identical JS and 7 of byte-identical CSS, all from these
+  copies. Not referenced by any served page: `admin/admin-authCMS.js`,
+  `admin/analyticsCMS.js` (superseded by `admin/js/analyticsCMS.js`),
+  `admin/auth.js`, `admin/dashboardD.js`, `admin/recommendation-engine.js`,
+  `ai/personalization-engine.js`, `ai/product-engine.js`, `js/context-engine.js`,
+  root `login.js`, and 7 CSS files (`login.css`, `css/dashboardD.css`, …).
+
+**Retirement plan (separate review; nothing deleted in WP4J).**
+1. Confirm with analytics / server logs that no traffic reaches the legacy
+   folders; add `301` redirects for their pages to the active equivalents in
+   `netlify.toml` (one tested change), keeping bookmarks working.
+2. After a quiet period, delete the redirected folders and the unreferenced
+   files listed above; re-run the inventory and route tests.
+3. Remove AOS from the homepage (unused) and any library only the deleted
+   pages needed.
+
+**CSP — inventory (served pages) and roadmap; `'unsafe-inline'` kept.**
+Current `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net
+https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com`.
+* Inline `<script>` blocks: 27 on 12 pages — the homepage and its 3 legacy
+  copies (4 each: GA bootstrap, JSON-LD, `submitQuiz`, `AOS.init()`),
+  `login.html` / `signup.html` / `reset-password.html` (2 each),
+  `forgot-password.html` (1), legacy admin pages (1 each).
+* Inline `on*=` handlers: 64, all `onclick`/`onkeyup` on the homepage and its 3
+  copies (16 each).
+* Script-generated inline handlers: 11 files (e.g. `admin/js/articlesCMS.js`,
+  `admin/js/productsCMS.js`, `js/script.js`, `js/productsCMS.js`, legacy copies).
+* No `eval`, `new Function` or string timers.
+* Guard: `frontend-dependencies.test.js` fails if any served page gains an
+  inline handler (baseline may only shrink) or a newer module generates one;
+  the CSP itself is asserted unchanged (no report endpoint added).
+
+Roadmap (each step a separate, tested change):
+1. Retire the legacy copies (removes 48 of the 64 handlers and 12 inline blocks).
+2. Homepage: move `submitQuiz`, the GA bootstrap and `AOS.init` (or AOS itself)
+   to `js/` files; replace the 16 handlers with `addEventListener`. JSON-LD is
+   data (`application/ld+json`), not script execution, but move or hash it.
+3. Auth pages: move their inline blocks to `js/login-page.js` etc.
+4. CMS / `js/script.js`: replace generated `onclick=` with event delegation
+   (`data-action` attributes + one listener).
+5. Ship `Content-Security-Policy-Report-Only` with `script-src` minus
+   `'unsafe-inline'` (and `unpkg.com` once unused) — first without a report
+   endpoint, checking the browser console on a preview; add a tested
+   collector only if needed.
+6. Enforce: drop `'unsafe-inline'` from `script-src`. Hashes are only a stopgap
+   (static hosting cannot issue per-request nonces without an Edge Function).
+7. Then `style-src` (35 inline `style=` attributes; `'unsafe-inline'` for
+   styles is lower risk).
+
+**Remaining technical debt:** the legacy folders and unreferenced files above;
+the admin sidebar becomes a horizontal scroller below 768 px (intended, but the
+active link can sit off-screen); `encyclopediaCMS.html` duplicates
+`encyclopedia.html`; supabase-js still comes from jsDelivr (pinned; vendoring
+it is optional).
+
 ## 5. Local development
 
 `netlify dev` does not run the build, so the committed fail-closed

@@ -27,6 +27,8 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.11",
+    "aos": "3.0.0-beta.6",
+    "chart.js": "4.6.1",
     "dompurify": "3.4.17",
     "jsdom": "24.1.3"
   }

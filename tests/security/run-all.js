@@ -13,6 +13,7 @@ const suites = [
     require("./ai-guest.dom.test"),
     require("./admin-cms.dom.test"),
     require("./article-content.dom.test"),
+    require("./frontend-dependencies.test"),
     require("./journey.dom.test"),
     require("./environment-isolation.test"),
     require("./staging-auth-config.test"),
