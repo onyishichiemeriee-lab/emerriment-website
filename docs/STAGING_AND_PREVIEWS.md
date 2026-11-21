@@ -803,6 +803,62 @@ migration was created and neither database was changed.
   (not `--read-only`); expected 9 pass / 0 fail. Verified offline; **not yet run
   on staging**.
 
+### 4.13 Admin CMS: supabase-js global collision (WP4I, 2026-11-21)
+
+**Failure (found on the real preview, WP4H).** In real browsers
+`admin/analyticsCMS.html` and `admin/articlesCMS.html` never ran their page
+script: `SyntaxError: Identifier 'supabase' has already been declared`. Both
+modules started with `const supabase = window.supabaseClient;`, but the
+supabase-js UMD bundle loaded before them declares the global
+`var supabase = (function …)`. In a classic script a later top-level `const`
+with the same name is a redeclaration, so the whole file was rejected: the
+shared admin guard never ran (ordinary users stayed on the page, which showed
+no data — RLS still applied — and administrators could not use either page).
+The line predated WP4E and was unused (both modules use `supabaseClient`,
+i.e. `window.supabaseClient` from `js/supabase.js`).
+
+**Fix.** The two declarations were removed (a comment explains why the name
+must not be declared). A scan of all 11 CMS modules and the guard found no
+other top-level name declared by the loaded libraries (`supabase`, `Chart`,
+`DOMPurify`); the other modules' `const supabaseClient` is valid because
+`js/supabase.js` only assigns a configurable `window.supabaseClient` property.
+
+**Why the DOM tests missed it, and what changed.**
+* Before: the jsdom harness replaced supabase-js with a plain object
+  (`window.supabase = {…}`), which declares nothing, and the admin tests called
+  `EMAdminGuard.requireAdmin()` themselves — so a page whose own script had
+  died still appeared to redirect.
+* Now: `tests/security/dom-harness.js` serves the **real supabase-js UMD bundle**
+  from `node_modules` (its genuine global `var supabase`), replacing only
+  `createClient` with the offline fake; every page test runs with it. Six new
+  tests in `tests/security/admin-cms.dom.test.js` never call the guard: for all
+  11 CMS pages the page's own script must load without a script error, send
+  signed-out visitors to `/admin/loginCMS.html` with no data query, send an
+  ordinary user once to `/dashboard.html` after only the own-profile check,
+  and for an administrator stay, show `granted` and load data only after the
+  admin check (forms enabled on the two new-item pages); analytics and the
+  article list (drafts and published) render; a source check forbids
+  redeclaring `supabase`, `Chart` or `DOMPurify`. Mutation check: putting the
+  old line back into either module fails 6–7 tests.
+* Local real-browser check (headless Chrome, working tree on
+  `localhost:8888` with the preview's public staging configuration, staging
+  accounts, browser clock corrected) — see the WP4I report; preview results
+  below.
+
+**Results on the rebuilt preview:** recorded in the WP4I report once the new
+preview has been tested (the earlier preview is not evidence for this fix).
+
+**Test-harness note.** Authenticated browser runs on the test machine need the
+browser clock corrected (the machine clock is ~13 h fast). When the offset
+could not be measured, the uncorrected browser refreshed tokens repeatedly and
+staging Auth answered `429 over_request_rate_limit`; the runner now measures
+the offset from the preview's `Date` header and refuses to run without it.
+Space out repeated sign-in runs to stay within staging Auth rate limits.
+
+**Also noted (not changed):** `admin/analyticsCMS.html` loads Chart.js from
+`https://cdn.jsdelivr.net/npm/chart.js` without a pinned version (supabase-js
+is pinned); pinning or vendoring it is a follow-up.
+
 ## 5. Local development
 
 `netlify dev` does not run the build, so the committed fail-closed

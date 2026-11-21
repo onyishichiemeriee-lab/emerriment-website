@@ -15,9 +15,22 @@ const USER = { id: "00000000-0000-4000-8000-00000000000a", email: "user@example.
 const ARTICLE = { id: "a1", title: "Acne basics", slug: "acne", category: "Acne", summary: "Summary", content: "Body", featured_image: "https://example.test/a.jpg", reading_time: 4, status: "published", views: 3, seo_keywords: ["acne", "pimples", "breakouts"], related_conditions: ["acne", "oily skin"], created_at: "2026-11-01T00:00:00Z", published_at: null, difficulty: "Beginner", author: "EMerriment", is_featured: true };
 const PRODUCT = { id: "p1", name: "Gentle cleanser", description: "d", category: "Cleanser", price: null, selar_link: "https://selar.com/x", featured: false, quiz_recommended: true, image: null, is_approved: true, ingredients: [], skin_types: [], concerns: ["acne"], benefits: ["gentle", "daily"], related_articles: [] };
 
+// The REAL supabase-js UMD bundle (node_modules) is served wherever a page
+// loads the library from the CDN, so its genuine global `var supabase`
+// declaration exists exactly as in a browser (WP4I: a page script that also
+// declared `const supabase` died with a SyntaxError in real browsers, and the
+// old plain-object fake hid it). Only createClient is replaced by the offline
+// fake below; nothing contacts the network.
+const REAL_SUPABASE_UMD = fs.readFileSync(require.resolve("@supabase/supabase-js/dist/umd/supabase.js"), "utf8");
+const CHART_STUB = "window.Chart = function () { this.destroy = function () {}; this.update = function () {}; };";
+
+function supabaseLibrarySource(opts) {
+    return [REAL_SUPABASE_UMD, fakeClientSource(opts), "window.supabase.createClient = window.__emrFakeCreateClient;"].join("\n;\n");
+}
+
 function fakeClientSource(opts) {
     return `
-    window.supabase = { createClient: function () {
+    window.__emrFakeCreateClient = function () {
       const user = ${opts.signedIn ? JSON.stringify(USER) : "null"};
       return {
         auth: {
@@ -34,7 +47,7 @@ function fakeClientSource(opts) {
         from: (t) => window.__fakeFrom(t),
         rpc: async (fn, args) => (window.__fakeRpc ? window.__fakeRpc(fn, args) : { data: null, error: null })
       };
-    } };`;
+    };`;
 }
 
 function makeFrom(rows) {
@@ -82,7 +95,8 @@ async function load(page, { signedIn = true, rows = {}, supabaseLoads = true, be
     const events = { errors: [], navigations: 0, missing: [] };
     class Loader extends ResourceLoader {
         fetch(url) {
-            if (/supabase-js/.test(url)) return Promise.resolve(Buffer.from(supabaseLoads ? fakeClientSource({ signedIn }) : ""));
+            if (/supabase-js/.test(url)) return Promise.resolve(Buffer.from(supabaseLoads ? supabaseLibrarySource({ signedIn }) : ""));
+            if (url.includes("/npm/chart.js")) return Promise.resolve(Buffer.from(CHART_STUB));
             const u = new URL(url);
             if (u.hostname !== "local.test") return Promise.resolve(Buffer.from(""));
             const rel = decodeURIComponent(u.pathname).replace(/^\//, "");
@@ -118,4 +132,4 @@ async function load(page, { signedIn = true, rows = {}, supabaseLoads = true, be
 
 const visible = (el) => el && !el.hidden && el.style.display !== "none";
 
-module.exports = { USER, ARTICLE, PRODUCT, TEST_PROJECT_REF, TEST_RUNTIME_JS, fakeClientSource, makeFrom, resolveExact, load, visible };
+module.exports = { REAL_SUPABASE_UMD, USER, ARTICLE, PRODUCT, TEST_PROJECT_REF, TEST_RUNTIME_JS, fakeClientSource, makeFrom, resolveExact, load, visible };

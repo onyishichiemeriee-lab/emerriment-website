@@ -295,6 +295,100 @@ test("source: admin CMS modules never pass raw errors, users, profiles or ids to
     }
 });
 
+/* ---------- Real supabase-js library: the page's OWN script must run (WP4I) ----------
+   The tests above call EMAdminGuard.requireAdmin() themselves, which hid a page
+   script that died at load time. These tests never call the guard: the real
+   supabase-js UMD bundle (with its global `var supabase`) is served by the
+   harness, and each page's own module must start, call the guard and act. */
+
+const PAGE_QUERY = { "edit-articleCMS": "?id=1", "edit-productCMS": "?id=1", "user-detailsCMS": "?id=" + TARGET_UUID };
+const FORM_PAGES = new Set(["new-articleCMS", "new-productCMS"]);
+
+async function openOwn(page, { signedIn = true, isAdmin = false } = {}) {
+    const admin = recordingFrom({ profiles: [{ id: USER.id, email: MARK.email, full_name: MARK.name, is_admin: isAdmin }] });
+    const data = recordingFrom({
+        profiles: [{ id: TARGET_UUID, email: MARK.otherEmail, full_name: MARK.otherName, is_admin: false }],
+        encyclopedia_articles: [{ id: 1, title: "Draft one", status: "draft" }, { id: 2, title: "Published one", status: "published" }],
+        products: [{ id: 1, name: "Cleanser" }], quiz_results: [], favorite_articles: [], website_settings: []
+    });
+    let profileCalls = 0;
+    const calls = [];
+    const redirects = [];
+    const from = (t) => { calls.push(t); return t === "profiles" && profileCalls++ === 0 ? admin.from(t) : data.from(t); };
+    const p = await load("admin/" + page + ".html", { signedIn, hash: PAGE_QUERY[page] || "", before: (w) => {
+        w.__fakeFrom = from;
+        w.addEventListener("emr-admin-redirect", (e) => redirects.push(e.detail.target));
+    } });
+    await p.settle(900);
+    return { ...p, calls, redirects, state: () => p.document.documentElement.getAttribute("data-admin-access") };
+}
+
+const scriptErrors = (p) => p.events.errors.filter((e) => /SyntaxError|already been declared|uncaught|is not defined|ReferenceError/i.test(e));
+
+test("real library: every CMS page script loads with the real supabase-js global (no SyntaxError / redeclaration)", async () => {
+    for (const page of CMS_PAGES) {
+        const p = await openOwn(page, { isAdmin: true });
+        assert.deepStrictEqual(scriptErrors(p), [], page + ": " + scriptErrors(p).join(" | "));
+        assert.strictEqual(typeof p.window.supabase.createClient, "function", "real library missing");
+        p.window.close();
+    }
+});
+
+test("real library: signed-out visitors are sent to the CMS login by each page's own script", async () => {
+    for (const page of CMS_PAGES) {
+        const p = await openOwn(page, { signedIn: false });
+        assert.deepStrictEqual(p.redirects, ["/admin/loginCMS.html"], page);
+        assert.deepStrictEqual(p.calls, [], page + " queried data: " + p.calls.join(","));
+        p.window.close();
+    }
+});
+
+test("real library: an ordinary user is redirected once to /dashboard.html by each page's own script; no admin data requested", async () => {
+    for (const page of CMS_PAGES) {
+        const p = await openOwn(page, { isAdmin: false });
+        assert.deepStrictEqual(p.redirects, ["/dashboard.html"], page);
+        assert.strictEqual(p.events.navigations, 1, page + ": navigations " + p.events.navigations);
+        assert.deepStrictEqual(p.calls, ["profiles"], page + " queried: " + p.calls.join(","));
+        assert.deepStrictEqual(scriptErrors(p), [], page);
+        p.window.close();
+    }
+});
+
+test("real library: an administrator stays; each page's own script loads its data only AFTER the admin check", async () => {
+    for (const page of CMS_PAGES) {
+        const p = await openOwn(page, { isAdmin: true });
+        assert.deepStrictEqual(p.redirects, [], page);
+        assert.strictEqual(p.state(), "granted", page);
+        assert.strictEqual(p.calls[0], "profiles", page + ": first query must be the admin check");
+        if (FORM_PAGES.has(page)) {
+            const fields = [...p.document.querySelectorAll("form input, form button")];
+            assert(fields.length && fields.every((el) => !el.disabled), page + ": form not enabled for the administrator");
+        } else {
+            assert(p.calls.length > 1, page + ": the page loaded no data after access was granted (module not running?)");
+        }
+        assert.deepStrictEqual(scriptErrors(p), [], page);
+        p.window.close();
+    }
+});
+
+test("real library: analyticsCMS and articlesCMS — admin data loads; the article list shows drafts and published", async () => {
+    const a = await openOwn("analyticsCMS", { isAdmin: true });
+    assert(a.calls.filter((t) => t !== "profiles").length > 0, "analytics queried nothing");
+    a.window.close();
+    const r = await openOwn("articlesCMS", { isAdmin: true });
+    assert(r.calls.includes("encyclopedia_articles"), "articles not queried");
+    const text = r.document.body.textContent;
+    assert(text.includes("Draft one") && text.includes("Published one"), "article administration list not rendered");
+    r.window.close();
+});
+
+test("source: no CMS module declares a top-level name that the loaded libraries declare (supabase, Chart, DOMPurify)", () => {
+    for (const page of [...CMS_PAGES, "admin-guard", "login"]) {
+        const src = fs.readFileSync(path.join(H.ROOT, "admin/js", page + ".js"), "utf8");
+        assert(!/^\s*(const|let|var|function|class)\s+(supabase|Chart|DOMPurify)\b/m.test(src), page + " redeclares a library global");
+    }
+});
+
 module.exports = suite;
 
 if (require.main === module) {

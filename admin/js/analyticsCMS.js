@@ -1,4 +1,7 @@
-const supabase = window.supabaseClient;
+// Do not declare a top-level `supabase` here: the supabase-js library loaded
+// before this script declares the global `var supabase`, and a second
+// declaration is a SyntaxError that stops this whole file (WP4I). This module
+// uses window.supabaseClient (created by ../js/supabase.js) as `supabaseClient`.
 
 async function checkAdmin() {
 
