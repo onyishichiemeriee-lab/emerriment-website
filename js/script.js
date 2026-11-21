@@ -9494,8 +9494,6 @@ skincareKnowledge.wartyDyskeratoma = {
 
 function searchKnowledge() {
 
-   console.log(skincareKnowledge);
-
   const query =
 document
 .getElementById("knowledgeSearch")
@@ -9504,13 +9502,11 @@ document
 .trim()
 .replace(/\s+/g, "");
 
-console.log("Query:", query);
 
 const foundKey = Object.keys(skincareKnowledge).find(key =>
     key.toLowerCase().replace(/\s+/g, "").includes(query)
 );
 
-console.log("Found Key:", foundKey);
 
 const result =
 document.getElementById("resultsContainer");
@@ -9897,7 +9893,7 @@ next_email_due: new Date(
   // The email function verifies and updates the lead server-side.
 
   if (error) {
-    console.error("Supabase Error:", error);
+    console.error("Supabase Error:", { kind: String(error && error.name || "Error"), code: error && error.code });
 
     if (loadingEl) loadingEl.style.display = "none";
 
@@ -9918,6 +9914,7 @@ next_email_due: new Date(
   // ==========================================
 
   let emailSent = false;
+  let emailUnavailable = false;
 
   try {
 
@@ -9939,6 +9936,11 @@ next_email_due: new Date(
     });
 
     emailSent = emailResponse.ok;
+
+    if (!emailSent && emailResponse.status === 503) {
+      const reply = await emailResponse.json().catch(() => null);
+      emailUnavailable = Boolean(reply && reply.code === "email_not_configured");
+    }
 
   } catch (emailError) {
 
@@ -9971,7 +9973,7 @@ next_email_due: new Date(
         .eq("id", user.id);
 
       if (profileError) {
-        console.error("Error updating profile:", profileError);
+        console.error("Error updating profile:", { kind: String(profileError && profileError.name || "Error"), code: profileError && profileError.code });
       }
 
       const { error: quizError } = await supabaseClient
@@ -9996,7 +9998,7 @@ next_email_due: new Date(
 
       if (quizError) {
 
-        console.error("Error saving quiz:", quizError);
+        console.error("Error saving quiz:", { kind: String(quizError && quizError.name || "Error"), code: quizError && quizError.code });
 
       } else {
 
@@ -10008,7 +10010,7 @@ next_email_due: new Date(
 
   } catch (accountError) {
 
-    console.error("Error saving account quiz data:", accountError);
+    console.error("Error saving account quiz data:", { kind: String(accountError && accountError.name || "Error"), code: accountError && accountError.code });
 
   }
 
@@ -10023,6 +10025,8 @@ next_email_due: new Date(
 
   if (emailSent) {
     alert("🎉 Your skin report has been generated and sent to your email." + confirmNote);
+  } else if (emailUnavailable) {
+    alert("Your quiz results are saved and shown below. Email isn't available on this site right now, so no report email was sent." + confirmNote);
   } else {
     alert("Your quiz results are saved and shown below, but we couldn't send your email right now." + confirmNote);
   }

@@ -719,6 +719,18 @@ document.addEventListener("DOMContentLoaded", () => {
     recommendation
 ) {
 
+        // Errors as {kind, code, status}: PostgREST text can quote the row
+        // (name, email, answers), so error objects are never logged raw.
+        function quizSafeError(error) {
+            if (!error) return { kind: "unknown" };
+            return {
+                kind: String(error.name || "Error").slice(0, 60),
+                code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+                status: Number.isInteger(error.status) ? error.status : undefined
+            };
+        }
+
+
     console.log(
         "💾 Saving quiz result..."
     );
@@ -782,7 +794,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.error(
             "❌ Failed to save lead:",
-            leadError
+            quizSafeError(leadError)
         );
 
         return {
@@ -794,13 +806,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     console.log(
-        "✅ Lead saved successfully:",
-        savedLead
+        "✅ Lead saved successfully."
     );
 
     // The visitor asked for their report: one email through the same
     // server function as the homepage (per-address limits, at most once).
     let reportEmailSent = false;
+
+    let reportEmailStatus = "failed";
 
     try {
         const response = await fetch("/.netlify/functions/send-email", {
@@ -818,6 +831,14 @@ document.addEventListener("DOMContentLoaded", () => {
             })
         });
         reportEmailSent = Boolean(response && response.ok);
+
+        reportEmailStatus = reportEmailSent ? "sent" : "failed";
+
+        if (!reportEmailSent && response && response.status === 503) {
+            let reply = null;
+            try { reply = await response.json(); } catch (parseError) { reply = null; }
+            if (reply && reply.code === "email_not_configured") reportEmailStatus = "unavailable";
+        }
     } catch (emailError) {
         console.warn("⚠️ Report email request failed.");
     }
@@ -843,7 +864,8 @@ document.addEventListener("DOMContentLoaded", () => {
             success: true,
             data: savedLead,
             quizResultSaved: false,
-            reportEmailSent
+            reportEmailSent,
+            reportEmailStatus
         };
 
     }
@@ -889,22 +911,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.error(
             "❌ Failed to save quiz result:",
-            quizError
+            quizSafeError(quizError)
         );
 
         return {
             success: true,
             data: savedLead,
             quizResultSaved: false,
-            quizError
+            quizError,
+            reportEmailSent,
+            reportEmailStatus
         };
 
     }
 
 
     console.log(
-        "✅ Quiz result saved successfully:",
-        savedQuiz
+        "✅ Quiz result saved successfully."
     );
 
 
@@ -920,11 +943,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
         quizResultSaved: true,
 
-        quizResult: savedQuiz
+        quizResult: savedQuiz,
+
+        reportEmailSent,
+
+        reportEmailStatus
 
     };
 
 }
+
+
+    // --------------------------------------------
+    // REPORT EMAIL NOTICE (text only; never a false "sent")
+    // --------------------------------------------
+
+    function showReportEmailNotice(saveResult) {
+
+        if (!resultsScreen) return;
+
+        let notice = document.getElementById("reportEmailNotice");
+
+        if (!notice) {
+
+            notice = document.createElement("p");
+
+            notice.id = "reportEmailNotice";
+
+            notice.className = "report-email-notice";
+
+            notice.setAttribute("role", "status");
+
+            notice.setAttribute("aria-live", "polite");
+
+            const header = resultsScreen.querySelector(".results-header");
+
+            (header || resultsScreen).appendChild(notice);
+
+        }
+
+        const status = saveResult && saveResult.success ? saveResult.reportEmailStatus : "not-saved";
+
+        notice.dataset.state = status || "failed";
+
+        notice.textContent =
+            status === "sent"
+                ? "📩 We've sent a copy of your skin report to your email."
+                : status === "unavailable"
+                    ? "Email isn't available on this site right now, so no report email was sent. Your results are shown below."
+                    : status === "not-saved"
+                        ? "Your results are shown below. We couldn't save them or send a report email right now."
+                        : "Your results are shown below, but we couldn't send your report email right now. Please try again later.";
+
+    }
 
 
     // --------------------------------------------
@@ -1139,6 +1210,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                showReportEmailNotice(saveResult);
+
+
                 if (!saveResult.success) {
 
                     console.warn(
@@ -1151,7 +1225,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 console.error(
                     "❌ Quiz error:",
-                    error
+                    { kind: String(error && error.name || "Error") }
                 );
 
                 alert(

@@ -67,7 +67,10 @@ async function initializeAI() {
        LOAD USER PROFILE
     ----------------------------------------- */
 
-    await loadUserSkinProfile();
+    window.EMAIProfileReady = loadUserSkinProfile();
+
+
+    await window.EMAIProfileReady;
 
 
     console.log(
@@ -130,10 +133,7 @@ async function sendUserMessage() {
        Save user message
     ----------------------------------------- */
 
-    await saveMessage(
-        "user",
-        message
-    );
+    await saveMessageSafely("user", message);
 
 
     /* -----------------------------------------
@@ -180,10 +180,7 @@ async function sendUserMessage() {
            Save AI response
         ----------------------------------------- */
 
-        await saveMessage(
-            "assistant",
-            response
-        );
+        await saveMessageSafely("assistant", response);
 
 
     }
@@ -472,100 +469,226 @@ function scrollChat() {
 
 /* =========================================
    LOAD USER SKIN PROFILE
+   The assistant is free for guests (no account needed), so the profile
+   card always reaches a final state, never a permanent "Loading...":
+     guest     -> "—" values and a sign-in / quiz hint; chat still works
+     signed in -> skin type, concern, sensitivity and score from the
+                  user's own profile and latest quiz (RLS: own rows only)
+     failure   -> "Not available"; chat still works
+   Values are shown with textContent; nothing personal is logged.
 ========================================= */
+
+const AI_PROFILE_FIELDS = ["skinType", "skinConcern", "skinSensitivity", "skinScore"];
+
+const AI_PROFILE_TIMEOUT_MS = 8000;
+
+const AI_PROFILE_UNAVAILABLE_HINT = ["Your profile can't be loaded right now, but you can still ask questions below."];
+
+
+function aiWithTimeout(promise, ms) {
+
+    let timer;
+
+    return Promise.race([
+        promise,
+        new Promise((resolve, reject) => {
+            timer = setTimeout(() => reject(Object.assign(new Error("timeout"), { name: "TimeoutError" })), ms);
+        })
+    ]).finally(() => clearTimeout(timer));
+
+}
+
+
+function setProfileCard(values, stateName, hint) {
+
+    for (const id of AI_PROFILE_FIELDS) {
+
+        const el = document.getElementById(id);
+
+        if (el) el.textContent = values[id];
+
+    }
+
+    const card = document.querySelector(".profile-card");
+
+    if (!card) return;
+
+    card.dataset.state = stateName;
+
+    card.setAttribute("aria-busy", "false");
+
+    let note = document.getElementById("profileHint");
+
+    if (!hint) {
+
+        if (note) note.hidden = true;
+
+        return;
+
+    }
+
+    if (!note) {
+
+        note = document.createElement("p");
+
+        note.id = "profileHint";
+
+        note.className = "profile-hint";
+
+        note.setAttribute("role", "status");
+
+        card.appendChild(note);
+
+    }
+
+    note.textContent = "";
+
+    note.hidden = false;
+
+    for (const part of hint) {
+
+        if (typeof part === "string") {
+
+            note.appendChild(document.createTextNode(part));
+
+        } else {
+
+            const link = document.createElement("a");
+
+            link.href = part.href;
+
+            link.textContent = part.text;
+
+            note.appendChild(link);
+
+        }
+
+    }
+
+}
+
 
 async function loadUserSkinProfile() {
 
-    const skinType =
-        document.getElementById(
-            "skinType"
-        );
+    if (!document.getElementById("skinType")) return "absent";
 
+    const unavailable = { skinType: "Not available", skinConcern: "Not available", skinSensitivity: "Not available", skinScore: "--" };
 
-    if (!skinType) return;
+    const supabase = window.supabaseClient;
 
+    if (!supabase || !supabase.auth) {
+
+        setProfileCard(unavailable, "unavailable", AI_PROFILE_UNAVAILABLE_HINT);
+
+        return "unavailable";
+
+    }
 
     try {
 
-        const supabase =
-            window.supabaseClient;
+        // Local check (no network): is anyone signed in?
+        const { data: sessionData } = await aiWithTimeout(supabase.auth.getSession(), AI_PROFILE_TIMEOUT_MS);
 
+        const session = sessionData && sessionData.session;
 
-        if (!supabase) {
+        if (!session || !session.user) {
 
-            skinType.textContent =
-                "Not available";
-
-            return;
-
-        }
-
-
-        const {
-            data: {
-                user
-            },
-            error
-        } =
-            await supabase.auth.getUser();
-
-
-        if (error || !user) {
-
-            skinType.textContent =
-                "Not set";
-
-            return;
-
-        }
-
-
-        /* -----------------------------------------
-           Get profile
-        ----------------------------------------- */
-
-        const {
-            data: profile,
-            error: profileError
-        } =
-            await supabase
-
-                .from("profiles")
-
-                .select("*")
-
-                .eq("id", user.id)
-
-                .maybeSingle();
-
-
-        if (profileError) {
-
-            console.warn(
-                "AI profile error:",
-                emrSafeError(profileError)
+            setProfileCard(
+                { skinType: "—", skinConcern: "—", skinSensitivity: "—", skinScore: "--" },
+                "guest",
+                [
+                    "You're chatting as a guest, so answers are general. ",
+                    { href: "../login.html", text: "Log in" },
+                    " or ",
+                    { href: "../quiz.html", text: "take the skin quiz" },
+                    " to personalise them."
+                ]
             );
 
-        }
-
-
-        if (
-            profile &&
-            profile.skin_type
-        ) {
-
-            skinType.textContent =
-                profile.skin_type;
+            return "guest";
 
         }
 
-        else {
+        const userId = session.user.id;
 
-            skinType.textContent =
-                "Not set";
+        const [profileResult, quizResult] = await Promise.allSettled([
+            aiWithTimeout(Promise.resolve(supabase.from("profiles").select("*").eq("id", userId).maybeSingle()), AI_PROFILE_TIMEOUT_MS),
+            aiWithTimeout(Promise.resolve(supabase.from("quiz_results").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(1)), AI_PROFILE_TIMEOUT_MS)
+        ]);
+
+        let failures = 0;
+
+        const pick = (result, label) => {
+
+            if (result.status !== "fulfilled") {
+
+                failures++;
+
+                console.warn("AI " + label + " unavailable:", emrSafeError(result.reason));
+
+                return null;
+
+            }
+
+            if (result.value && result.value.error) {
+
+                failures++;
+
+                console.warn("AI " + label + " error:", emrSafeError(result.value.error));
+
+                return null;
+
+            }
+
+            const data = result.value ? result.value.data : null;
+
+            return Array.isArray(data) ? (data[0] || null) : (data || null);
+
+        };
+
+        const profile = pick(profileResult, "profile");
+
+        const quiz = pick(quizResult, "quiz results");
+
+        if (failures === 2) {
+
+            setProfileCard(unavailable, "unavailable", AI_PROFILE_UNAVAILABLE_HINT);
+
+            return "unavailable";
 
         }
 
+        const text = (...candidates) => {
+
+            for (const c of candidates) {
+
+                if (c !== undefined && c !== null && String(c).trim()) return String(c).trim().slice(0, 60);
+
+            }
+
+            return "Not set";
+
+        };
+
+        const scoreValue = [profile && profile.current_skin_score, quiz && quiz.score]
+            .find((v) => v !== undefined && v !== null && v !== "" && Number.isFinite(Number(v)) && Number(v) > 0);
+
+        const values = {
+            skinType: text(quiz && quiz.skin_type, profile && profile.current_skin_type),
+            skinConcern: text(quiz && quiz.concern, profile && profile.current_concern),
+            skinSensitivity: text(quiz && quiz.sensitivity),
+            skinScore: scoreValue !== undefined ? String(Math.round(Number(scoreValue))) : "--"
+        };
+
+        const hasAny = AI_PROFILE_FIELDS.some((id) => values[id] !== "Not set" && values[id] !== "--");
+
+        setProfileCard(
+            values,
+            "signed-in",
+            hasAny ? null : ["No skin profile yet. ", { href: "../quiz.html", text: "Take the skin quiz" }, " to personalise the assistant."]
+        );
+
+        return "signed-in";
 
     }
 
@@ -576,9 +699,30 @@ async function loadUserSkinProfile() {
             emrSafeError(error)
         );
 
+        setProfileCard(unavailable, "unavailable", AI_PROFILE_UNAVAILABLE_HINT);
 
-        skinType.textContent =
-            "Not available";
+        return "unavailable";
+
+    }
+
+}
+
+
+/* =========================================
+   SAVE WITHOUT BLOCKING THE CHAT
+   History saving is optional: a failure must never leave the input
+   disabled or hide the reply.
+========================================= */
+
+async function saveMessageSafely(role, content) {
+
+    try {
+
+        if (typeof saveMessage === "function") await saveMessage(role, content);
+
+    } catch (error) {
+
+        console.warn("AI message not saved:", emrSafeError(error));
 
     }
 

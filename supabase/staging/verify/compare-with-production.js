@@ -8,6 +8,9 @@
 // or UNEXPECTED. Exit code 1 if anything is unexpected.
 //
 // No row data is read except counts. UUID literals are masked in output.
+// CLI output is parsed strictly (parseCliOutput / validateRows): only the
+// JSON object, the Target line and the known CLI update notice are
+// accepted; anything else aborts (exit 2).
 //
 // Usage (repository root):
 //   node supabase/staging/verify/compare-with-production.js --staging=<staging-ref>
@@ -28,6 +31,96 @@ const QUERIES = ["schema-fingerprint", "schema-detail", "acl-probe", "struct-pro
 const fail = (m) => { console.error("ABORT: " + m); process.exit(2); };
 const mask = (s) => String(s).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, "<uuid>");
 const short = (s, n = 140) => { s = mask(s); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+
+// ---------------------------------------------------------------------
+// CLI output parsing (strict).
+// `supabase db query --output-format json` prints ONE JSON object; the
+// CLI may add a "Target: …" line and, since v3.1.0 was superseded, an
+// update notice ("A new version of Supabase CLI is available …" +
+// "We recommend updating …"). Only those known lines and blank lines are
+// tolerated around the object; anything else (a second object, a stray
+// warning, truncated JSON, an error payload, rows missing their fields)
+// is rejected, so a corrupt comparison can never be reported as a match.
+// ---------------------------------------------------------------------
+const KNOWN_CLI_LINES = [
+    /^Target: project \S.*$/,
+    /^A new version of Supabase CLI is available: v\d+\.\d+\.\d+ \(currently installed v\d+\.\d+\.\d+\)$/,
+    /^We recommend updating regularly for new features and bug fixes: https:\/\/supabase\.com\/docs\/\S+$/,
+];
+// Required string fields per query (null allowed only where listed).
+const ROW_FIELDS = {
+    "schema-fingerprint": { required: ["item", "n"], nullable: ["n"] },
+    "schema-detail": { required: ["cat", "k", "v"], nullable: ["v"] },
+    "acl-probe": { required: ["cat", "k", "v"], nullable: ["v"] },
+    "struct-probe": { required: ["cat", "k", "v"], nullable: ["v"] },
+    history: { required: ["cat", "k", "v"], nullable: ["v"] },
+    comments: { required: ["k", "v"], nullable: ["v"] },
+};
+
+// Index just past the JSON object that starts at `start` (string-aware), or -1.
+function endOfJsonObject(text, start) {
+    let depth = 0, inString = false, escaped = false;
+    for (let i = start; i < text.length; i++) {
+        const c = text[i];
+        if (inString) {
+            if (escaped) escaped = false;
+            else if (c === "\\") escaped = true;
+            else if (c === '"') inString = false;
+            continue;
+        }
+        if (c === '"') inString = true;
+        else if (c === "{") depth++;
+        else if (c === "}" && --depth === 0) return i + 1;
+    }
+    return -1;
+}
+
+// Returns { json, target, notices } or throws Error (message has no row data).
+function parseCliOutput(text) {
+    const s = String(text || "").replace(/^﻿/, "");
+    const start = s.indexOf("{");
+    if (start < 0) throw new Error("no JSON object in CLI output");
+    const end = endOfJsonObject(s, start);
+    if (end < 0) throw new Error("truncated or malformed JSON in CLI output");
+    let json;
+    try {
+        json = JSON.parse(s.slice(start, end));
+    } catch (e) {
+        throw new Error("malformed JSON in CLI output");
+    }
+    if (!json || typeof json !== "object" || Array.isArray(json)) throw new Error("CLI output is not a JSON object");
+    let target = null;
+    const notices = [];
+    const extra = (s.slice(0, start) + "\n" + s.slice(end)).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    for (const line of extra) {
+        const known = KNOWN_CLI_LINES.findIndex((re) => re.test(line));
+        if (known < 0) throw new Error("unexpected CLI output: " + short(line, 80));
+        if (known === 0) {
+            if (target !== null) throw new Error("more than one CLI target line");
+            target = line;
+        } else notices.push(line);
+    }
+    return { json, target, notices };
+}
+
+// Returns the rows of `json` for `query`, or throws Error.
+function validateRows(query, json) {
+    const spec = ROW_FIELDS[query];
+    if (!spec) throw new Error("unknown query " + query);
+    if (json.error) throw new Error(`${query}: CLI reported an error`);
+    if (!Array.isArray(json.rows)) throw new Error(`${query}: no rows array`);
+    json.rows.forEach((row, i) => {
+        if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error(`${query}: row ${i} is not an object`);
+        for (const f of spec.required) {
+            if (!(f in row)) throw new Error(`${query}: row ${i} has no "${f}"`);
+            const v = row[f];
+            if (v === null ? !spec.nullable.includes(f) : !["string", "number", "boolean"].includes(typeof v)) {
+                throw new Error(`${query}: row ${i} field "${f}" has an unexpected type`);
+            }
+        }
+    });
+    return json.rows;
+}
 
 function args() {
     const o = { staging: null, emit: false, fromDir: null };
@@ -51,20 +144,32 @@ function runReadOnly(ref, query) {
     // always --read-only; refs are validated [a-z]{20}; file is a fixed name in this folder
     const r = spawnSync(`npx --yes supabase@3.1.0 db query --remote=${ref} --read-only --file "${file}" --output-format json`,
         { shell: true, encoding: "utf8", cwd: REPO, maxBuffer: 1 << 26 });
-    const out = (r.stdout || "") + (r.stderr || "");
-    const target = (out.match(/^Target: .*$/m) || [""])[0];
+    if (r.status !== 0) fail(`${query} on ${ref}: CLI exited with status ${r.status}`);
+    let parsed;
+    try {
+        parsed = parseCliOutput((r.stdout || "") + "\n" + (r.stderr || ""));
+    } catch (e) {
+        fail(`${query} on ${ref}: ${e.message}`);
+    }
+    const target = parsed.target || "";
     const okTarget = ref === PRODUCTION ? target.startsWith(`Target: project EMerriment (${PRODUCTION})`) : target.startsWith(`Target: project ${ref} (not the linked project)`);
     if (!okTarget) fail(`${query} on ${ref}: unexpected CLI target line: ${target || "(none)"}`);
-    const j = JSON.parse(out.slice(out.indexOf("{")));
-    if (!j.rows) fail(`${query} on ${ref}: ${JSON.stringify(j.error || j).slice(0, 300)}`);
-    return j.rows;
+    try {
+        return validateRows(query, parsed.json);
+    } catch (e) {
+        fail(`${query} on ${ref}: ${e.message}`);
+    }
 }
 function load(o, query, env) {
     if (o.fromDir) {
-        const t = fs.readFileSync(path.join(o.fromDir, `${query}-${env}.json`), "utf8");
-        const j = JSON.parse(t.slice(t.indexOf("{")));
-        if (!j.rows) fail(`${query}-${env}.json has no rows`);
-        return j.rows;
+        const file = path.join(o.fromDir, `${query}-${env}.json`);
+        if (!fs.existsSync(file)) fail(`${query}-${env}.json not found in --from-dir`);
+        const t = fs.readFileSync(file, "utf8");
+        try {
+            return validateRows(query, parseCliOutput(t).json);
+        } catch (e) {
+            fail(`${query}-${env}.json: ${e.message}`);
+        }
     }
     return runReadOnly(env === "production" ? PRODUCTION : o.staging, query);
 }
@@ -126,7 +231,7 @@ function emitRevokes(detailS, detailP) {
     if (!groups.size && !missing.length) console.log("-- none: table privileges already match production");
 }
 
-(() => {
+function main() {
     const o = args();
     const data = {};
     for (const q of QUERIES) data[q] = { s: load(o, q, "staging"), p: load(o, q, "production") };
@@ -144,4 +249,9 @@ function emitRevokes(detailS, detailP) {
     }
     console.log(`\nRESULT: ${unexpected ? "DIFFERENCES FOUND" : "staging matches production"} (${expected} expected, ${unexpected} unexpected)`);
     process.exit(unexpected ? 1 : 0);
-})();
+}
+
+// Pure helpers are exported for the offline tests (tests/db/cli-output-parser.test.js).
+module.exports = { parseCliOutput, validateRows, compare, KNOWN_CLI_LINES, ROW_FIELDS, QUERIES };
+
+if (require.main === module) main();

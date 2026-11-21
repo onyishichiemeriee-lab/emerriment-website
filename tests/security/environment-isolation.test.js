@@ -278,7 +278,8 @@ test("[7] preview with inherited PRODUCTION credentials: no function creates a p
     const r = await everyFunction(lead);
     assert.deepStrictEqual(H.db.clientUrls, [], "clients created: " + H.db.clientUrls.join(","));
     assert.strictEqual(H.mail.attempts.length, 0, "provider called");
-    assert.strictEqual(r["send-email"], 500);
+    // Email is switched off outside production: a controlled 503 (WP4C), not a crash.
+    assert.strictEqual(r["send-email"], 503);
     assert.strictEqual(r["confirm-subscription"], 500);
     assert.strictEqual(lead.status, "New Lead", "no write reached any database");
 });

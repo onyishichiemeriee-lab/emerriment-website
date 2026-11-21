@@ -218,6 +218,18 @@ const RESPONSES = {
         respond(500, {
             success: false,
             error: "Something went wrong. Please try again later."
+        }),
+
+    // Outside production email is switched off by design (deploy previews
+    // and branch deploys hold no mail credentials). A deliberate,
+    // machine-readable outcome, not a crash: no database or provider work
+    // happens first. Production keeps its own responses (a production
+    // misconfiguration is still a 500 serverError).
+    notConfigured: () =>
+        respond(503, {
+            success: false,
+            code: "email_not_configured",
+            error: "Email isn't available right now."
         })
 
 };
@@ -562,6 +574,12 @@ exports.handler = async (event) => {
         return request.reason === "forbidden"
             ? RESPONSES.forbidden()
             : RESPONSES.invalid();
+    }
+
+    if (!emailDeliveryAllowed()) {
+        // Context only: no addresses, keys or configuration values.
+        console.warn("SEND EMAIL: email is not available in this deploy context (email_not_configured).");
+        return RESPONSES.notConfigured();
     }
 
     const clients = getClients();

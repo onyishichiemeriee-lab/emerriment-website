@@ -11,7 +11,8 @@ const suites = [
     require("./homepage-quiz.test"),
     require("./quiz-pages.test"),
     require("./lifecycle.test"),
-    require("./consent-confirmation.test")
+    require("./consent-confirmation.test"),
+    require("./email-unavailable.test")
 ];
 
 (async () => {

@@ -156,9 +156,18 @@ async function sendToAI(message) {
             window.ContextEngine
         ) {
 
-            context =
+            try {
+
+                context =
                 await window.ContextEngine
-                    .buildContext(user.id);
+                    .buildContext(user.id) || context;
+
+            } catch (contextError) {
+
+                // Personal context is optional: answer without it.
+                console.warn("⚠️ AI context unavailable:", emrSafeError(contextError));
+
+            }
 
             console.log(
                 "🧠 AI context built:",

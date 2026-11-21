@@ -34,7 +34,8 @@ Functions (9)  netlify/lib/environment.js
 
 Deploy previews receive **no server secrets at all** (§3): only the public
 staging URL and anon key for the browser build. Their functions therefore get
-no Supabase client and answer "not configured".
+no Supabase client and answer "not configured"; `send-email` answers a deliberate
+503 `email_not_configured` before touching any database (§4.9).
 
 Scheduled functions (`email-sequence`, `customer-onboarding`) run only on
 the published production deploy; even if one ran elsewhere it could not
@@ -96,7 +97,8 @@ keeps the values it was built with.
 unavailable** (`send-email`, `confirm-subscription`, `unsubscribe`,
 `email-open`, `track-click`, `email-sequence`, `customer-onboarding`): without a
 server key they get no Supabase client and answer "not configured" (500) or
-"skipped" — the report page then says the email could not be sent. All of these
+"skipped"; `send-email` answers 503 `{"code":"email_not_configured"}` (§4.9) and
+the quiz results say no report email was sent. All of these
 are already blocked or meaningless in previews (no email is sent there, so there
 are no links; switches and schedules are production-only). What previews do test
 against staging: every page, the browser Supabase client with RLS (sign-up,
@@ -364,7 +366,8 @@ npx supabase@3.1.0 migration list --remote=ioeulnjrozkbetaongbv
 
 `compare-with-production.js` runs read-only metadata queries on both projects
 (production always with `--read-only`; counts only, UUIDs masked) and exits 1 on
-any unexpected difference. Reviewed, expected differences: leads count;
+any unexpected difference. CLI output is parsed strictly: the known CLI update notice is
+accepted, anything unexpected or malformed aborts with exit 2 (§4.9). Reviewed, expected differences: leads count;
 `emerriment_backup` (production only); one CHECK constraint on `purchases`
 printed with different brackets (same expression); the storage-policy account
 UUID; no storage files on staging. Everything else — tables, columns,
@@ -532,6 +535,39 @@ npx supabase@3.1.0 config diff --remote=ioeulnjrozkbetaongbv     # production: i
   own host.
 * Unused file: `admin/auth.js` (loaded by no page) still names `/update-password.html`,
   which does not exist; it is not part of any flow.
+
+### 4.9 First functional preview: defects found and fixed (WP4B → WP4C, 2026-11-20)
+
+The first controlled preview of PR #2 (commit `8e1905e`, deploy preview 2,
+staging) passed every isolation check but found these application defects.
+They are fixed in the working tree (WP4C, local, not yet on a preview).
+
+| Defect (WP4B) | Root cause | Fix (WP4C) | Regression tests |
+|---|---|---|---|
+| `login.html` logged the full login result (user record, access and refresh tokens) | `console.log("Login result:", result)` and `console.log(result.user)` | No auth result, session, user, email or raw error is logged on any auth page; `js/auth.js` logs Supabase errors only as `{kind, code, status}` (`EMAuth.safeError`). Also removed: the email address logged by `forgot-password.html`, the user record logged by `reset-password.html`, user ids logged on sign-up and login, raw errors in `Dashboard/dashboard-auth.js` | `tests/security/auth-log-privacy.dom.test.js` (synthetic tokens, email, id and password must never reach any console call; source scan) |
+| Failed login showed no message | `.auth-message` is `display:none` until `.show`; the pages set text but never the class. Same on **sign-up** (including "check your email"), **forgot password** and **reset password** (including the expired-link and no-session notices) | One helper, `EMAuth.showMessage(el, text, kind)`: text only, `.show` + `info`/`error`/`success`, `role="alert"` for errors (else `status`), live region; success clears error styling; login button gets `aria-busy` while signing in; network failures read "We couldn't reach the sign-in service…" instead of "Failed to fetch" | same file (visibility, roles, loading state, success-after-failure, text-not-HTML, each page) |
+| Encyclopedia lists empty | `loadArticles()` declared twice (the second, querying private `reading_history`, replaced the first), called the library namespace `supabase` instead of the client, and was never called | One loader in `js/encyclopediaCMS.js`: runs when the DOM and client are ready; one query `status = 'published'` (explicit, so drafts stay hidden even for a signed-in administrator), limit 200; featured / recommended / trending derived from it; distinct **loading / empty / no matches / error** states in a live region; cards built with `textContent` (no HTML from the database), https-only images, encoded slug links to the real reader `article/article.html`; search highlight without `RegExp`; "Continue reading" only with a session (own rows via RLS), guests get a sign-in hint | `tests/security/encyclopedia.dom.test.js` |
+| AI page: permanent "Loading..." for guests | Only `skinType` was ever filled, from a non-existent column (`profile.skin_type`; the columns are `current_skin_type`, `current_concern`, `current_skin_score`; sensitivity lives in `quiz_results`) | The assistant stays free for guests: the profile card always reaches a final state — **guest** (dashes and a log-in / take-the-quiz hint, chat works), **signed-in** (own profile + latest quiz), **unavailable** (chat still works); 8 s timeout; history saving and personal context are optional and can no longer leave the input disabled | `tests/security/ai-guest.dom.test.js` |
+| Preview `send-email` answered HTTP 500 | Missing server configuration was treated as a crash | Outside production `send-email` returns **503 `{"code":"email_not_configured"}`** right after request validation, before any database or provider work (no claim, no reservation, no Resend). Production is unchanged (200 when sent; a production misconfiguration is still 500). `quiz.html` now shows the real outcome under the results (sent / email not available here / failed); the homepage quiz has its own "not available" wording | `tests/email/email-unavailable.test.js`; `environment-isolation` [7] now expects 503 |
+| `compare-with-production.js` live mode broke | Supabase CLI 3.1.0 prints an update notice after the JSON | Strict parser (`parseCliOutput` / `validateRows`): exactly one JSON object; only the `Target:` line and the two known update-notice lines are tolerated; anything else, truncated JSON, an `error` payload or rows missing required fields abort (exit 2) — a corrupt comparison can never print "matches" | `tests/db/cli-output-parser.test.js` with fixtures in `tests/fixtures/supabase-cli/` (part of `npm run test:db`) |
+
+Also fixed while in these paths: `js/quiz.js` no longer logs the saved
+`quiz_results` row (user id and answers) or raw PostgREST errors; the homepage
+quiz (`js/script.js`) no longer logs the visitor's search text or raw save errors.
+
+**CSP and the Netlify review drawer.** Previews log
+`Framing 'https://app.netlify.com/' violates … default-src 'self'`: the optional
+Netlify Drawer (review toolbar) is blocked because the CSP has no `frame-src`
+and falls back to `default-src 'self'`. This is intentional and harmless — the
+site never frames anything and works without the drawer — so the CSP is **not**
+widened. Reviewers use the PR conversation instead of the drawer.
+
+**What a preview of these fixes must show** (staging data, no new accounts):
+1. `login.html`: a wrong password shows a visible red "Incorrect email or password."; the console shows only `{kind, code, status}` and `{success:false}`.
+2. `encyclopedia.html`: the 2 published synthetic articles; the draft is absent; "Read Article" opens `article/article.html?slug=…`.
+3. `ai/index.html` signed out: no "Loading..."; guest hint; a question gets a mock reply (`mode: mock`).
+4. `POST /.netlify/functions/send-email` → `503 {"code":"email_not_configured"}`; `email-features` → `{"consentConfirmation":false}`.
+5. No horizontal overflow at 320–1440 px on those pages.
 
 ## 5. Local development
 

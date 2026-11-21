@@ -1,6 +1,6 @@
 # EMerriment — visitor-to-customer journey
 
-Last updated 2026-11-17. "Verified" below means demonstrated by an automated
+Last updated 2026-11-20 (WP4C preview fixes; earlier content 2026-11-17). "Verified" below means demonstrated by an automated
 test (named in brackets) or a live production check; everything else is
 labelled **planned** or **needs an integration**.
 
@@ -40,7 +40,7 @@ social links ───┘    AI assistant                    │
 | Page | Primary next step | Status |
 |---|---|---|
 | Homepage | Quiz section, encyclopedia, AI, products | exists |
-| Encyclopedia / articles | Related articles, recommended products (approved only), ratings | exists |
+| Encyclopedia / articles | Related articles, recommended products (approved only), ratings | exists; list page repaired 2026-11-20 (published articles only, distinct loading / empty / no-match / error states, cards link to `article/article.html`) [encyclopedia.dom] |
 | Products page | Selar links | exists; checkout clicks now tracked as intent |
 | Social links | Land on homepage | exists (no campaign tagging yet — add `utm_*` to social links; GA reads them automatically) |
 
@@ -66,6 +66,12 @@ instead of profiles, quiz results or history; and Supabase / Auth errors only
 as `{kind, code, status}` (`emrSafeError`) — their `message`, `details` and
 `hint` are never logged, because PostgREST quotes the failing row there (user
 id, memory value, message text) and Auth errors can name the account.
+**AI assistant — guests (2026-11-20).** Signed-out visitors can chat (mock
+replies on previews); the profile card shows dashes and a "log in or take the
+skin quiz" hint instead of a permanent "Loading...". Signed-in users see skin
+type, concern, sensitivity and score from their own profile and latest quiz.
+Profile, memory, context or history-saving failures never block a reply
+[ai-guest.dom].
 OpenAI is called from production only (deploy previews and every other
 context answer in mock mode). Enforced by
 `tests/security/ai-log-privacy.test.js` (server behaviour with marker values,
@@ -92,6 +98,10 @@ script) and `tests/security/ai-and-preview-isolation.test.js`.
 * quiz.html previously took an email without explanation and sent nothing;
   it now explains and sends the requested report [quiz-pages: "one report
   email request"].
+* quiz.html says what happened to the report email under the results: sent,
+  "email isn't available on this site right now" (HTTP 503
+  `email_not_configured`, every non-production deploy) or failed — never a
+  false "sent" [email-unavailable].
 * If the consent migration is not applied yet, the quiz still saves (without
   consent) — deploy order cannot break lead capture [homepage-quiz: "database
   without the consent columns yet"].
@@ -111,7 +121,10 @@ meaningful, clearly-explained score is a product decision (not changed).
 ### Stage E — Account and dashboard
 Signup/confirmation/login/logout/reset verified live (2026-11-16/17) and by
 DOM tests (auth-pages.dom). Expired links explain themselves; unconfirmed
-users can resend the confirmation. Account creation is never required for
+users can resend the confirmation. Since 2026-11-20 every auth page shows its
+messages visibly and to screen readers (they were set but hidden before), and
+no auth result, session, token, email or raw error is written to the browser
+console [auth-log-privacy.dom]. Account creation is never required for
 the quiz, report, encyclopedia or AI assistant.
 
 ### Stage F — Conversion

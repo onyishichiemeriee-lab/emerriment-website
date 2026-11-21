@@ -60,7 +60,7 @@ async function checkAuthentication() {
 
     catch (error) {
 
-        console.error(error);
+        console.error("❌ Dashboard authentication check failed:", { kind: String(error && error.name || "Error") });
 
         window.location.href = "login.html";
 
