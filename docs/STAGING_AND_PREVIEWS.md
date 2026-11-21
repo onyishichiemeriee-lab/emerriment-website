@@ -770,6 +770,39 @@ the realistic path is external files (or hashes):
    way. Risks: third-party snippets (Google Analytics) and any page missed in
    step 2 — hence the report-only stage.
 
+### 4.12 Article view counter verification (WP4G, 2026-11-21)
+
+A read-only audit of both projects confirmed the counter function described in
+§4.11 (published-only, atomic, `SECURITY DEFINER`, `search_path = ''`, owner
+`postgres`, `EXECUTE` for `anon`/`authenticated`/`service_role` only). No
+migration was created and neither database was changed.
+
+* `tests/db/article-counter.pglite.test.js` (part of `npm run test:db`, ~15 s):
+  published +1 per call and the returned value; draft, nonexistent and NULL id
+  return NULL and change nothing; a malformed id is rejected by the `uuid` type;
+  repeated calls; 25 queued calls lose no increment; anon and authenticated may
+  execute, PUBLIC and an ungranted role may not; anon has no write privilege on
+  articles and a signed-in non-administrator changes 0 rows (RLS); owner,
+  `SECURITY DEFINER`, empty `search_path`, one `UPDATE` with the published
+  condition; the source fingerprint equals the one audited on production and
+  staging; re-applying migration `20261113090000` is idempotent. Mutation check:
+  removing the published condition fails the suite.
+* **Concurrency:** PGlite is a single connection, so the "concurrent" test
+  queues the calls; it proves no increment is lost when calls are serialised
+  and that the function is a single atomic `UPDATE` (which PostgreSQL
+  row-locks). True multi-session race testing has **not** been performed.
+* `supabase/staging/verify/article-counter-rollback.sql`: guarded staging-only
+  check (refuses if `emerriment_backup` exists, the three staging accounts are
+  missing, any non-`staging-` article exists, or the published
+  `staging-acne-basics` / draft `staging-draft` fixtures are not found exactly
+  once). It calls the function as `anon` for the published fixture, the draft,
+  a nonexistent UUID and NULL, checks the counts, then undoes everything
+  (deliberate `EMRB7` error + final `ROLLBACK`) and confirms every count is
+  back to its initial value. Run only through
+  `bash supabase/staging/run-on-staging.sh --remote=ayxakyyvomlzrsfznpeq supabase/staging/verify/article-counter-rollback.sql`
+  (not `--read-only`); expected 9 pass / 0 fail. Verified offline; **not yet run
+  on staging**.
+
 ## 5. Local development
 
 `netlify dev` does not run the build, so the committed fail-closed

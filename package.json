@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:email": "node tests/email/run-all.js",
     "test:security": "node tests/security/run-all.js",
-    "test:db": "node tests/db/migrations.pglite.test.js && node tests/db/production.pglite.test.js && node tests/db/security-03b.pglite.test.js && node tests/db/journey.pglite.test.js && node tests/db/staging-scripts.pglite.test.js && node tests/db/cli-output-parser.test.js"
+    "test:db": "node tests/db/migrations.pglite.test.js && node tests/db/production.pglite.test.js && node tests/db/security-03b.pglite.test.js && node tests/db/journey.pglite.test.js && node tests/db/staging-scripts.pglite.test.js && node tests/db/cli-output-parser.test.js && node tests/db/article-counter.pglite.test.js"
   },
   "repository": {
     "type": "git",

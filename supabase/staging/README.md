@@ -17,9 +17,11 @@ Nothing here contains a key, password, token or customer record.
 | 09a | `supabase/audit/03b_comprehensive_live_security_checks.sql` | staging | rolled back |
 | 09b | `09_supplementary_security_checks.sql` | staging | rolled back |
 | 10 | `verify/compare-with-production.js`, `verify/production-isolation.sql` | both | no (`--read-only`) |
+| 11 | `verify/article-counter-rollback.sql` (article view counter; guarded, every change rolled back) | staging | rolled back (not `--read-only`: the function writes, then everything is undone) |
 
 * Every staging SQL step goes through `run-on-staging.sh --remote=<staging-ref>`,
   which refuses a bare `--remote`, the production ref and any unexpected ref.
 * `verify/` holds read-only metadata queries (no row data except counts) and
   `inspect-dump.js` for the exported file.
 * Local test of these scripts (no network): `node tests/db/staging-scripts.pglite.test.js`.
+* `verify/article-counter-rollback.sql` is also run offline against a staging-shaped PGlite copy by `node tests/db/article-counter.pglite.test.js` (expected 9 pass / 0 fail; refuses on production-like data or missing fixtures).
