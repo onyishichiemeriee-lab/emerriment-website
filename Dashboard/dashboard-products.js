@@ -65,7 +65,7 @@ async function loadRecommendedProducts(profile){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-products request failed:", dashboardSafeError(error));
 
     }
 
@@ -196,33 +196,35 @@ function renderProductCards(
 
         card.innerHTML = `
 
-            <img src="${product.image_url || "https://placehold.co/600x400?text=EMerriment"}">
+            <img src="${EMArticleContent.escapeHTML(EMArticleContent.safeImageUrl(product.image_url, "https://placehold.co/600x400?text=EMerriment"))}">
 
             <div class="product-content">
 
                 <h3>
 
-                    ${product.name}
+                    ${EMArticleContent.escapeHTML(product.name)}
 
                 </h3>
 
                 <p>
 
-                    ${product.description || ""}
+                    ${EMArticleContent.escapeHTML(product.description || "")}
 
                 </p>
 
                 <span>
 
-                    ⭐ ${product.rating || "New"}
+                    ⭐ ${EMArticleContent.escapeHTML(product.rating || "New")}
 
                 </span>
 
                 <a
 
-                    href="${product.affiliate_link || "#"}"
+                    href="${EMArticleContent.escapeHTML(EMArticleContent.safeExternalUrl(product.affiliate_link || product.selar_link) || "#")}"
 
                     target="_blank"
+
+                    rel="noopener noreferrer"
 
                     class="read-btn">
 

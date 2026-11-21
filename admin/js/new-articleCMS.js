@@ -55,7 +55,8 @@ async function saveArticle(status){
             .map(x => x.trim())
             .filter(Boolean),
 
-        content: document.getElementById("content").value,
+        // Defence in depth: stored HTML is sanitized again when it is shown.
+        content: (window.EMArticleContent ? window.EMArticleContent.sanitizeArticleHTML(document.getElementById("content").value) : document.getElementById("content").value),
 
         status,
 

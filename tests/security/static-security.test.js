@@ -358,14 +358,13 @@ test("no browser code writes is_admin; the CMS toggle uses emerriment_set_admin;
     for (const f of profileInserts) assert(!/is_admin/.test(read(f).split(".from(\"profiles\")")[1].slice(0, 300)), f);
 });
 
-test("public pages do not update articles except the view-counter fallback", async () => {
+test("public pages never update articles; views are counted only through the counting function", async () => {
+    // WP4F (2026-11-20): the reader's direct-UPDATE fallback was removed (it raced and
+    // bypassed the counting function); see tests/security/article-content.dom.test.js.
     const writers = calls("encyclopedia_articles", "update").filter((f) => !f.startsWith("admin/"));
-    assert.deepStrictEqual(writers, ["article/article/js/article.js"]);
+    assert.deepStrictEqual(writers, []);
     const src = read("article/article/js/article.js");
     assert(src.includes('"emerriment_increment_article_views"'), "RPC name must match the migration");
-    assert(src.indexOf('"emerriment_increment_article_views"') < src.indexOf('.from("encyclopedia_articles")\n        .update') ||
-           src.indexOf('"emerriment_increment_article_views"') < src.indexOf('.update({\n            views'),
-        "RPC must be tried before the fallback update");
 });
 
 test("quiz code uses the configured client, never the library object", async () => {

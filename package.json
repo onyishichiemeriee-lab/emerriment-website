@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.11",
+    "dompurify": "3.4.17",
     "jsdom": "24.1.3"
   }
 }

@@ -1,9 +1,61 @@
+/* =========================================
+   EMerriment — article reader (/article/article.html?slug=…)
+
+   Security (WP4F):
+   - Only PUBLISHED articles are shown (status = 'published', also for a
+     signed-in administrator; drafts are previewed in the CMS).
+   - The article body (content) is rich HTML and is rendered through
+     EMArticleContent.renderArticleHTML (DOMPurify, explicit allowlist,
+     /js/article-content.js). Every other field is plain text
+     (textContent). No database value is written with innerHTML.
+   - Image and product URLs are accepted only as https:/http(s) links;
+     external links open with rel="noopener noreferrer".
+
+   View counting (documented side effect): each successful render of a
+   published article calls emerriment_increment_article_views ONCE per
+   page load (a refresh is a new page load and counts again). Nothing is
+   counted for a missing slug, a failed or empty lookup, or an
+   unpublished article. Opening this page therefore WRITES to the
+   database — automated tests must use a mocked client, never live pages.
+========================================= */
+
+"use strict";
+
 const supabaseClient = window.supabaseClient;
 
 const slug = new URLSearchParams(window.location.search).get("slug");
 
+const PLACEHOLDER_HERO = "https://placehold.co/1200x600?text=EMerriment";
+const PLACEHOLDER_CARD = "https://placehold.co/600x400?text=EMerriment";
+
 let currentArticle = null;
 let allArticles = [];
+let viewCounted = false;
+
+const AC = window.EMArticleContent;
+
+function safeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}
+
+function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+}
+
+function showNotFound() {
+    document.getElementById("articleTitle").textContent = "Article Not Found";
+    const content = document.getElementById("articleContent");
+    content.textContent = "";
+    content.appendChild(el("p", "", "The requested article could not be found."));
+}
 
 // ===============================
 // Load Article
@@ -11,53 +63,59 @@ let allArticles = [];
 
 async function loadArticle() {
 
-    const { data, error } = await supabaseClient
-        .from("encyclopedia_articles")
-        .select("*")
-        .eq("slug", slug)
-        .maybeSingle();
+    const wanted = String(slug || "").trim();
 
-    if (error || !data) {
+    if (!wanted || !supabaseClient) {
+        showNotFound();
+        return "not-found";
+    }
 
-        document.getElementById("articleTitle").textContent = "Article Not Found";
-        document.getElementById("articleContent").innerHTML =
-            "<p>The requested article could not be found.</p>";
+    let data = null;
 
-        return;
+    try {
+        const result = await supabaseClient
+            .from("encyclopedia_articles")
+            .select("*")
+            .eq("slug", wanted)
+            .eq("status", "published")
+            .maybeSingle();
+        if (result.error) {
+            console.error("❌ Article could not be loaded:", safeError(result.error));
+        } else {
+            data = result.data;
+        }
+    } catch (error) {
+        console.error("❌ Article could not be loaded:", safeError(error));
+    }
+
+    // Defence in depth: never render or count anything that is not published.
+    if (!data || data.status !== "published") {
+        showNotFound();
+        return "not-found";
     }
 
     currentArticle = data;
 
-    document.title = data.title + " | EMerriment";
+    document.title = String(data.title || "Article") + " | EMerriment";
 
-    document.getElementById("featuredImage").src =
-        data.featured_image ||
-        "https://placehold.co/1200x600?text=EMerriment";
+    const hero = document.getElementById("featuredImage");
+    hero.src = AC ? AC.safeImageUrl(data.featured_image, PLACEHOLDER_HERO) : PLACEHOLDER_HERO;
+    hero.alt = String(data.title || "");
 
-    document.getElementById("featuredImage").alt = data.title;
+    document.getElementById("articleCategory").textContent = String(data.category || "");
+    document.getElementById("articleTitle").textContent = String(data.title || "");
+    document.getElementById("readingTime").textContent = `📖 ${Number(data.reading_time) || 5} min read`;
+    document.getElementById("difficulty").textContent = `🎓 ${String(data.difficulty || "Beginner")}`;
+    document.getElementById("publishDate").textContent = data.created_at ? new Date(data.created_at).toLocaleDateString() : "";
+    document.getElementById("articleSummary").textContent = String(data.summary || "");
 
-    document.getElementById("articleCategory").textContent =
-        data.category || "";
-
-    document.getElementById("articleTitle").textContent =
-        data.title;
-
-    document.getElementById("readingTime").textContent =
-        `📖 ${data.reading_time || 5} min read`;
-
-    document.getElementById("difficulty").textContent =
-        `🎓 ${data.difficulty || "Beginner"}`;
-
-    document.getElementById("publishDate").textContent =
-        data.created_at
-            ? new Date(data.created_at).toLocaleDateString()
-            : "";
-
-    document.getElementById("articleSummary").textContent =
-        data.summary || "";
-
-    document.getElementById("articleContent").innerHTML =
-        data.content || "";
+    const content = document.getElementById("articleContent");
+    if (AC) {
+        AC.renderArticleHTML(content, data.content || "");
+    } else {
+        // The sanitizer script did not load: show the text, never HTML.
+        content.textContent = String(data.content || "");
+    }
 
     loadAllArticles();
 
@@ -72,21 +130,26 @@ async function loadArticle() {
     incrementViews();
 
     await loadArticleRating();
-    
+
+    return "rendered";
+
 }
 
 // ===============================
-// Load All Articles
+// Load All Articles (published only)
 // ===============================
 
-async function loadAllArticles(){
+async function loadAllArticles() {
 
-    const { data } = await window.supabaseClient    
+    const { data, error } = await window.supabaseClient
         .from("encyclopedia_articles")
         .select("*")
-        .order("created_at",{ascending:false});
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
 
-    allArticles = data || [];
+    if (error) console.warn("⚠️ Related articles unavailable:", safeError(error));
+
+    allArticles = (data || []).filter((a) => a && a.status === "published");
 
     loadRelatedArticles();
 
@@ -98,72 +161,43 @@ async function loadAllArticles(){
 // Related Articles
 // ===============================
 
-function loadRelatedArticles(){
+function articleCard(article, linkText) {
+    const card = el("div", "article-card");
+    const img = document.createElement("img");
+    img.src = AC ? AC.safeImageUrl(article.featured_image, PLACEHOLDER_CARD) : PLACEHOLDER_CARD;
+    img.alt = String(article.title || "");
+    img.loading = "lazy";
+    card.appendChild(img);
+    const body = el("div", "article-content");
+    body.appendChild(el("span", "article-category", String(article.category || "")));
+    body.appendChild(el("h3", "", String(article.title || "")));
+    body.appendChild(el("p", "", String(article.summary || "")));
+    const href = AC ? AC.articleHref(article.slug) : "";
+    if (href) {
+        const link = el("a", "read-btn", linkText);
+        link.href = href;
+        body.appendChild(link);
+    }
+    card.appendChild(body);
+    return card;
+}
 
-    const container =
-    document.getElementById("relatedArticles");
+function loadRelatedArticles() {
 
-    container.innerHTML = "";
+    const container = document.getElementById("relatedArticles");
+
+    container.textContent = "";
 
     const related = allArticles
-        .filter(article =>
-            article.id !== currentArticle.id &&
-            article.category === currentArticle.category
-        )
-        .slice(0,3);
+        .filter((article) => article.id !== currentArticle.id && article.category === currentArticle.category)
+        .slice(0, 3);
 
-    if(!related.length){
-
-        container.innerHTML =
-        "<p>No related articles found.</p>";
-
+    if (!related.length) {
+        container.appendChild(el("p", "", "No related articles found."));
         return;
-
     }
 
-    related.forEach(article=>{
-
-        container.innerHTML += `
-
-<div class="article-card">
-
-<img src="${article.featured_image || 'https://placehold.co/600x400'}">
-
-<div class="article-content">
-
-<span class="article-category">
-
-${article.category}
-
-</span>
-
-<h3>
-
-${article.title}
-
-</h3>
-
-<p>
-
-${article.summary || ""}
-
-</p>
-
-<a class="read-btn"
-
-href="article.html?slug=${article.slug}">
-
-Read →
-
-</a>
-
-</div>
-
-</div>
-
-`;
-
-    });
+    related.forEach((article) => container.appendChild(articleCard(article, "Read →")));
 
 }
 
@@ -171,75 +205,49 @@ Read →
 // Recommended Products
 // ===============================
 
-async function loadRecommendedProducts(){
+async function loadRecommendedProducts() {
 
-    const container =
-    document.getElementById("recommendedProducts");
+    const container = document.getElementById("recommendedProducts");
 
-    container.innerHTML = "";
+    container.textContent = "";
 
-    const { data } = await window.supabaseClient
-
+    const { data, error } = await window.supabaseClient
         .from("article_products")
-
         .select(`
             product_id,
             products(*)
         `)
+        .eq("article_id", currentArticle.id);
 
-        .eq("article_id",currentArticle.id);
+    if (error) console.warn("⚠️ Recommended products unavailable:", safeError(error));
 
-    if(!data || !data.length){
+    const products = (data || []).map((item) => item && item.products).filter(Boolean);
 
-        container.innerHTML =
-        "<p>No recommended products.</p>";
-
+    if (!products.length) {
+        container.appendChild(el("p", "", "No recommended products."));
         return;
-
     }
 
-    data.forEach(item=>{
-
-        const product = item.products;
-
-        container.innerHTML += `
-
-<div class="article-card">
-
-<img src="${product.image_url || 'https://placehold.co/600x400'}">
-
-<div class="article-content">
-
-<h3>
-
-${product.name}
-
-</h3>
-
-<p>
-
-${product.description || ""}
-
-</p>
-
-<a
-
-class="read-btn"
-
-target="_blank"
-
-href="${product.affiliate_link || '#'}">
-
-View Product
-
-</a>
-
-</div>
-
-</div>
-
-`;
-
+    products.forEach((product) => {
+        const card = el("div", "article-card");
+        const img = document.createElement("img");
+        img.src = AC ? AC.safeImageUrl(product.image_url || product.image, PLACEHOLDER_CARD) : PLACEHOLDER_CARD;
+        img.alt = String(product.name || "");
+        img.loading = "lazy";
+        card.appendChild(img);
+        const body = el("div", "article-content");
+        body.appendChild(el("h3", "", String(product.name || "")));
+        body.appendChild(el("p", "", String(product.description || "")));
+        const href = AC ? AC.safeExternalUrl(product.selar_link || product.affiliate_link) : "";
+        if (href) {
+            const link = el("a", "read-btn", "View Product");
+            link.href = href;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            body.appendChild(link);
+        }
+        card.appendChild(body);
+        container.appendChild(card);
     });
 
 }
@@ -248,54 +256,11 @@ View Product
 // Save / Unsave
 // ===============================
 
-async function checkSavedStatus(){
+async function checkSavedStatus() {
 
-    const {
+    const { data: { user } } = await window.supabaseClient.auth.getUser();
 
-        data:{user}
-
-    } = await window.supabaseClient.auth.getUser();
-
-    if(!user) return;
-
-    const { data } = await window.supabaseClient
-
-        .from("saved_articles")
-
-        .select("*")
-
-        .eq("user_id",user.id)
-
-        .eq("article_id",currentArticle.id)
-
-        .maybeSingle();
-
-    const btn =
-    document.getElementById("saveBtn");
-
-    btn.textContent =
-        data
-        ?
-        "❤️ Saved"
-        :
-        "🤍 Save Article";
-
-}
-
-document
-.getElementById("saveBtn")
-.addEventListener("click",toggleSave);
-
-async function toggleSave(){
-
-    const {
-        data:{user}
-    } = await window.supabaseClient.auth.getUser();
-
-    if(!user){
-        location.href="login.html";
-        return;
-    }
+    if (!user) return;
 
     const { data } = await window.supabaseClient
         .from("saved_articles")
@@ -304,21 +269,34 @@ async function toggleSave(){
         .eq("article_id", currentArticle.id)
         .maybeSingle();
 
-    if(data){
+    document.getElementById("saveBtn").textContent = data ? "❤️ Saved" : "🤍 Save Article";
 
-        await window.supabaseClient
-            .from("saved_articles")
-            .delete()
-            .eq("id", data.id);
+}
 
-    }else{
+document.getElementById("saveBtn").addEventListener("click", toggleSave);
 
-        await window.supabaseClient
-            .from("saved_articles")
-            .insert({
-                user_id: user.id,
-                article_id: currentArticle.id
-            });
+async function toggleSave() {
+
+    const { data: { user } } = await window.supabaseClient.auth.getUser();
+
+    if (!user) {
+        location.href = "/login.html";
+        return;
+    }
+
+    if (!currentArticle) return;
+
+    const { data } = await window.supabaseClient
+        .from("saved_articles")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("article_id", currentArticle.id)
+        .maybeSingle();
+
+    if (data) {
+        await window.supabaseClient.from("saved_articles").delete().eq("id", data.id);
+    } else {
+        await window.supabaseClient.from("saved_articles").insert({ user_id: user.id, article_id: currentArticle.id });
     }
 
     checkSavedStatus();
@@ -329,32 +307,19 @@ async function toggleSave(){
 // Share
 // ===============================
 
-document
-.getElementById("shareBtn")
-.addEventListener("click",shareArticle);
+document.getElementById("shareBtn").addEventListener("click", shareArticle);
 
-async function shareArticle(){
+async function shareArticle() {
+
+    if (!currentArticle) return;
 
     const url = location.href;
 
-    if(navigator.share){
-
-        await navigator.share({
-
-            title:currentArticle.title,
-
-            text:currentArticle.summary,
-
-            url
-
-        });
-
-    }else{
-
+    if (navigator.share) {
+        await navigator.share({ title: currentArticle.title, text: currentArticle.summary, url });
+    } else {
         await navigator.clipboard.writeText(url);
-
         alert("Article link copied.");
-
     }
 
 }
@@ -363,48 +328,24 @@ async function shareArticle(){
 // Previous / Next
 // ===============================
 
-function setupNavigation(){
+function setupNavigation() {
 
-    const index =
-    allArticles.findIndex(
+    const index = allArticles.findIndex((a) => a.id === currentArticle.id);
 
-        a=>a.id===currentArticle.id
-
-    );
-
-    document
-    .getElementById("previousArticle")
-    .onclick=()=>{
-
-        if(index<allArticles.length-1){
-
-            location.href=
-            `article.html?slug=${allArticles[index+1].slug}`;
-
-        }
-
+    const go = (article) => {
+        const href = article && AC ? AC.articleHref(article.slug) : "";
+        if (href) location.href = href;
     };
 
-    document
-    .getElementById("nextArticle")
-    .onclick=()=>{
+    document.getElementById("previousArticle").onclick = () => {
+        if (index > -1 && index < allArticles.length - 1) go(allArticles[index + 1]);
+    };
 
-        if(index>0){
-
-            location.href=
-            `article.html?slug=${allArticles[index-1].slug}`;
-
-        }
-
+    document.getElementById("nextArticle").onclick = () => {
+        if (index > 0) go(allArticles[index - 1]);
     };
 
 }
-
-// ===============================
-// Load Article
-// ===============================
-
-loadArticle();
 
 // ===============================
 // Save Reading History
@@ -412,9 +353,7 @@ loadArticle();
 
 async function saveReadingHistory() {
 
-    const {
-        data: { user }
-    } = await window.supabaseClient.auth.getUser();
+    const { data: { user } } = await window.supabaseClient.auth.getUser();
 
     if (!user || !currentArticle) return;
 
@@ -448,23 +387,15 @@ async function updateReadingProgress() {
 
     saveTimeout = setTimeout(async () => {
 
-        const {
-            data: { user }
-        } = await window.supabaseClient.auth.getUser();
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
 
         if (!user) return;
 
         const scrollTop = window.scrollY;
 
-        const documentHeight =
-            document.documentElement.scrollHeight -
-            window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-        const progress =
-            Math.min(
-                100,
-                Math.round((scrollTop / documentHeight) * 100)
-            );
+        const progress = Math.min(100, Math.round((scrollTop / documentHeight) * 100));
 
         await window.supabaseClient
             .from("reading_history")
@@ -486,9 +417,7 @@ async function updateReadingProgress() {
 
 async function restoreReadingPosition() {
 
-    const {
-        data: { user }
-    } = await window.supabaseClient.auth.getUser();
+    const { data: { user } } = await window.supabaseClient.auth.getUser();
 
     if (!user || !currentArticle) return;
 
@@ -500,86 +429,55 @@ async function restoreReadingPosition() {
         .maybeSingle();
 
     if (data && data.last_position > 0) {
-
         setTimeout(() => {
-
-            window.scrollTo({
-                top: data.last_position,
-                behavior: "smooth"
-            });
-
+            window.scrollTo({ top: data.last_position, behavior: "smooth" });
         }, 300);
-
     }
 
 }
 
 // ===============================
 // Increment Article Views
+// One call per successful render of a published article (see header).
+// The former fallback (a direct UPDATE of encyclopedia_articles when the
+// function failed) was removed: it raced (read-modify-write) and let
+// accounts with update rights bypass the counting function.
 // ===============================
 
 async function incrementViews() {
 
-    if (!currentArticle) return;
+    if (!currentArticle || currentArticle.status !== "published" || viewCounted) return;
 
-    // Preferred: a database function that only
-    // increments the view counter, so visitors need
-    // no update permission on articles.
-    // (supabase/migrations/20261110090300_emerriment_content_admin_rls.sql)
-    const { data: rpcViews, error: rpcError } =
-        await window.supabaseClient.rpc(
-            "emerriment_increment_article_views",
-            { article_id: currentArticle.id }
-        );
+    viewCounted = true;
 
-    if (!rpcError) {
-        if (typeof rpcViews === "number") {
-            currentArticle.views = rpcViews;
-        }
+    const { data: rpcViews, error: rpcError } = await window.supabaseClient.rpc(
+        "emerriment_increment_article_views",
+        { article_id: currentArticle.id }
+    );
+
+    if (rpcError) {
+        console.warn("⚠️ View not counted:", safeError(rpcError));
         return;
     }
 
-    // Fallback until the migration is applied: the
-    // previous direct update. Once visitors can no
-    // longer update articles this simply fails and
-    // the page is unaffected.
-    const newViews = (currentArticle.views || 0) + 1;
-
-    const { error } = await window.supabaseClient
-        .from("encyclopedia_articles")
-        .update({
-            views: newViews
-        })
-        .eq("id", currentArticle.id);
-
-    if (!error) {
-        currentArticle.views = newViews;
-    }
+    if (typeof rpcViews === "number") currentArticle.views = rpcViews;
 
 }
 
+// ===============================
+// Ratings
+// ===============================
+
 let selectedRating = 0;
 
-document
-
-.querySelectorAll("#ratingStars span")
-
-.forEach(star => {
+document.querySelectorAll("#ratingStars span").forEach((star) => {
 
     star.addEventListener("click", () => {
 
         selectedRating = Number(star.dataset.rating);
 
-        document
-
-        .querySelectorAll("#ratingStars span")
-
-        .forEach((s, index) => {
-
-            s.style.opacity =
-
-                index < selectedRating ? "1" : ".35";
-
+        document.querySelectorAll("#ratingStars span").forEach((s, index) => {
+            s.style.opacity = index < selectedRating ? "1" : ".35";
         });
 
     });
@@ -588,76 +486,41 @@ document
 
 let helpful = null;
 
-document
-
-.getElementById("helpfulYes")
-
-.addEventListener("click", () => {
-
+document.getElementById("helpfulYes").addEventListener("click", () => {
     helpful = true;
-
 });
 
-document
-
-.getElementById("helpfulNo")
-
-.addEventListener("click", () => {
-
+document.getElementById("helpfulNo").addEventListener("click", () => {
     helpful = false;
-
 });
 
-document
+document.getElementById("submitRating").addEventListener("click", async () => {
 
-.getElementById("submitRating")
-
-.addEventListener("click", async () => {
-
-    const {
-
-        data: { user }
-
-    } = await window.supabaseClient.auth.getUser();
+    const { data: { user } } = await window.supabaseClient.auth.getUser();
 
     if (!user || !currentArticle) return;
 
-    const feedback =
-
-        document.getElementById("feedback").value;
+    const feedback = document.getElementById("feedback").value;
 
     const { error } = await window.supabaseClient
-
         .from("article_ratings")
-
         .upsert({
-
             user_id: user.id,
-
             article_id: currentArticle.id,
-
             rating: selectedRating,
-
             helpful,
-
             feedback,
-
             updated_at: new Date().toISOString()
-
         }, {
-
             // One rating per reader per article (unique key);
             // rating again updates it instead of failing.
             onConflict: "user_id,article_id"
-
         });
 
     if (error) {
-
-        console.error(error);
-
+        console.error("❌ Rating not saved:", safeError(error));
+        alert("We couldn't save your feedback right now. Please try again.");
         return;
-
     }
 
     alert("Thanks for your feedback! 🌿");
@@ -671,15 +534,10 @@ async function loadArticleRating() {
     // Average and count only: individual ratings (who rated
     // what, and their comments) are private to each reader.
     // (supabase/migrations/20261113090000_emerriment_production_hardening.sql)
-    const { data: summary, error: summaryError } =
-
-        await window.supabaseClient.rpc(
-
-            "emerriment_article_rating_summary",
-
-            { target_article: currentArticle.id }
-
-        );
+    const { data: summary, error: summaryError } = await window.supabaseClient.rpc(
+        "emerriment_article_rating_summary",
+        { target_article: currentArticle.id }
+    );
 
     if (summaryError) return;
 
@@ -687,16 +545,14 @@ async function loadArticleRating() {
 
     if (!row || !row.total) return;
 
-    const data = { length: Number(row.total) };
+    document.getElementById("averageRating").textContent = Number(row.average).toFixed(1);
 
-    const average = Number(row.average);
-
-    document.getElementById("averageRating").textContent =
-
-        average.toFixed(1);
-
-    document.getElementById("ratingCount").textContent =
-
-        data.length;
+    document.getElementById("ratingCount").textContent = String(Number(row.total));
 
 }
+
+// ===============================
+// Start
+// ===============================
+
+window.EMArticleReader = { ready: loadArticle() };

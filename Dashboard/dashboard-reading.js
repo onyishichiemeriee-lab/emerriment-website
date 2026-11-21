@@ -37,7 +37,7 @@ async function loadContinueReading(userId) {
 
     catch (error) {
 
-        console.error(error);
+        console.error("❌ dashboard-reading request failed:", dashboardSafeError(error));
 
     }
 
@@ -92,27 +92,27 @@ function renderContinueReading(items) {
 
         card.innerHTML = `
 
-            <img src="${article.featured_image || 'https://placehold.co/600x400?text=EMerriment'}">
+            <img src="${EMArticleContent.escapeHTML(EMArticleContent.safeImageUrl(article.featured_image, 'https://placehold.co/600x400?text=EMerriment'))}">
 
             <div class="article-content">
 
-                <span>${article.category || "General"}</span>
+                <span>${EMArticleContent.escapeHTML(article.category || "General")}</span>
 
-                <h3>${article.title}</h3>
+                <h3>${EMArticleContent.escapeHTML(article.title)}</h3>
 
                 <div class="progress-bar">
 
                     <div class="progress-fill"
 
-                        style="width:${item.progress}%">
+                        style="width:${Number(item.progress) || 0}%">
 
                     </div>
 
                 </div>
 
-                <p>${item.progress}% completed</p>
+                <p>${Number(item.progress) || 0}% completed</p>
 
-                <a href="article.html?slug=${article.slug}"
+                <a href="${EMArticleContent.escapeHTML(EMArticleContent.articleHref(article.slug) || "#")}"
 
                    class="read-btn">
 
@@ -171,7 +171,7 @@ async function loadLatestArticles() {
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-reading request failed:", dashboardSafeError(error));
 
     }
 
@@ -209,7 +209,7 @@ async function loadSavedArticles(userId) {
 
     catch(error) {
 
-        console.error(error);
+        console.error("❌ dashboard-reading request failed:", dashboardSafeError(error));
 
     }
 

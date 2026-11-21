@@ -32,7 +32,7 @@ function fakeClientSource(opts) {
           resetPasswordForEmail: async () => (window.__resetEmail || { data: {}, error: null })
         },
         from: (t) => window.__fakeFrom(t),
-        rpc: async () => ({ data: null, error: null })
+        rpc: async (fn, args) => (window.__fakeRpc ? window.__fakeRpc(fn, args) : { data: null, error: null })
       };
     } };`;
 }

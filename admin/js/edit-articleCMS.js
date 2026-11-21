@@ -65,7 +65,8 @@ form.addEventListener("submit", async (e) => {
                 .split(",")
                 .map(item => item.trim())
                 .filter(Boolean),
-            content: content.value,
+            // Defence in depth: stored HTML is sanitized again when it is shown.
+            content: (window.EMArticleContent ? window.EMArticleContent.sanitizeArticleHTML(content.value) : content.value),
             updated_at: new Date().toISOString()
 
         })

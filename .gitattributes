@@ -1,0 +1,3 @@
+# Third-party files served as-is (byte-identical to the pinned npm package; see
+# tests/security/article-content.dom.test.js). Never convert line endings.
+js/vendor/** -text

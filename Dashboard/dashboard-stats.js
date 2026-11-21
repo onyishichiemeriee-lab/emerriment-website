@@ -22,7 +22,7 @@ async function loadDashboardStats(userId) {
 
     catch (error) {
 
-        console.error(error);
+        console.error("❌ dashboard-stats request failed:", dashboardSafeError(error));
 
     }
 

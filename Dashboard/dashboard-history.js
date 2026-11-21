@@ -47,7 +47,7 @@ async function loadRecentlyViewed(userId){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-history request failed:", dashboardSafeError(error));
 
     }
 
@@ -115,21 +115,21 @@ function renderRecentlyViewed(items){
 
         card.innerHTML=`
 
-            <img src="${article.featured_image || 'https://placehold.co/600x400?text=EMerriment'}">
+            <img src="${EMArticleContent.escapeHTML(EMArticleContent.safeImageUrl(article.featured_image, 'https://placehold.co/600x400?text=EMerriment'))}">
 
             <div class="article-content">
 
-                <span>${article.category}</span>
+                <span>${EMArticleContent.escapeHTML(article.category)}</span>
 
-                <h3>${article.title}</h3>
+                <h3>${EMArticleContent.escapeHTML(article.title)}</h3>
 
                 <p>Viewed ${viewed}</p>
 
-                <p>${item.progress || 0}% completed</p>
+                <p>${Number(item.progress) || 0}% completed</p>
 
                 <a class="read-btn"
 
-                   href="article.html?slug=${article.slug}">
+                   href="${EMArticleContent.escapeHTML(EMArticleContent.articleHref(article.slug) || "#")}">
 
                     Read Again →
 
@@ -179,7 +179,7 @@ async function clearReadingHistory(userId){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-history request failed:", dashboardSafeError(error));
 
         showNotification(
 

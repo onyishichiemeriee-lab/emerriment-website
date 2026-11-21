@@ -31,7 +31,7 @@ async function loadPopularTopics(){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-topics request failed:", dashboardSafeError(error));
 
         showNotification(
 
@@ -152,13 +152,13 @@ function renderPopularTopics(topics){
 
             <div class="topic-header">
 
-                <h3>${topic}</h3>
+                <h3>${EMArticleContent.escapeHTML(topic)}</h3>
 
             </div>
 
             <div class="topic-body">
 
-                <p>${views} total views</p>
+                <p>${Number(views) || 0} total views</p>
 
             </div>
 
@@ -286,7 +286,7 @@ async function loadFeaturedTopic(){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-topics request failed:", dashboardSafeError(error));
 
     }
 
@@ -316,9 +316,9 @@ function renderFeaturedTopic(article){
 
             <img
 
-                src="${article.featured_image || "https://placehold.co/800x400?text=EMerriment"}"
+                src="${EMArticleContent.escapeHTML(EMArticleContent.safeImageUrl(article.featured_image, "https://placehold.co/800x400?text=EMerriment"))}"
 
-                alt="${article.title}"
+                alt="${EMArticleContent.escapeHTML(article.title)}"
 
             >
 
@@ -332,19 +332,19 @@ function renderFeaturedTopic(article){
 
                 <h2>
 
-                    ${article.title}
+                    ${EMArticleContent.escapeHTML(article.title)}
 
                 </h2>
 
                 <p>
 
-                    ${article.summary || ""}
+                    ${EMArticleContent.escapeHTML(article.summary || "")}
 
                 </p>
 
                 <a
 
-                    href="article.html?slug=${article.slug}"
+                    href="${EMArticleContent.escapeHTML(EMArticleContent.articleHref(article.slug) || "#")}"
 
                     class="read-btn">
 

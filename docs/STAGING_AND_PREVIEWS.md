@@ -648,6 +648,128 @@ browser tests; real visitors with correct clocks are not affected.
 4. Raw Supabase errors are still logged by the `Dashboard/*.js` modules; admin CMS modules still `alert()` raw `error.message` text to the administrator on failed saves/deletes (shown, not logged); legacy, unreferenced admin scripts (`admin/dashboardD.js` logs a profile object) and the legacy non-CMS admin pages (`admin/dashboard.html`, `products.html`, …) were not reviewed in depth.
 5. The CSP `script-src` contains `'unsafe-inline'` (needed by inline page scripts today).
 
+### 4.11 Article security, dashboard links, view counter, CSP plan (WP4F, 2026-11-20)
+
+Local, uncommitted; covered by mocked tests only — **no live article page was
+opened** (a visit writes a view count). Resolves §4.10 open items 1, 2 and the
+dashboard part of 4; item 3 is documented below.
+
+**Stored XSS — cause and fix.** The reader (`article/article/js/article.js`)
+wrote `content` with `innerHTML`, and built the related-article and product
+cards from template strings with `innerHTML` (title, summary, category, image,
+product name/description and an unchecked product link). Anyone able to store
+article or product text could run script in every reader's browser. Fix:
+
+* `content` is the only rich field. It is sanitized at the rendering boundary
+  by **DOMPurify 3.4.17** (Cure53; pinned exactly in `devDependencies`, the
+  file served from `/js/vendor/dompurify-3.4.17.min.js` with its licence — no
+  CDN at runtime; a test checks the served file equals the pinned package),
+  through `/js/article-content.js` (`EMArticleContent`), into a DOM fragment.
+  Previously stored unsafe content is therefore neutralised when shown.
+* **Allowlist** — elements: `p br hr h2–h6 strong b em i u s mark small sub
+  sup abbr blockquote ul ol li dl dt dd a code pre table caption thead tbody
+  tfoot tr th td figure figcaption img span`; attributes: `href title alt src
+  width height colspan rowspan scope target rel start reversed`. Explicitly
+  forbidden: `script style iframe frame object embed applet svg math form
+  input button textarea select link meta base template noscript audio video`,
+  every `on*` handler, `style srcdoc srcset formaction action xlink:href class
+  id name`, data-/aria- attributes. Links: `http(s)`, `mailto`, `#…` and
+  same-site relative paths only (`javascript:`, `data:`, `vbscript:`,
+  protocol-relative `//host` removed); images: `https:` only. Off-site links
+  get `target="_blank" rel="noopener noreferrer"`; images get
+  `loading="lazy" referrerpolicy="no-referrer"`.
+* Every other field (title, summary, category, slug, image URL, product
+  fields) is plain text: `textContent`, or escaped in the remaining template
+  strings; image and product URLs must be `https:`/`http(s):`. If the
+  sanitizer does not load, `content` is shown as text, never HTML.
+* Authoring (defence in depth only): the CMS new/edit-article pages sanitize
+  `content` with the same allowlist before saving.
+
+**Article routes.** Dashboard cards (`Dashboard/dashboard-history.js`,
+`-reading.js`, `-topics.js`, `-ui.js`), the AI resource cards
+(`ai/js/ai-ui.js`) and the reader's own related/previous/next links pointed at
+`article.html?slug=…` relative to their page (`/article.html`,
+`/ai/article.html` — neither exists). All now use
+`EMArticleContent.articleHref(slug)` → `/article/article.html?slug=<URLSearchParams-encoded>`
+(root-relative: same host, so a preview stays on the preview); an empty slug
+gives no link. The same templates now escape every interpolated value
+(article and product text, `progress` as a number) and accept only https
+images and http(s) product links (`rel="noopener noreferrer"`). Legacy copies
+not loaded by any page (`admin/dashboardD.js`, the
+`EMerriment Authentication V2/V3 …` folders) were not changed.
+
+**View counter (documented side effect).** The reader calls
+`emerriment_increment_article_views` once per successful page render of a
+**published** article, after the article is shown. Each page render
+intentionally counts one view (a refresh is a new page load and counts
+again), so **a real visit to an article page changes that article's counter**.
+Nothing is called for a missing slug, a failed or empty lookup, or an
+unpublished article (the reader asks for `status = 'published'` and hides
+drafts even from a signed-in administrator). The reader's old fallback — a
+direct `UPDATE … views = views + 1` from the browser when the function failed
+— was removed: it raced and let accounts with update rights bypass the
+function. Existing counts were not changed. **Automated tests must use
+mocked database responses (or a rolled-back staging verification), never
+live article pages** (WP4C once opened one: a synthetic staging article went
+from 0 to 1 view).
+
+*Database side — corrected record (2026-11-21).* An earlier version of this
+section said the database function could count drafts. That concern came
+from the original definition in migration `20261110090300` and was wrong for
+the live databases: migration `20261113090000_emerriment_production_hardening.sql`
+§4 already replaced it with one atomic statement,
+`UPDATE public.encyclopedia_articles SET views = coalesce(views, 0) + 1 WHERE id = $1 AND status = 'published' RETURNING views::integer`
+(`SECURITY DEFINER`, `search_path = ''`, owner `postgres`; `EXECUTE` for
+`anon`, `authenticated` and `service_role`, not PUBLIC). A read-only audit
+confirmed production and staging both run exactly this definition. A draft,
+missing or NULL id matches no row and returns NULL. Browser roles cannot
+change counts directly: `anon` has no write privilege on
+`encyclopedia_articles`; `authenticated` holds table `UPDATE` for the admin
+CMS, and Row Level Security limits every update to administrators. **No
+additional migration is required** on the basis of this audit.
+
+**Dashboard privacy.** 19 `console.error(error)` calls in `Dashboard/*.js`
+logged raw Supabase errors (which can quote the user's own rows — reading
+history, quiz answers, profile values); they now log
+`dashboardSafeError(error)` → `{kind, code, status}`. Dashboard modules log no
+user ids, emails, profiles or sessions; user-facing messages are fixed text.
+
+**Tests.** `tests/security/article-content.dom.test.js` (20): 25 synthetic
+payloads (script, `onerror`/`onload`, SVG, `javascript:` in several encodings,
+`data:` links and images, iframe/srcdoc, object/embed, inline style, forms,
+MathML, malformed and nested HTML, mXSS via noscript, protocol-relative and
+`base`/`meta refresh`) stored in an article and rendered: none survives and
+nothing executes; legitimate formatting kept; plain fields stay text; cards
+escaped; sanitizer missing → text; view counter (missing slug, failed lookup,
+nonexistent slug, draft, single count, no fallback write); canonical routes
+and encoding; dashboard links and escaping; AI cards; CMS save sanitizing;
+dashboard error logging. Mutation checks: old reader, sanitizer bypassed,
+one old dashboard link, double counting, a raw dashboard error log — each
+fails the suite. `static-security` now requires that no public page updates
+articles at all.
+
+**CSP — findings and plan (not changed).** `script-src` keeps
+`'unsafe-inline'` because 13 of 70 served pages contain 28 inline `<script>`
+blocks and 64 inline `on*=` handlers (mostly the homepage and its three legacy
+copies: 16 handlers each; the auth pages have 1–2 small inline scripts), and
+11 scripts generate `onclick=` handlers inside `innerHTML` templates.
+`style-src` separately needs `'unsafe-inline'` (35 inline styles). Static
+Netlify hosting cannot inject per-request nonces without an Edge Function, so
+the realistic path is external files (or hashes):
+1. Delete or redirect the legacy duplicate folders (`article/index.html`,
+   `encyclopediaCMS/`, `skinquiz/`, `EMerriment Authentication …`) — removes
+   most handlers at once.
+2. Move each page's inline `<script>` blocks to `.js` files (auth pages,
+   homepage, legacy admin pages); replace `on*=` attributes with
+   `addEventListener`; replace generated `onclick=` with event delegation.
+3. Add a static test that fails on any new inline script/handler.
+4. Ship `Content-Security-Policy-Report-Only` with `script-src 'self' …`
+   (no `'unsafe-inline'`) on a preview and on production for a period; fix
+   every report.
+5. Remove `'unsafe-inline'` from `script-src`; then treat `style-src` the same
+   way. Risks: third-party snippets (Google Analytics) and any page missed in
+   step 2 — hence the report-only stage.
+
 ## 5. Local development
 
 `netlify dev` does not run the build, so the committed fail-closed

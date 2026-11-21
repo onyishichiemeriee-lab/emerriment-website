@@ -37,7 +37,7 @@ async function loadSkinProfile(userId){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-recommendations request failed:", dashboardSafeError(error));
 
         return null;
 
@@ -86,7 +86,7 @@ async function loadReadingHistory(userId){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-recommendations request failed:", dashboardSafeError(error));
 
         return [];
 
@@ -124,7 +124,7 @@ async function loadSavedArticleData(userId){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-recommendations request failed:", dashboardSafeError(error));
 
         return [];
 
@@ -208,7 +208,7 @@ async function loadRecommendedArticles(user, profile){
 
     catch(error){
 
-        console.error(error);
+        console.error("❌ dashboard-recommendations request failed:", dashboardSafeError(error));
 
     }
 
