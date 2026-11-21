@@ -323,16 +323,16 @@ function createArticleCard(article){
 
 
         <h4>
-            📚 ${article.title}
+            📚 ${EMArticleContent.escapeHTML(article.title)}
         </h4>
 
 
         <p>
-            ${article.summary || ""}
+            ${EMArticleContent.escapeHTML(article.summary || "")}
         </p>
 
 
-        <a href="article.html?slug=${article.slug}">
+        <a href="${EMArticleContent.escapeHTML(EMArticleContent.articleHref(article.slug) || "#")}">
 
             Read Article →
 
@@ -358,16 +358,16 @@ function createProductCard(product){
 
 
         <h4>
-            🧴 ${product.name}
+            🧴 ${EMArticleContent.escapeHTML(product.name)}
         </h4>
 
 
         <p>
-            ${product.description || ""}
+            ${EMArticleContent.escapeHTML(product.description || "")}
         </p>
 
 
-        <a href="${product.link || "#"}">
+        <a href="${EMArticleContent.escapeHTML(EMArticleContent.safeExternalUrl(product.link) || "#")}" target="_blank" rel="noopener noreferrer">
 
             View Product →
 

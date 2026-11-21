@@ -10,14 +10,14 @@ const safeName = escapeHtml(name || "there");
 return {
 
 subject:
-"🚨 5 Skincare Mistakes That Are Secretly Damaging Your Skin",
+"🌿 5 common skincare mistakes (and simple fixes)",
 
 html: layout({
 
 tracking,
 
 title:
-"🚨 5 Skincare Mistakes That Are Secretly Damaging Your Skin",
+"🌿 5 common skincare mistakes (and simple fixes)",
 
 content: `
 

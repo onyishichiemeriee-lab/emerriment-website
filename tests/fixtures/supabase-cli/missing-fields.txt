@@ -1,0 +1,7 @@
+{
+  "rows": [
+    { "cat": "table", "k": "public.leads" },
+    { "cat": "table", "v": "x" }
+  ]
+}
+Target: project stagingtestproject01 (not the linked project)

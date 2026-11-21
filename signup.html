@@ -20,6 +20,8 @@
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0">
 </script>
 
+<script src="/js/runtime-config.js"></script>
+<script src="/js/supabase-config.js"></script>
 <script
     src="js/supabase.js">
 </script>
@@ -84,7 +86,9 @@
 
         <div
             id="signupMessage"
-            class="auth-message">
+            class="auth-message"
+            role="status"
+            aria-live="polite">
         </div>
 
 
@@ -256,7 +260,7 @@ signupForm.addEventListener(
             "Creating Account...";
 
         signupMessage.className =
-            "auth-message";
+            "auth-message show info";
 
         signupMessage.textContent =
             "Creating your account...";
@@ -283,7 +287,7 @@ signupForm.addEventListener(
             if (!result.success) {
 
                 signupMessage.className =
-                    "auth-message error";
+                    "auth-message show error";
 
                 signupMessage.textContent =
                     result.error ||
@@ -309,7 +313,7 @@ signupForm.addEventListener(
             ) {
 
                 signupMessage.className =
-                    "auth-message success";
+                    "auth-message show success";
 
                 // Same wording whether or not the address already
                 // had an account: Supabase deliberately does not say
@@ -335,7 +339,7 @@ signupForm.addEventListener(
             ----------------------------------------- */
 
             signupMessage.className =
-                "auth-message success";
+                "auth-message show success";
 
             signupMessage.textContent =
                 "✅ Account created successfully. Redirecting...";
@@ -355,12 +359,12 @@ signupForm.addEventListener(
 
             console.error(
                 "Signup page error:",
-                error
+                window.EMAuth && EMAuth.safeError ? EMAuth.safeError(error) : { kind: "Error" }
             );
 
 
             signupMessage.className =
-                "auth-message error";
+                "auth-message show error";
 
             signupMessage.textContent =
                 error.message ||
@@ -411,6 +415,7 @@ document
     });
 </script>
 
+<script src="js/analytics.js"></script>
 </body>
 
 </html>

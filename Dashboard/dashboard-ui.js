@@ -7,6 +7,17 @@
 // Loading
 // --------------------------------------------
 
+// Errors as {kind, code, status} only: Supabase/PostgREST error text can quote
+// the user's own rows (reading history, quiz answers, profile values).
+function dashboardSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}
+
 function showLoading() {
 
     const loader =
@@ -218,19 +229,19 @@ function renderArticleCards(containerId, articles){
 
         card.innerHTML=`
 
-            <img src="${article.featured_image || 'https://placehold.co/600x400?text=EMerriment'}">
+            <img src="${EMArticleContent.escapeHTML(EMArticleContent.safeImageUrl(article.featured_image, 'https://placehold.co/600x400?text=EMerriment'))}">
 
             <div class="article-content">
 
-                <span>${article.category || "General"}</span>
+                <span>${EMArticleContent.escapeHTML(article.category || "General")}</span>
 
-                <h3>${article.title}</h3>
+                <h3>${EMArticleContent.escapeHTML(article.title)}</h3>
 
-                <p>${article.summary || ""}</p>
+                <p>${EMArticleContent.escapeHTML(article.summary || "")}</p>
 
                 <a class="read-btn"
 
-                href="article.html?slug=${article.slug}">
+                href="${EMArticleContent.escapeHTML(EMArticleContent.articleHref(article.slug) || "#")}">
 
                 Read Article →
 

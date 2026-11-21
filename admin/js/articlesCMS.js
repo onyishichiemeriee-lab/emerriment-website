@@ -1,4 +1,7 @@
-const supabase = window.supabaseClient;
+// Do not declare a top-level `supabase` here: the supabase-js library loaded
+// before this script declares the global `var supabase`, and a second
+// declaration is a SyntaxError that stops this whole file (WP4I). This module
+// uses window.supabaseClient (created by ../js/supabase.js) as `supabaseClient`.
 
 let allArticles = [];
 
@@ -6,32 +9,15 @@ let allArticles = [];
 // Check Admin
 // --------------------------
 
-async function checkAdmin(){
+async function checkAdmin() {
 
-    const { data:{ user } } = await supabaseClient.auth.getUser();
+    // Shared, fail-closed administrator check (admin/js/admin-guard.js):
+    // nothing below runs unless the signed-in user is an administrator.
+    const access = await window.EMAdminGuard.requireAdmin();
 
-    if(!user){
+    if (!access) return;
 
-        window.location.href="loginCMS.html";
-        return;
-
-    }
-
-    const { data:profile } = await supabaseClient
-
-        .from("profiles")
-        .select("is_admin")
-        .eq("id",user.id)
-        .maybeSingle();
-
-    if(!profile?.is_admin){
-
-        window.location.href="../dashboardCMS.html";
-        return;
-
-    }
-
-    loadArticles();
+        loadArticles();
 
 }
 
@@ -51,7 +37,7 @@ async function loadArticles(){
 
     if(error){
 
-        console.error(error);
+        console.error("❌ articlesCMS request failed:", window.EMAdminGuard.safeError(error));
         return;
 
     }

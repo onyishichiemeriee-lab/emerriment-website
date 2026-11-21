@@ -1,6 +1,4 @@
-const { Resend } = require("resend");
-
-const { createClient } = require("@supabase/supabase-js");
+const { createServiceClient, createMailer, emailDeliveryAllowed } = require("../lib/environment");
 
 const emails = require("../../emails");
 
@@ -21,6 +19,8 @@ const {
     completeDelivery,
     releaseDelivery
 } = require("../lib/email-deliveries");
+
+const { sendConsentConfirmation } = require("../lib/consent-confirmation");
 
 
 /* =========================================
@@ -118,35 +118,32 @@ const ALLOWED_FIELDS = new Set([
 let resendClient = null;
 let supabaseClient = null;
 
+// Supabase: this deploy's own project only (production in production,
+// staging elsewhere — netlify/lib/environment.js). Email: a Resend client
+// exists in production only; elsewhere every send is blocked.
 function getClients() {
 
     const resendKey = process.env.RESEND_API_KEY;
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const emailAllowed = emailDeliveryAllowed();
 
-    if (!resendKey || !supabaseUrl || !serviceRoleKey) {
+    if (emailAllowed && !resendKey) {
         return null;
     }
 
-    if (!resendClient) {
-        resendClient = new Resend(resendKey);
+    if (!supabaseClient) {
+        supabaseClient = createServiceClient("send-email");
     }
 
     if (!supabaseClient) {
-        supabaseClient = createClient(
-            supabaseUrl,
-            serviceRoleKey,
-            {
-                auth: {
-                    persistSession: false,
-                    autoRefreshToken: false
-                }
-            }
-        );
+        return null;
+    }
+
+    if (emailAllowed && !resendClient) {
+        resendClient = createMailer(resendKey);
     }
 
     return {
-        resend: resendClient,
+        resend: emailAllowed ? resendClient : null,
         supabase: supabaseClient
     };
 
@@ -221,6 +218,18 @@ const RESPONSES = {
         respond(500, {
             success: false,
             error: "Something went wrong. Please try again later."
+        }),
+
+    // Outside production email is switched off by design (deploy previews
+    // and branch deploys hold no mail credentials). A deliberate,
+    // machine-readable outcome, not a crash: no database or provider work
+    // happens first. Production keeps its own responses (a production
+    // misconfiguration is still a 500 serverError).
+    notConfigured: () =>
+        respond(503, {
+            success: false,
+            code: "email_not_configured",
+            error: "Email isn't available right now."
         })
 
 };
@@ -567,6 +576,12 @@ exports.handler = async (event) => {
             : RESPONSES.invalid();
     }
 
+    if (!emailDeliveryAllowed()) {
+        // Context only: no addresses, keys or configuration values.
+        console.warn("SEND EMAIL: email is not available in this deploy context (email_not_configured).");
+        return RESPONSES.notConfigured();
+    }
+
     const clients = getClients();
 
     if (!clients) {
@@ -575,6 +590,19 @@ exports.handler = async (event) => {
     }
 
     const { resend, supabase } = clients;
+
+    // Marketing consent confirmation (double opt-in): a separate email,
+    // only for a quiz that ticked the optional box. Runs after the report
+    // attempt whatever its outcome and can never change the report's
+    // response (it never throws).
+    const finish = async (response) => {
+        try {
+            await sendConsentConfirmation(supabase, resend, request.email);
+        } catch (error) {
+            console.error("SEND EMAIL: consent confirmation step failed.");
+        }
+        return response;
+    };
 
     let leadId = null;
     let claim = null;
@@ -596,7 +624,7 @@ exports.handler = async (event) => {
 
         if (!isLeadEligible(lead, now)) {
             console.warn("SEND EMAIL: no eligible lead for request.");
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
         }
 
         leadId = lead.id;
@@ -605,7 +633,7 @@ exports.handler = async (event) => {
 
         if (hasCompetingLead(leads, leadId, now)) {
             console.warn("SEND EMAIL: address limit active.", { leadId });
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
         }
 
         /* ---------- Atomic claim ---------- */
@@ -614,7 +642,7 @@ exports.handler = async (event) => {
 
         if (!claim) {
             console.warn("SEND EMAIL: lead already claimed.", { leadId });
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
         }
 
         /* ---------- Post-claim re-check ----------
@@ -641,7 +669,7 @@ exports.handler = async (event) => {
 
             claim = null;
 
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
 
         }
 
@@ -680,7 +708,7 @@ exports.handler = async (event) => {
             claim = null;
             reservation = null;
 
-            return RESPONSES.notSent();
+            return finish(RESPONSES.notSent());
 
         }
 
@@ -729,7 +757,7 @@ exports.handler = async (event) => {
             claim = null;
             reservation = null;
 
-            return RESPONSES.deliveryFailed();
+            return finish(RESPONSES.deliveryFailed());
 
         }
 
@@ -760,7 +788,7 @@ exports.handler = async (event) => {
             { leadId, emailId: delivery.id }
         );
 
-        return RESPONSES.sent();
+        return finish(RESPONSES.sent());
 
     } catch (error) {
 
@@ -793,7 +821,7 @@ exports.handler = async (event) => {
             }
         );
 
-        return RESPONSES.serverError();
+        return finish(RESPONSES.serverError());
 
     }
 

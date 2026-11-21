@@ -20,6 +20,8 @@
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0">
 </script>
 
+<script src="/js/runtime-config.js"></script>
+<script src="/js/supabase-config.js"></script>
 <script
     src="js/supabase.js">
 </script>
@@ -85,7 +87,9 @@
 
         <div
             id="loginMessage"
-            class="auth-message">
+            class="auth-message"
+            role="status"
+            aria-live="polite">
         </div>
 
 
@@ -178,6 +182,11 @@
 
 <script>
 
+/*
+ * Login page. Messages go through EMAuth.showMessage (text only, visible,
+ * announced to screen readers). Nothing from the login result is logged:
+ * it contains the user record and the access/refresh tokens.
+ */
 document.addEventListener("DOMContentLoaded", () => {
 
     const loginForm =
@@ -201,15 +210,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    // Works even if auth.js failed to load (the CSS also shows any text).
+    function showMessage(text, kind) {
+
+        if (window.EMAuth && typeof EMAuth.showMessage === "function") {
+
+            EMAuth.showMessage(loginMessage, text, kind);
+
+            return;
+
+        }
+
+        loginMessage.textContent = String(text || "");
+
+        loginMessage.className = "auth-message" + (text ? " show " + (kind || "info") : "");
+
+    }
+
+
+    function resetButton() {
+
+        loginButton.disabled = false;
+
+        loginButton.removeAttribute("aria-busy");
+
+        loginButton.textContent =
+            "Log In";
+
+    }
+
+
     loginForm.addEventListener(
         "submit",
         async (event) => {
 
             event.preventDefault();
-
-            console.log(
-                "🔥 LOGIN FORM SUBMIT EVENT FIRED"
-            );
 
 
             const email =
@@ -227,8 +262,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!email || !password) {
 
-                loginMessage.textContent =
-                    "Please enter your email and password.";
+                showMessage(
+                    "Please enter your email and password.",
+                    "error"
+                );
 
                 return;
 
@@ -237,15 +274,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             loginButton.disabled = true;
 
+            loginButton.setAttribute("aria-busy", "true");
+
             loginButton.textContent =
                 "Signing in...";
 
 
-            loginMessage.textContent =
-                "Signing you in...";
+            showMessage(
+                "Signing you in...",
+                "info"
+            );
 
 
             try {
+
+                if (!window.EMAuth || typeof EMAuth.login !== "function") {
+
+                    throw new Error("auth_unavailable");
+
+                }
 
                 const result =
                     await EMAuth.login(
@@ -254,20 +301,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
 
 
+                // Status only: never the result, user or session.
                 console.log(
                     "🔐 Login result:",
-                    result
+                    { success: !!(result && result.success), unconfirmed: !!(result && result.unconfirmed) }
                 );
 
 
-                if (!result.success) {
+                if (!result || !result.success) {
 
-                    loginMessage.textContent =
-                        result.error ||
-                        "Login failed.";
+                    showMessage(
+                        (result && result.error) ||
+                        "Login failed.",
+                        "error"
+                    );
 
                     // Unconfirmed account: offer a new confirmation email.
-                    if (result.unconfirmed && typeof EMAuth.resendConfirmation === "function") {
+                    if (result && result.unconfirmed && typeof EMAuth.resendConfirmation === "function") {
 
                         const resend = document.createElement("button");
 
@@ -285,9 +335,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             const sent = await EMAuth.resendConfirmation(email);
 
-                            loginMessage.textContent = sent.success
-                                ? "If this account still needs confirming, a new confirmation email is on its way from auth@mail.emerriment.com. Please check your inbox and Spam folder."
-                                : sent.error;
+                            showMessage(
+                                sent.success
+                                    ? "If this account still needs confirming, a new confirmation email is on its way from auth@mail.emerriment.com. Please check your inbox and Spam folder."
+                                    : sent.error,
+                                sent.success ? "success" : "error"
+                            );
 
                         });
 
@@ -297,23 +350,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     }
 
-                    loginButton.disabled = false;
-
-                    loginButton.textContent =
-                        "Log In";
+                    resetButton();
 
                     return;
 
                 }
 
 
-                loginMessage.textContent =
-                    "✅ Login successful!";
-
-
-                console.log(
-                    "✅ User authenticated:",
-                    result.user
+                // Success replaces any earlier error.
+                showMessage(
+                    "✅ Login successful!",
+                    "success"
                 );
 
 
@@ -337,19 +384,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 console.error(
                     "❌ Login handler error:",
-                    error
+                    window.EMAuth && EMAuth.safeError ? EMAuth.safeError(error) : { kind: String(error && error.name || "Error") }
                 );
 
 
-                loginMessage.textContent =
-                    error.message ||
-                    "Unable to log in. Please try again.";
+                showMessage(
+                    "Unable to log in right now. Please try again.",
+                    "error"
+                );
 
 
-                loginButton.disabled = false;
-
-                loginButton.textContent =
-                    "Log In";
+                resetButton();
 
             }
 

@@ -1,10 +1,20 @@
 # EMerriment — Supabase security migrations and production checklist
 
-**Status: prepared, NOT applied** to any Supabase project. The migrations are
-checked statically (`npm run test:security`) and executed against a
-disposable local PostgreSQL that imitates Supabase (`npm run test:db`, PGlite —
-see `tests/db/README.md` for what that does and does not prove). They have not
-run on your real schema. Every step below needs your approval.
+**Status (2026-11-19): all eight migrations are applied to production**
+(`ioeulnjrozkbetaongbv`) and recorded in its migration history
+(`npx supabase@3.1.0 migration list --remote=ioeulnjrozkbetaongbv`: 8 local =
+8 remote). Migrations 1–6 were applied 2026-11-13/15 (`PRODUCTION_RUNBOOK.md`),
+migration 7 on 2026-11-19 (see its row below). **Staging**
+(`ayxakyyvomlzrsfznpeq`) was built from production's schema-only export, so it
+already contains all eight; its history was recorded with `migration repair`
+only (`docs/STAGING_AND_PREVIEWS.md` §4.3). Do not re-run them where they are
+recorded as applied; new migrations go to staging first.
+
+Before they were applied, the migrations were checked statically
+(`npm run test:security`) and executed against a disposable local PostgreSQL
+that imitates Supabase (`npm run test:db`, PGlite — see `tests/db/README.md`
+for what that does and does not prove); those checks still run on every
+change. Every production step needs the owner's approval.
 
 If a migration fails in `psql` or another persistent connection, run
 `ROLLBACK;` before retrying (the SQL Editor starts a fresh connection for each
@@ -23,7 +33,9 @@ run, so this is automatic there). A failed migration changes nothing.
 | `migrations/20261110090300_emerriment_content_admin_rls.sql` | Articles/products/collections: admin-only writes, reads unchanged; settings/AI analytics/product clicks admin-only; `emerriment_increment_article_views()`. |
 | `migrations/20261110090400_emerriment_email_delivery.sql` | `Sending` / `Unsubscribed` values (enum) and the `email_deliveries` table (needs migration 0). |
 | `migrations/20261113090000_emerriment_production_hardening.sql` | Migration 6: `emerriment_set_admin()` (only way to change admin access), column privileges on `profiles`/`leads`, least-privilege grants (no TRUNCATE, anon read-only on content), public read of approved products and their article links, rating summary function, view counter for published articles only, AI messages tied to the sender's own conversation, trigger functions not callable, RLS indexes, image-only storage bucket. |
-| `rollback/emerriment_security_rollback.sql` | Removes everything the migrations created and restores the recorded RLS state. |
+| `migrations/20261117090000_emerriment_marketing_consent_and_purchases.sql` | Migration 7 (**applied to production 2026-11-19**, after the read-only preflight and the verified 2026-11-19 backup; validated 03b 384/384; history recorded; staging: history recorded on the imported schema): separate marketing consent on `leads` with double opt-in (pending request at database time, allow-listed source and wording version; active only after the person confirms from the email; single-use hashed token), `purchases` (verified purchases, service role only), customer onboarding records in `email_deliveries`. See `docs/PRODUCTION_ACTIVATION_CHECKLIST.md`. |
+| `rollback/emerriment_security_rollback.sql` | Full rollback of **all seven** migrations: removes everything they created and restores the recorded RLS state. Requires `set emerriment.full_rollback = 'all-seven-migrations';` first. Never for migration 7 alone. |
+| `rollback/emerriment_migration7_rollback.sql` | Rollback of **migration 7 only**: removes the two consent guards and the visitor consent-column privilege; keeps all data and every migration 1–6 protection. Run only after the website has been rolled back. |
 
 ## Design
 
@@ -99,9 +111,14 @@ As the **administrator**: CMS users, subscribers, articles, products, settings
 and AI analytics load and save; toggle admin on a test account and back (the CMS now calls `emerriment_set_admin`).
 Then take the homepage quiz (anonymous and signed in) and `quiz.html` once.
 
-Rollback: run `rollback/emerriment_security_rollback.sql` (restores the RLS
-state recorded in `emerriment_private.rls_baseline`, then removes the
-EMerriment objects). Enum values added by migration 5 remain (harmless).
+Rollback of all seven migrations: first
+`set emerriment.full_rollback = 'all-seven-migrations';`, then run
+`rollback/emerriment_security_rollback.sql` (restores the RLS state recorded
+in `emerriment_private.rls_baseline`, then removes the EMerriment objects).
+Enum values added by migration 5 remain (harmless). This also removes the
+protections of migrations 1–6 — to undo migration 7 only, use
+`rollback/emerriment_migration7_rollback.sql` instead (see
+`PRODUCTION_RUNBOOK.md`, "Migration 7").
 
 ## Netlify environment variables
 
@@ -113,8 +130,9 @@ EMerriment objects). Enum values added by migration 5 remain (harmless).
 | `EMAIL_LINK_SECRET` | recommended | ≥ 32 characters (64 hex recommended). Can be added at any time: links sent earlier stay valid (the previous derived key is still accepted). |
 | `EMAIL_LINK_SECRET_PREVIOUS` | only while rotating | the old secret, so its links keep working. |
 | `EMAIL_LINK_ACCEPT_DERIVED` | optional | `false` ~60 days after setting `EMAIL_LINK_SECRET`, to stop accepting older links. |
-| `EMAIL_SEQUENCE_ENABLED` | to send lessons | must be exactly `true`; without it the scheduled run sends nothing. |
-| `EMAIL_SEQUENCE_START_AFTER` | recommended with the above | ISO date/time, e.g. the moment you enable the sequence. Leads that joined earlier are not emailed; later ones always continue. |
+| `EMAIL_CONFIRMATION_ENABLED` | to offer the 14-day lessons box and send consent confirmation emails | must be exactly `true`; without it the quiz pages hide the box and no confirmation email is sent. Independent of the two switches below. Requires migration 7. |
+| `EMAIL_SEQUENCE_ENABLED` | to send lessons | must be exactly `true`; without it the scheduled run sends nothing. Lessons go only to confirmed subscribers. |
+| `EMAIL_SEQUENCE_START_AFTER` | recommended with the above | ISO date/time. Leads that joined earlier are not emailed; later ones always continue. Set it to the moment `EMAIL_CONFIRMATION_ENABLED` was switched on, so people who confirmed before the lessons started are included. |
 | `EMAIL_SEQUENCE_MAX_OVERDUE_DAYS` | optional | used only without `EMAIL_SEQUENCE_START_AFTER`; default 7; `0` = no limit. |
 | `EMAIL_OPEN_ALLOW_LEGACY` | optional | `false` ~30 days after deploy to stop counting legacy `?email=` opens. |
 | `EMAIL_CLAIM_COMPAT_MODE` | avoid | only if the database cannot accept `Sending` and you choose not to change it. |

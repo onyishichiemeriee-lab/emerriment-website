@@ -10,7 +10,7 @@ const safeName = escapeHtml(name || "there");
 return {
 
 subject:
-"☀️ The #1 Skincare Product Dermatologists Agree On",
+"☀️ Why daily sunscreen matters so much",
 
 html: layout({
 

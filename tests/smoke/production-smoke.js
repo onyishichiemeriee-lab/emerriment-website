@@ -68,7 +68,7 @@ const INTERNAL_FILES = [
     "/package.json", "/package-lock.json", "/netlify.toml",
     "/netlify/functions/send-email.js", "/netlify/lib/email-common.js",
     "/emails/day1.js", "/emails/layout.js", "/local-ai/server.js",
-    "/tests/email/helpers.js", "/supabase/README.md",
+    "/tests/email/helpers.js", "/supabase/README.md", "/docs/EMAIL_LIFECYCLE_PLAN.md", "/DOCS/PRODUCTION_ACTIVATION_CHECKLIST.md",
     "/supabase/migrations/20261110090000_emerriment_security_helpers.sql",
     "/test-emails.js", "/deno.lock"
 ];
@@ -121,18 +121,22 @@ const HEADERS = [
     const originOf = (loc) => {
         try { return new URL(loc, BASE).origin; } catch (e) { return "invalid"; }
     };
-    const SITE_ORIGIN = new URL(BASE).origin;
+    // Functions send people to the site's primary domain (Netlify's URL
+    // variable). When this test runs against the Netlify address, the
+    // official domain is equally "the site itself".
+    const OWN_ORIGINS = new Set([new URL(BASE).origin, "https://emerriment.com"]);
+    const ownSite = (loc) => OWN_ORIGINS.has(originOf(loc));
 
     const clickNone = await get("/.netlify/functions/track-click");
     const clickNoneLoc = clickNone.headers.get("location") || "";
     record("functions", "track-click: no params → 302 to the site",
-        clickNone.status === 302 && originOf(clickNoneLoc) === SITE_ORIGIN, `${clickNone.status} ${clickNoneLoc}`);
+        clickNone.status === 302 && ownSite(clickNoneLoc), `${clickNone.status} ${clickNoneLoc}`);
 
     for (const foreign of ["https://evil.example/phish", "//evil.example/x", "https://emerriment216.netlify.app.evil.example/"]) {
         const r = await get("/.netlify/functions/track-click?url=" + encodeURIComponent(foreign));
         const loc = r.headers.get("location") || "";
         record("functions", `track-click: ${foreign} is NOT followed (lands on the site itself)`,
-            r.status === 302 && originOf(loc) === SITE_ORIGIN, `${r.status} → origin ${originOf(loc)}`);
+            r.status === 302 && ownSite(loc), `${r.status} → origin ${originOf(loc)}`);
     }
 
     const unsubNone = await get("/.netlify/functions/unsubscribe");

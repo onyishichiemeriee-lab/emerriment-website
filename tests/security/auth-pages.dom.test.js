@@ -7,99 +7,13 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
-const { JSDOM, ResourceLoader, VirtualConsole } = require("jsdom");
 const H = require("../email/helpers");
 
 const suite = H.createSuite("auth pages in a browser DOM (jsdom)");
 const { test } = suite;
 
-const USER = { id: "00000000-0000-4000-8000-00000000000a", email: "user@example.test", email_confirmed_at: "2026-11-16T09:00:00Z" };
-const ARTICLE = { id: "a1", title: "Acne basics", slug: "acne", category: "Acne", summary: "Summary", content: "Body", featured_image: "https://example.test/a.jpg", reading_time: 4, status: "published", views: 3, seo_keywords: ["acne", "pimples", "breakouts"], related_conditions: ["acne", "oily skin"], created_at: "2026-11-01T00:00:00Z", published_at: null, difficulty: "Beginner", author: "EMerriment", is_featured: true };
-const PRODUCT = { id: "p1", name: "Gentle cleanser", description: "d", category: "Cleanser", price: null, selar_link: "https://selar.com/x", featured: false, quiz_recommended: true, image: null, is_approved: true, ingredients: [], skin_types: [], concerns: ["acne"], benefits: ["gentle", "daily"], related_articles: [] };
+const { USER, resolveExact, load, visible } = require("./dom-harness");
 
-function fakeClientSource(opts) {
-    return `
-    window.supabase = { createClient: function () {
-      const user = ${opts.signedIn ? JSON.stringify(USER) : "null"};
-      return {
-        auth: {
-          getUser: async () => ({ data: { user }, error: user ? null : { message: "Auth session missing!" } }),
-          getSession: async () => ({ data: { session: user ? { access_token: "x", user } : null }, error: null }),
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
-          signOut: async () => ({ error: null }),
-          signInWithPassword: async () => (window.__signin || { data: { user: ${JSON.stringify(USER)}, session: { access_token: "x" } }, error: null }),
-          resend: async (args) => { (window.__resendCalls = window.__resendCalls || []).push(args); return window.__resend || { data: {}, error: null }; },
-          updateUser: async (args) => { window.__updateUserCalls = (window.__updateUserCalls || 0) + 1; return { data: { user }, error: null }; }
-        },
-        from: (t) => window.__fakeFrom(t),
-        rpc: async () => ({ data: null, error: null })
-      };
-    } };`;
-}
-
-function makeFrom(rows) {
-    return (table) => {
-        const state = { single: false, maybe: false };
-        const b = new Proxy({}, {
-            get(_t, prop) {
-                if (prop === "then") {
-                    return (resolve, reject) => {
-                        const d = rows[table] || [];
-                        if (d instanceof Error) return Promise.reject(d).then(resolve, reject);
-                        let data = d;
-                        if (state.single || state.maybe) data = d[0] || null;
-                        return Promise.resolve({ data, error: null, count: d.length }).then(resolve, reject);
-                    };
-                }
-                if (prop === "single") return () => { state.single = true; return b; };
-                if (prop === "maybeSingle") return () => { state.maybe = true; return b; };
-                return () => b;
-            }
-        });
-        return b;
-    };
-}
-
-function resolveExact(rel) {
-    const file = path.join(H.ROOT, rel);
-    return fs.existsSync(file) ? file : null;
-}
-
-// Loads a page; local files are served with EXACT case (stricter than Netlify).
-async function load(page, { signedIn = true, rows = {}, supabaseLoads = true, before, hash = "" } = {}) {
-    const events = { errors: [], navigations: 0, missing: [] };
-    class Loader extends ResourceLoader {
-        fetch(url) {
-            if (/supabase-js/.test(url)) return Promise.resolve(Buffer.from(supabaseLoads ? fakeClientSource({ signedIn }) : ""));
-            const u = new URL(url);
-            if (u.hostname !== "local.test") return Promise.resolve(Buffer.from(""));
-            const rel = decodeURIComponent(u.pathname).replace(/^\//, "");
-            const file = resolveExact(rel);
-            if (!file) events.missing.push(rel);
-            return Promise.resolve(file ? fs.readFileSync(file) : Buffer.from(""));
-        }
-    }
-    const vc = new VirtualConsole();
-    vc.on("jsdomError", (e) => {
-        const m = String(e && e.message || e);
-        if (/Not implemented: navigation/.test(m)) events.navigations++;
-        else events.errors.push(m.split("\n")[0]);
-    });
-    const dom = new JSDOM(fs.readFileSync(path.join(H.ROOT, page), "utf8"), {
-        url: "https://local.test/" + page + hash, runScripts: "dangerously", resources: new Loader(), virtualConsole: vc, pretendToBeVisual: true,
-        beforeParse(window) {
-            window.__fakeFrom = makeFrom({ profiles: [{ id: USER.id, full_name: "Test User", email: USER.email, is_admin: false, current_skin_score: 0 }], encyclopedia_articles: [ARTICLE], products: [PRODUCT], ...rows });
-            window.addEventListener("error", (e) => events.errors.push("uncaught: " + (e.error && e.error.message || e.message)));
-            window.addEventListener("unhandledrejection", (e) => events.errors.push("unhandled rejection: " + (e.reason && e.reason.message || e.reason)));
-            window.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
-            if (before) before(window);
-        }
-    });
-    await new Promise((r) => dom.window.addEventListener("load", r));
-    return { dom, window: dom.window, document: dom.window.document, events, settle: (ms = 300) => new Promise((r) => setTimeout(r, ms)) };
-}
-
-const visible = (el) => el && !el.hidden && el.style.display !== "none";
 
 test("dashboard.html: every script it loads exists with the exact path (case-sensitive)", async () => {
     const html = fs.readFileSync(path.join(H.ROOT, "dashboard.html"), "utf8");

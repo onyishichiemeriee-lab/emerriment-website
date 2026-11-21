@@ -30,6 +30,35 @@ migrations in filename order and checks every table as anon, user A,
 user B, admin and the service role; runs the backup, rollback, 02 and 03
 SQL files. Data is synthetic.
 
+### Journey rules (`journey.pglite.test.js`, migration 7)
+
+On the production-shaped copy with all eight migration files:
+* double opt-in: a quiz insert records only a pending request
+  (allow-listed source and wording, server time); consent itself, times and
+  tokens are refused by column privileges;
+* activation (by update) only by the service role with a live, unexpired
+  token (the confirmation page); the token is destroyed on use; browser
+  clients, signed-in users and administrators cannot activate or forge
+  consent through the API; the SQL Editor cannot activate by update; one
+  active subscriber per address; evidence never rewritten;
+* the SQL Editor (trusted direct connection) is a privileged operator path:
+  an insert without consistent evidence is refused by the CHECK
+  constraint, but an insert with complete evidence is accepted (asserted
+  in a rolled-back transaction, documenting the path, not endorsing it);
+* withdrawal by the service role (server time) or automatically on
+  `Unsubscribed`, destroying outstanding tokens; the exact updates made by
+  `unsubscribe.js` work; existing leads stay opted out;
+* purchases not creatable or readable from a browser; one per order;
+  customer delivery records at most once;
+* migration-7-only rollback: identical data fingerprint and identical
+  migration 1–6 security state (policies, RLS, grants, triggers,
+  functions) before and after, 03b still passes, refuses to run without
+  migration 7, re-apply works;
+* the full rollback refuses to run without its explicit confirmation.
+
+The new consent tests were checked against the previous version of
+migration 7 (no update guard): 5 of them fail there, as they should.
+
 ### Original suite (`migrations.pglite.test.js`)
 
 * All five migrations in the documented order (5, 1, 2, 3, 4) against two

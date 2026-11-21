@@ -52,7 +52,7 @@ const AIMemory = {
 
             console.warn(
                 "AIMemory authentication warning:",
-                error
+                emrSafeError(error)
             );
 
             return null;
@@ -171,7 +171,7 @@ const AIMemory = {
 
             console.error(
                 "AIMemory Save Error:",
-                error
+                emrSafeError(error)
             );
 
             return false;
@@ -228,7 +228,7 @@ const AIMemory = {
 
             console.error(
                 "AIMemory Load Error:",
-                error
+                emrSafeError(error)
             );
 
             return {};
@@ -312,7 +312,7 @@ const AIMemory = {
 
             console.error(
                 "AIMemory Remove Error:",
-                error
+                emrSafeError(error)
             );
 
             return false;
@@ -745,3 +745,19 @@ window.AIMemory =
 console.log(
     "✅ EMerriment AI Memory Engine initialized."
 );
+
+/* -----------------------------------------
+   Log privacy: an error reduced to its category.
+   Supabase/PostgREST and Auth errors can carry row values,
+   user ids or memory text in message/details/hint, so only
+   name, code and HTTP status are logged — never the payload.
+----------------------------------------- */
+
+function emrSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}

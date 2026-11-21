@@ -54,10 +54,7 @@ const uuidPattern =
 
 if (!uuidPattern.test(userId)) {
 
-    console.error(
-        "❌ Invalid UUID:",
-        userId
-    );
+    console.error("❌ Invalid UUID");
 
     alert(
         "Invalid user ID."
@@ -66,16 +63,13 @@ if (!uuidPattern.test(userId)) {
     window.location.href = "usersCMS.html";
 
     throw new Error(
-        "Invalid UUID: " + userId
+        "Invalid user ID."
     );
 
 }
 
 
-console.log(
-    "✅ User Details ID:",
-    userId
-);
+console.log("✅ User details page opened.");
 
 
 /* =========================================
@@ -84,109 +78,15 @@ console.log(
 
 async function checkAdmin() {
 
-    try {
+    // Shared, fail-closed administrator check (admin/js/admin-guard.js):
+    // nothing below runs unless the signed-in user is an administrator.
+    const access = await window.EMAdminGuard.requireAdmin();
 
-        const {
-            data: {
-                user
-            },
-            error: authError
-        } = await supabaseClient.auth.getUser();
-
-
-        if (authError) {
-
-            console.error(
-                "Authentication error:",
-                authError
-            );
-
-            window.location.href =
-                "loginCMS.html";
-
-            return;
-
-        }
-
-
-        if (!user) {
-
-            console.warn(
-                "No authenticated user."
-            );
-
-            window.location.href =
-                "loginCMS.html";
-
-            return;
-
-        }
-
-
-        /* -------------------------------------
-           CHECK ADMIN PROFILE
-        ------------------------------------- */
-
-        const {
-    data: profile,
-    error: profileError
-} = await supabaseClient
-
-    .from("profiles")
-
-    .select("is_admin")
-
-    .eq("id", user.id)
-
-    .maybeSingle();
-
-
-if (profileError) {
-
-    console.error(
-        "Admin check failed:",
-        profileError
-    );
-
-    alert(
-        "Unable to verify CMS permissions."
-    );
-
-    return;
-
-}
-
-
-if (!profile || profile.is_admin !== true) {
-
-    alert(
-        "You do not have permission to access the CMS."
-    );
-
-    location.href = "loginCMS.html";
-
-    return;
-
-}
-
+    if (!access) return;
 
         loadUser();
 
         loadQuizHistory();
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "checkAdmin error:",
-            error
-        );
-
-        window.location.href =
-            "loginCMS.html";
-
-    }
 
 }
 
@@ -197,10 +97,7 @@ if (!profile || profile.is_admin !== true) {
 
 async function loadUser() {
 
-    console.log(
-        "Loading user:",
-        userId
-    );
+    console.log("Loading user");
 
 
     const {
@@ -219,10 +116,7 @@ async function loadUser() {
 
     if (error) {
 
-        console.error(
-            "❌ Failed to load user:",
-            error
-        );
+        console.error("❌ Failed to load user:", window.EMAdminGuard.safeError(error));
 
         alert(
             error.message
@@ -235,10 +129,7 @@ async function loadUser() {
 
     if (!data) {
 
-        console.warn(
-            "⚠️ No profile found for:",
-            userId
-        );
+        console.warn("⚠️ No profile found");
 
         document.getElementById(
             "userName"
@@ -302,10 +193,7 @@ async function loadUser() {
             : "No";
 
 
-    console.log(
-        "✅ User loaded:",
-        data
-    );
+    console.log("✅ User loaded");
 
 }
 
@@ -316,10 +204,7 @@ async function loadUser() {
 
 async function loadQuizHistory() {
 
-    console.log(
-        "Loading quiz history for:",
-        userId
-    );
+    console.log("Loading quiz history");
 
 
     const {
@@ -343,10 +228,7 @@ async function loadQuizHistory() {
 
     if (error) {
 
-        console.error(
-            "❌ Quiz history error:",
-            error
-        );
+        console.error("❌ Quiz history error:", window.EMAdminGuard.safeError(error));
 
         return;
 
@@ -466,9 +348,7 @@ document
 
                 if (error) {
 
-                    console.error(
-                        error
-                    );
+                    console.error("❌ user-detailsCMS request failed:", window.EMAdminGuard.safeError(error));
 
                     alert(
                         error.message
@@ -510,9 +390,7 @@ document
 
                 if (updateError) {
 
-                    console.error(
-                        updateError
-                    );
+                    console.error("❌ user-detailsCMS request failed:", window.EMAdminGuard.safeError(updateError));
 
                     alert(
                         updateError.message
@@ -534,10 +412,7 @@ document
 
             catch (error) {
 
-                console.error(
-                    "Toggle admin error:",
-                    error
-                );
+                console.error("Toggle admin error:", window.EMAdminGuard.safeError(error));
 
             }
 

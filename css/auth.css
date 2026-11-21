@@ -427,6 +427,18 @@ body {
     color: var(--em-success);
 }
 
+/* Progress / neutral status ("Signing you in..."). */
+.auth-message.info {
+    background: #f3f1ec;
+
+    color: #4a4a4a;
+}
+
+/* Long messages and the resend button must wrap on narrow phones. */
+.auth-message.show {
+    overflow-wrap: anywhere;
+}
+
 
 /* =========================================
    DIVIDER

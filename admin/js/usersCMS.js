@@ -14,132 +14,13 @@ let users = [];
 
 async function checkAdmin() {
 
-    try {
+    // Shared, fail-closed administrator check (admin/js/admin-guard.js):
+    // nothing below runs unless the signed-in user is an administrator.
+    const access = await window.EMAdminGuard.requireAdmin();
 
-        console.log("🔐 Checking CMS admin access...");
-
-        const {
-            data: { user },
-            error: authError
-        } = await supabaseClient.auth.getUser();
-
-
-        if (authError) {
-
-            console.error(
-                "❌ Auth error:",
-                authError
-            );
-
-            location.href = "loginCMS.html";
-
-            return;
-
-        }
-
-
-        if (!user) {
-
-            console.warn(
-                "⚠️ No logged-in user."
-            );
-
-            location.href = "loginCMS.html";
-
-            return;
-
-        }
-
-
-        console.log(
-            "👤 Logged-in user:",
-            user.id,
-            user.email
-        );
-
-
-        const {
-            data: profile,
-            error: profileError
-        } = await supabaseClient
-
-            .from("profiles")
-
-            .select("id, email, full_name, is_admin")
-
-            .eq("id", user.id)
-
-            .maybeSingle();
-
-
-        if (profileError) {
-
-            console.error(
-                "❌ Profile query error:",
-                profileError
-            );
-
-            alert(
-                "Unable to verify CMS permissions: " +
-                profileError.message
-            );
-
-            return;
-
-        }
-
-
-        console.log(
-            "📋 Admin profile:",
-            profile
-        );
-
-
-        if (!profile) {
-
-            alert(
-                "Your account does not have a profile record."
-            );
-
-            return;
-
-        }
-
-
-        if (profile.is_admin !== true) {
-
-            alert(
-                "You do not have permission to access the CMS."
-            );
-
-            location.href = "../dashboardCMS.html";
-
-            return;
-
-        }
-
-
-        console.log(
-            "✅ CMS admin access granted."
-        );
-
+    if (!access) return;
 
         loadUsers();
-
-    }
-
-    catch(error) {
-
-        console.error(
-            "❌ CMS authorization error:",
-            error
-        );
-
-        alert(
-            "Something went wrong while checking CMS access."
-        );
-
-    }
 
 }
 
@@ -173,10 +54,7 @@ async function loadUsers() {
 
     if (error) {
 
-        console.error(
-            "❌ Failed to load users:",
-            error
-        );
+        console.error("❌ Failed to load users:", window.EMAdminGuard.safeError(error));
 
         return;
 
@@ -246,10 +124,7 @@ function renderUsers(data) {
 
         if (!user.id) {
 
-            console.warn(
-                "⚠️ User has no ID:",
-                user
-            );
+            console.warn("⚠️ User has no ID");
 
             return;
 
@@ -416,10 +291,7 @@ if (searchInput) {
 
 function viewUser(id) {
 
-    console.log(
-        "Opening user:",
-        id
-    );
+    console.log("Opening user");
 
 
     /* -------------------------------------
@@ -432,10 +304,7 @@ function viewUser(id) {
         id === "undefined"
     ) {
 
-        console.error(
-            "❌ Cannot open user. Invalid ID:",
-            id
-        );
+        console.error("❌ Cannot open user. Invalid ID");
 
 
         alert(
@@ -458,10 +327,7 @@ function viewUser(id) {
 
     if (!uuidPattern.test(id)) {
 
-        console.error(
-            "❌ Invalid UUID:",
-            id
-        );
+        console.error("❌ Invalid UUID");
 
 
         alert(
@@ -511,10 +377,7 @@ if (logoutBtn) {
 
             catch (error) {
 
-                console.error(
-                    "Logout error:",
-                    error
-                );
+                console.error("Logout error:", window.EMAdminGuard.safeError(error));
 
             }
 

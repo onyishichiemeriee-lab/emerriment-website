@@ -14,7 +14,22 @@ document.getElementById("title").addEventListener("input", (e) => {
 const form = document.getElementById("articleForm");
 const message = document.getElementById("message");
 
+// Shared administrator check (admin/js/admin-guard.js): the form stays
+// disabled, and nothing is saved, unless the user is an administrator.
+function setFormEnabled(enabled) {
+    if (!form) return;
+    form.querySelectorAll("input, textarea, select, button").forEach((el) => { el.disabled = !enabled; });
+}
+
+setFormEnabled(false);
+
+window.EMAdminGuard.requireAdmin().then((access) => setFormEnabled(!!access));
+
+
 async function saveArticle(status){
+
+    if (!(await window.EMAdminGuard.requireAdmin())) return;
+
 
     const article = {
 
@@ -40,7 +55,8 @@ async function saveArticle(status){
             .map(x => x.trim())
             .filter(Boolean),
 
-        content: document.getElementById("content").value,
+        // Defence in depth: stored HTML is sanitized again when it is shown.
+        content: (window.EMArticleContent ? window.EMArticleContent.sanitizeArticleHTML(document.getElementById("content").value) : document.getElementById("content").value),
 
         status,
 

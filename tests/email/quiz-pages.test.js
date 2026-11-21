@@ -1,8 +1,9 @@
 /* Tests for saveQuizResult() in every quiz.html implementation:
    js/quiz.js (quiz.html), skinquiz/js/quiz.js, encyclopediaCMS/js/quiz.js,
    article/js/quiz.js. These pages save the lead (and, for signed-in users,
-   the quiz result). They do NOT send email — that is their existing,
-   intended behaviour and is kept. */
+   the quiz result). js/quiz.js (the live quiz.html) also requests the
+   visitor's report email since 2026-11-17 (the page asks for the address
+   "to email you a copy"); the legacy copies still send none. */
 "use strict";
 
 const assert = require("assert");
@@ -26,8 +27,8 @@ function extract(file) {
     throw new Error("unbalanced");
 }
 
-function setup(file, { user = null, leadError = null } = {}) {
-    const calls = { inserts: [], upserts: 0, selects: 0, fetches: 0 };
+function setup(file, { user = null, leadError = null, consent = undefined } = {}) {
+    const calls = { inserts: [], upserts: 0, selects: 0, fetches: 0, requests: [] };
     const chain = (table, kind, rows) => {
         const result = { data: null, error: table === "leads" ? leadError : null };
         const p = Promise.resolve(result);
@@ -52,7 +53,7 @@ function setup(file, { user = null, leadError = null } = {}) {
     const context = {
         supabaseClient,
         supabase: { createClient() {} },
-        fetch: async () => { calls.fetches++; return { ok: true }; },
+        fetch: async (url, opts) => { calls.fetches++; calls.requests.push({ url, body: JSON.parse(opts.body) }); return { ok: true }; },
         console: { log() {}, error() {}, warn() {} },
         quizData: { name: "Ada", email: "ada@example.com", skinType: "Oily", concern: "Acne",
             oilLevel: "High", sensitivity: "Low", score: 72, recommendation: "Hydrate." },
@@ -61,6 +62,7 @@ function setup(file, { user = null, leadError = null } = {}) {
     vm.createContext(context);
     vm.runInContext(extract(file) + "\nthis.saveQuizResult = saveQuizResult;", context);
     const data = { name: "Ada", email: "ada@example.com", skin_type: "Oily", concern: "Acne", oil_level: "High", sensitivity: "Low" };
+    if (consent !== undefined) data.marketing_consent = consent;
     return { run: () => context.saveQuizResult(data, 72, "Hydrate."), calls };
 }
 
@@ -68,14 +70,22 @@ const FILES = ["js/quiz.js", "skinquiz/js/quiz.js", "encyclopediaCMS/js/quiz.js"
 
 for (const file of FILES) {
 
-    test(`[${file}] anonymous visitor: lead inserted, never read back, no upsert, no email`, async () => {
+    test(`[${file}] anonymous visitor: lead inserted, never read back, no upsert${file === "js/quiz.js" ? ", one report email request" : ", no email"}`, async () => {
         const s = setup(file);
         const result = await s.run();
         const leads = s.calls.inserts.filter((i) => i.table === "leads");
         assert.strictEqual(leads.length, 1);
         assert.strictEqual(s.calls.selects, 0, "lead read back (needs anonymous SELECT on leads)");
         assert.strictEqual(s.calls.upserts, 0, "upsert needs UPDATE permission on leads");
-        assert.strictEqual(s.calls.fetches, 0, "quiz.html does not send email");
+        if (file === "js/quiz.js") {
+            assert.strictEqual(s.calls.fetches, 1, "exactly one report request");
+            assert.strictEqual(s.calls.requests[0].url, "/.netlify/functions/send-email");
+            assert.deepStrictEqual(Object.keys(s.calls.requests[0].body).sort(),
+                ["concern", "email", "name", "oilLevel", "recommendation", "score", "sensitivity", "skinType"]);
+            assert.strictEqual(result.reportEmailSent, true);
+        } else {
+            assert.strictEqual(s.calls.fetches, 0, "legacy copy sends no email");
+        }
         assert.strictEqual(leads[0].rows.email, "ada@example.com");
         if (file !== "article/js/quiz.js") assert.strictEqual(result.success, true);
     });
@@ -101,6 +111,29 @@ for (const file of ["js/quiz.js", "skinquiz/js/quiz.js"]) {
         assert.strictEqual(result.quizResultSaved, true);
     });
 }
+
+test("[js/quiz.js] no opt-in: lead carries no consent fields (database default = no lessons)", async () => {
+    const s = setup("js/quiz.js", { consent: false });
+    await s.run();
+    const row = s.calls.inserts.find((i) => i.table === "leads").rows;
+    assert(!("marketing_consent" in row) && !("marketing_consent_source" in row));
+});
+
+test("[js/quiz.js] ticked box: a REQUEST only (source quiz_page + wording version), never consent itself", async () => {
+    const s = setup("js/quiz.js", { consent: true });
+    await s.run();
+    const row = s.calls.inserts.find((i) => i.table === "leads").rows;
+    assert(!("marketing_consent" in row), "double opt-in: the browser never sends consent itself");
+    assert.strictEqual(row.marketing_consent_source, "quiz_page");
+    assert.strictEqual(row.marketing_consent_version, "quiz-optin-2026-11-17");
+    assert(!("marketing_consent_at" in row), "the timestamp is set by the database");
+});
+
+test("[js/quiz.js] lead save fails: no report email is requested", async () => {
+    const s = setup("js/quiz.js", { leadError: { message: "denied" } });
+    await s.run();
+    assert.strictEqual(s.calls.fetches, 0);
+});
 
 module.exports = suite;
 

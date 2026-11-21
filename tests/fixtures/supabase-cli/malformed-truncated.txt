@@ -1,0 +1,8 @@
+{
+  "boundary": "00000000000000000000000000000000",
+  "rows": [
+    {
+      "cat": "table",
+      "k": "public.leads",
+      "v": "synthetic-v1"
+    }

@@ -31,21 +31,28 @@ function element(id, value = "") {
     return { id, value, innerHTML: "", innerText: "", style: { display: "" }, scrollIntoView() { this.scrolled = true; } };
 }
 
-function setup({ file = "js/script.js", insertError = null, fetchResult = { ok: true }, fetchThrows = false, user = null, profileError = null } = {}) {
+function setup({ file = "js/script.js", insertError = null, insertErrors = null, fetchResult = { ok: true }, fetchThrows = false, user = null, profileError = null, email = "ada@example.com", consent = null, extraEls = false } = {}) {
     const els = {
         loading: element("loading"), analysisText: element("analysisText"), results: element("results"),
         recommendedProducts: element("recommendedProducts"), productRecommendations: element("productRecommendations"),
-        name: element("name", "Ada"), email: element("email", "ada@example.com"), skinType: element("skinType", "Oily"),
+        name: element("name", "Ada"), email: element("email", email), skinType: element("skinType", "Oily"),
         concern: element("concern", "Acne"), oilLevel: element("oilLevel", "High"), sensitivity: element("sensitivity", "Low")
     };
+    if (consent !== null) els.marketingConsent = { id: "marketingConsent", checked: consent };
+    if (extraEls) {
+        els.quizFormError = { id: "quizFormError", textContent: "", hidden: true };
+        els.quizSubmit = { id: "quizSubmit", disabled: false };
+    }
     const calls = { inserts: [], updates: [], fetches: [], alerts: [], selectAfterInsert: false, getUser: 0 };
+    const queuedErrors = insertErrors ? insertErrors.slice() : null;
     const supabaseClient = {
         auth: { getUser: async () => { calls.getUser++; return { data: { user } }; } },
         from(table) {
             return {
                 insert(rows) {
-                    calls.inserts.push({ table, rows });
-                    const result = { data: null, error: table === "leads" ? insertError : null };
+                    calls.inserts.push({ table, rows: JSON.parse(JSON.stringify(rows)) });
+                    const leadError = queuedErrors && table === "leads" ? (queuedErrors.shift() || null) : insertError;
+                    const result = { data: null, error: table === "leads" ? leadError : null };
                     const p = Promise.resolve(result);
                     p.select = () => { calls.selectAfterInsert = true; return Promise.resolve(result); };
                     return p;
@@ -197,6 +204,73 @@ test(`[${SKIN}] lead save error: message, no email, loading hidden`, async () =>
     assert.deepStrictEqual(s.calls.alerts, ["Unable to save your quiz. Please try again."]);
     assert.strictEqual(s.calls.fetches.length, 0);
     assert.strictEqual(s.els.loading.style.display, "none");
+});
+
+/* ---------- Consent, validation, duplicate submissions (js/script.js) ---------- */
+
+test("[js/script.js] invalid or missing email: clear inline message, nothing saved or sent", async () => {
+    for (const email of ["", "not-an-email", "ada@", " "]) {
+        const s = setup({ email, extraEls: true });
+        await s.run();
+        assert.strictEqual(s.calls.inserts.length, 0, "saved with " + JSON.stringify(email));
+        assert.strictEqual(s.calls.fetches.length, 0);
+        assert.strictEqual(s.els.quizFormError.hidden, false);
+        assert.match(s.els.quizFormError.textContent, /valid email address/);
+        assert.strictEqual(s.calls.alerts.length, 0, "inline message, no alert");
+    }
+});
+
+test("[js/script.js] double click: one lead and one report request; button re-enabled afterwards", async () => {
+    const s = setup({ extraEls: true });
+    await Promise.all([s.run(), s.run(), s.run()]);
+    assert.strictEqual(s.calls.inserts.filter((i) => i.table === "leads").length, 1);
+    assert.strictEqual(s.calls.fetches.length, 1);
+    assert.strictEqual(s.els.quizSubmit.disabled, false);
+});
+
+test("[js/script.js] C: consent box left unticked → no consent fields (report only)", async () => {
+    const s = setup({ consent: false });
+    await s.run();
+    const row = s.calls.inserts.find((i) => i.table === "leads").rows[0];
+    assert(!("marketing_consent" in row), "consent sent although unticked");
+    assert(!("marketing_consent_source" in row) && !("marketing_consent_version" in row), "a request sent although unticked");
+    assert.strictEqual(s.calls.fetches.length, 1, "the requested report is still sent");
+    assert(!/please confirm/.test(s.calls.alerts.join(" ")), "no confirmation message without the box");
+});
+
+test("[js/script.js] D: consent ticked → a REQUEST only (source homepage_quiz + wording version); never consent itself or a timestamp", async () => {
+    const s = setup({ consent: true });
+    await s.run();
+    const row = s.calls.inserts.find((i) => i.table === "leads").rows[0];
+    assert(!("marketing_consent" in row), "double opt-in: the browser never sends consent itself");
+    assert(!("marketing_consent_requested_at" in row));
+    assert.strictEqual(row.marketing_consent_source, "homepage_quiz");
+    assert.strictEqual(row.marketing_consent_version, "quiz-optin-2026-11-17");
+    assert(!("marketing_consent_at" in row));
+    assert.deepStrictEqual(Object.keys(JSON.parse(s.calls.fetches[0].opts.body)).sort(),
+        ["concern", "email", "name", "oilLevel", "recommendation", "score", "sensitivity", "skinType"], "consent is not sent to the email function");
+});
+
+test("[js/script.js] a ticked but DISABLED box (confirmation emails off) records no request and promises no confirmation", async () => {
+    const s = setup({ consent: true });
+    s.els.marketingConsent.disabled = true;
+    await s.run();
+    const row = s.calls.inserts.find((i) => i.table === "leads").rows[0];
+    assert(!("marketing_consent_source" in row) && !("marketing_consent_version" in row), "no unusable request");
+    assert.strictEqual(s.calls.fetches.length, 1, "the requested report is still sent");
+    assert(!/confirm/.test(s.calls.alerts.join(" ")), "no confirmation promised");
+});
+
+test("[js/script.js] database without the consent columns yet: quiz still saved (without consent) and report sent", async () => {
+    const s = setup({ consent: true, insertErrors: [{ code: "PGRST204", message: "Could not find the 'marketing_consent' column of 'leads' in the schema cache" }, null] });
+    await s.run();
+    const leadInserts = s.calls.inserts.filter((i) => i.table === "leads");
+    assert.strictEqual(leadInserts.length, 2);
+    assert(!("marketing_consent_source" in leadInserts[1].rows[0]) && !("marketing_consent_version" in leadInserts[1].rows[0]), "retry must drop the request fields");
+    assert.strictEqual(s.calls.fetches.length, 1);
+    assert.strictEqual(s.calls.alerts.length, 1);
+    assert(s.calls.alerts[0].startsWith("🎉 Your skin report has been generated and sent to your email."));
+    assert(/please confirm using the separate email/.test(s.calls.alerts[0]), "explains the confirmation step");
 });
 
 module.exports = suite;

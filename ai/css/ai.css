@@ -1949,3 +1949,22 @@ button,
 
 
 }
+
+/* Guest / unavailable note under the profile grid (ai/js/ai.js). */
+.profile-hint {
+    margin: 16px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #5b5b5b;
+    overflow-wrap: anywhere;
+}
+
+.profile-hint a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.profile-hint[hidden] {
+    display: none;
+}

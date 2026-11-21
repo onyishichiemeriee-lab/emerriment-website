@@ -19,6 +19,8 @@ const db = {
     // Tables that do not exist (like before the
     // migration). Queries on them fail as in PostgREST.
     missingTables: new Set(["email_deliveries"]),
+    // Columns that do not exist yet (before a migration).
+    missingColumns: new Set(),
     // { table: [[col, col, ...], ...] } unique keys
     unique: { email_deliveries: [["lead_id", "kind", "sequence_day"]] },
     nextRowId: 1,
@@ -26,7 +28,8 @@ const db = {
     rejectValues: {},
     // (query) => true to make that query fail
     failWhen: null,
-    ops: []
+    ops: [],
+    clientUrls: []
 };
 
 function likeToRegex(pattern) {
@@ -62,6 +65,7 @@ function matches(row, filters) {
             case "gte": return v != null && cmpTime(v) >= cmpTime(val);
             case "lte": return v != null && cmpTime(v) <= cmpTime(val);
             case "lt": return v != null && cmpTime(v) < cmpTime(val);
+            case "gt": return v != null && cmpTime(v) > cmpTime(val);
             case "ilike": return typeof v === "string" && likeToRegex(val).test(v);
             default: throw new Error("unsupported op " + op);
         }
@@ -88,6 +92,7 @@ class Query {
     gte(c, v) { this.filters.push(["gte", c, v]); return this; }
     lte(c, v) { this.filters.push(["lte", c, v]); return this; }
     lt(c, v) { this.filters.push(["lt", c, v]); return this; }
+    gt(c, v) { this.filters.push(["gt", c, v]); return this; }
     ilike(c, v) { this.filters.push(["ilike", c, v]); return this; }
     order(c, o) { this.ord = [c, o || {}]; return this; }
     limit(n) { this.lim = n; return this; }
@@ -110,6 +115,10 @@ class Query {
         db.ops.push({ table: this.table, mode: this.mode, filters: this.filters, changes: this.changes });
         if (db.failWhen && db.failWhen(this)) {
             return { data: null, error: { code: "XX000", message: "SECRET-DB-DETAIL internal failure" } };
+        }
+        const missingColumn = this.filters.map((f) => f[1]).find((c) => db.missingColumns.has(c));
+        if (missingColumn) {
+            return { data: null, error: { code: "42703", message: `column ${this.table}.${missingColumn} does not exist` } };
         }
         if (db.missingTables.has(this.table)) {
             return { data: null, error: { code: "PGRST205", message: `Could not find the table 'public.${this.table}' in the schema cache` } };
@@ -159,7 +168,8 @@ class Query {
 }
 
 const fakeSupabase = {
-    createClient: () => ({ from: (t) => new Query(t) })
+    // Records the project URL of every client created (environment isolation tests).
+    createClient: (url) => { db.clientUrls.push(String(url)); return { from: (t) => new Query(t) }; }
 };
 
 
@@ -218,15 +228,21 @@ const TEST_ENV = {
     SUPABASE_URL: "https://example.invalid",
     SUPABASE_SERVICE_ROLE_KEY: "test-service-role-not-real",
     URL: "https://emerriment216.netlify.app",
+    // These suites test production behaviour (fake Supabase and Resend).
+    // Deploy-preview / branch-deploy isolation has its own suite
+    // (environment-isolation.test.js), which overrides this.
+    EMERRIMENT_CONTEXT: "production",
     // Existing sequence tests assume sending is switched on; tests of the
     // disabled state override this.
     EMAIL_SEQUENCE_ENABLED: "true"
 };
 
 function setEnv(overrides = {}) {
-    for (const k of ["RESEND_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "URL",
+    for (const k of ["CONTEXT", "EMERRIMENT_CONTEXT", "STAGING_SUPABASE_PROJECT_REF", "DEPLOY_PRIME_URL", "DEPLOY_URL",
+        "RESEND_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "URL",
         "EMAIL_FROM", "EMAIL_LINK_SECRET", "EMAIL_CLAIM_COMPAT_MODE", "EMAIL_OPEN_ALLOW_LEGACY",
-        "EMAIL_SEQUENCE_ENABLED", "EMAIL_SEQUENCE_START_AFTER", "EMAIL_SEQUENCE_MAX_OVERDUE_DAYS",
+        "EMAIL_SEQUENCE_ENABLED", "EMAIL_CONFIRMATION_ENABLED", "CUSTOMER_ONBOARDING_ENABLED", "EMAIL_REPLY_TO",
+        "EMAIL_SEQUENCE_START_AFTER", "EMAIL_SEQUENCE_MAX_OVERDUE_DAYS",
         "EMAIL_LINK_SECRET_PREVIOUS", "EMAIL_LINK_ACCEPT_DERIVED", "EMAIL_EXTRA_REDIRECT_HOSTS"]) {
         delete process.env[k];
     }
@@ -293,6 +309,9 @@ function addLead(over = {}) {
         emails_clicked: 0,
         tags: ["quiz"],
         notes: null,
+        // Lesson-sequence fixtures are opted-in leads (the only leads that
+        // may receive lessons); tests of declined consent override this.
+        marketing_consent: true,
         ...over
     };
     db.tables.leads.push(lead);
@@ -302,10 +321,12 @@ function addLead(over = {}) {
 function reset() {
     db.tables = { leads: [], product_clicks: [] };
     db.missingTables = new Set(["email_deliveries"]);
+    db.missingColumns = new Set();
     db.nextRowId = 1;
     db.rejectValues = {};
     db.failWhen = null;
     db.ops = [];
+    db.clientUrls = [];
     mail.sent = [];
     mail.attempts = [];
     mail.mode = "ok";

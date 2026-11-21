@@ -392,3 +392,12 @@ footer{
     color:#fff;
     cursor:pointer;
 }
+
+
+/* Images inside the dashboard (article, product and topic cards) never exceed
+   their card. Without this, 600x400 placeholders and featured images
+   overflowed narrow phones (375-414px) by 200+px (WP4J). */
+.dashboard img {
+    max-width: 100%;
+    height: auto;
+}

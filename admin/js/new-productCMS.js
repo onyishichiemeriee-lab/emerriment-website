@@ -3,6 +3,17 @@ const supabaseClient = window.supabaseClient;
 const form = document.getElementById("productForm");
 const message = document.getElementById("message");
 
+// Shared administrator check (admin/js/admin-guard.js): the form stays
+// disabled, and nothing is saved, unless the user is an administrator.
+function setFormEnabled(enabled) {
+    if (!form) return;
+    form.querySelectorAll("input, textarea, select, button").forEach((el) => { el.disabled = !enabled; });
+}
+
+setFormEnabled(false);
+
+window.EMAdminGuard.requireAdmin().then((access) => setFormEnabled(!!access));
+
 document.getElementById("name").addEventListener("input", e => {
 
 document.getElementById("slug").value =
@@ -22,6 +33,8 @@ e.target.value
 form.addEventListener("submit", async e=>{
 
 e.preventDefault();
+
+if (!(await window.EMAdminGuard.requireAdmin())) return;
 
 const { error } = await supabaseClient
 

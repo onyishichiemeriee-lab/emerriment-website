@@ -28,6 +28,50 @@ function getSupabase() {
 
 
 /* =========================================
+   SAFE LOGGING
+   Supabase Auth results and errors can carry the email address, user id,
+   access/refresh tokens or (in error text) the account name, so they are
+   never logged as objects. Only {kind, code, status} is written.
+========================================= */
+
+function emAuthSafeError(error) {
+
+    if (!error) return { kind: "unknown" };
+
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+
+}
+
+
+/* =========================================
+   PAGE MESSAGES
+   One helper for every auth page: text only (never HTML), visible
+   (.show), styled by kind, and announced to screen readers.
+   kind: "info" | "error" | "success"; empty text hides the message.
+========================================= */
+
+function showAuthMessage(element, text, kind) {
+
+    if (!element) return;
+
+    const message = String(text || "");
+
+    element.textContent = message;
+
+    element.className = "auth-message" + (message ? " show " + (kind || "info") : "");
+
+    element.setAttribute("role", kind === "error" ? "alert" : "status");
+
+    element.setAttribute("aria-live", kind === "error" ? "assertive" : "polite");
+
+}
+
+
+/* =========================================
    NORMALIZE EMAIL
 ========================================= */
 
@@ -134,7 +178,7 @@ async function signupUser(
 
             console.error(
                 "❌ Supabase signup error:",
-                error
+                emAuthSafeError(error)
             );
 
             return {
@@ -174,8 +218,7 @@ async function signupUser(
 
 
         console.log(
-            "✅ Account created:",
-            data.user.id
+            "✅ Account created."
         );
 
 
@@ -222,7 +265,7 @@ async function signupUser(
 
         console.error(
             "❌ Signup error:",
-            error
+            emAuthSafeError(error)
         );
 
 
@@ -299,7 +342,7 @@ async function loginUser(
 
             console.error(
                 "❌ Login error:",
-                error
+                emAuthSafeError(error)
             );
 
             return {
@@ -333,8 +376,7 @@ async function loginUser(
 
 
         console.log(
-            "✅ User logged in:",
-            data.user.id
+            "✅ User logged in."
         );
 
 
@@ -356,7 +398,7 @@ async function loginUser(
 
         console.error(
             "❌ Login exception:",
-            error
+            emAuthSafeError(error)
         );
 
 
@@ -416,7 +458,7 @@ async function logoutUser() {
 
         console.error(
             "❌ Logout error:",
-            error
+            emAuthSafeError(error)
         );
 
 
@@ -463,7 +505,7 @@ async function requestPasswordReset(email) {
         };
 
     } catch (error) {
-        console.error("Password reset error:", error);
+        console.error("❌ Password reset error:", emAuthSafeError(error));
 
         return {
             success: false,
@@ -497,7 +539,7 @@ async function resendConfirmation(email) {
 
         if (error) {
 
-            console.error("❌ Resend confirmation error:", error);
+            console.error("❌ Resend confirmation error:", emAuthSafeError(error));
 
             return {
                 success: false,
@@ -512,7 +554,7 @@ async function resendConfirmation(email) {
 
     } catch (error) {
 
-        console.error("❌ Resend confirmation exception:", error);
+        console.error("❌ Resend confirmation exception:", emAuthSafeError(error));
 
         return { success: false, error: "We couldn't send the email right now. Please try again later." };
 
@@ -597,7 +639,7 @@ async function updatePassword(
 
             console.error(
                 "❌ Password update error:",
-                error
+                emAuthSafeError(error)
             );
 
             return {
@@ -632,7 +674,7 @@ async function updatePassword(
 
         console.error(
             "❌ Password update exception:",
-            error
+            emAuthSafeError(error)
         );
 
 
@@ -673,7 +715,7 @@ async function getCurrentUser() {
 
             console.warn(
                 "No authenticated user:",
-                error.message
+                emAuthSafeError(error)
             );
 
             return null;
@@ -689,7 +731,7 @@ async function getCurrentUser() {
 
         console.error(
             "❌ Get user error:",
-            error
+            emAuthSafeError(error)
         );
 
         return null;
@@ -722,7 +764,7 @@ async function getCurrentSession() {
 
             console.error(
                 "❌ Session error:",
-                error
+                emAuthSafeError(error)
             );
 
             return null;
@@ -738,7 +780,7 @@ async function getCurrentSession() {
 
         console.error(
             "❌ Session exception:",
-            error
+            emAuthSafeError(error)
         );
 
         return null;
@@ -833,7 +875,7 @@ function listenForAuthChanges(
 
         console.error(
             "❌ Auth listener error:",
-            error
+            emAuthSafeError(error)
         );
 
         return null;
@@ -908,6 +950,19 @@ function getAuthErrorMessage(
     }
 
 
+    // Network failure before Supabase answered (offline, reset connection).
+    if (
+        error.name === "AuthRetryableFetchError" ||
+        message.includes("failed to fetch") ||
+        message.includes("networkerror") ||
+        message.includes("load failed")
+    ) {
+
+        return "We couldn't reach the sign-in service. Please check your connection and try again.";
+
+    }
+
+
     if (
         message.includes(
             "rate limit"
@@ -946,6 +1001,12 @@ function getAuthErrorMessage(
 ========================================= */
 
 window.EMAuth = {
+
+    showMessage:
+        showAuthMessage,
+
+    safeError:
+        emAuthSafeError,
 
     resendConfirmation:
         resendConfirmation,

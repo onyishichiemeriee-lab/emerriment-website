@@ -56,68 +56,13 @@ if (!productId || productId === "null" || productId === "undefined") {
 
 async function checkAdmin() {
 
-    try {
+    // Shared, fail-closed administrator check (admin/js/admin-guard.js):
+    // nothing below runs unless the signed-in user is an administrator.
+    const access = await window.EMAdminGuard.requireAdmin();
 
-        const {
-            data: { user },
-            error: authError
-        } = await supabaseClient.auth.getUser();
-
-
-        if (authError || !user) {
-
-            window.location.href = "loginCMS.html";
-
-            return;
-
-        }
-
-
-        const { data: profile, error: profileError } =
-            await supabaseClient
-                .from("profiles")
-                .select("is_admin")
-                .eq("id", user.id)
-                .maybeSingle();
-
-
-        if (profileError) {
-
-            console.error(
-                "Admin check error:",
-                profileError
-            );
-
-            alert(profileError.message);
-
-            return;
-
-        }
-
-
-        if (!profile?.is_admin) {
-
-            alert("You do not have permission to access the CMS.");
-
-            window.location.href = "dashboardCMS.html";
-
-            return;
-
-        }
-
+    if (!access) return;
 
         await loadProduct();
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "CMS authentication error:",
-            error
-        );
-
-    }
 
 }
 
@@ -147,10 +92,7 @@ async function loadProduct() {
 
     if (error) {
 
-        console.error(
-            "❌ Product loading error:",
-            error
-        );
+        console.error("❌ Product loading error:", window.EMAdminGuard.safeError(error));
 
         showMessage(
             error.message,
@@ -176,10 +118,7 @@ async function loadProduct() {
     }
 
 
-    console.log(
-        "✅ Product loaded:",
-        data
-    );
+    console.log("✅ Product loaded");
 
 
     /* =====================================
@@ -297,10 +236,7 @@ if (form) {
 
             if (error) {
 
-                console.error(
-                    "❌ Update error:",
-                    error
-                );
+                console.error("❌ Update error:", window.EMAdminGuard.safeError(error));
 
                 showMessage(
                     error.message,
@@ -365,10 +301,7 @@ if (deleteBtn) {
 
             if (error) {
 
-                console.error(
-                    "❌ Delete error:",
-                    error
-                );
+                console.error("❌ Delete error:", window.EMAdminGuard.safeError(error));
 
                 alert(
                     error.message

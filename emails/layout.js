@@ -21,8 +21,14 @@ function safeTrackingUrl(url) {
              placed in any URL.
    tracking — optional { pixelUrl, unsubscribeUrl }
              built server-side with signed links.
+   preheader — optional plain-text preview shown next to the
+             subject in most inboxes (escaped here).
 */
-module.exports = ({ title, content, email, tracking }) => {
+module.exports = ({ title, content, email, tracking, preheader }) => {
+
+const preheaderBlock = typeof preheader === "string" && preheader.trim()
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${escapeHtml(preheader.trim().slice(0, 150))}</div>`
+    : "";
 
 const pixelUrl =
     safeTrackingUrl(tracking && tracking.pixelUrl);
@@ -85,6 +91,7 @@ padding:0;
 background:#F8F5EF;
 font-family:Arial,sans-serif;
 ">
+${preheaderBlock}
 
 <table width="100%" cellspacing="0" cellpadding="0">
 

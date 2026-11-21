@@ -114,6 +114,7 @@
         if (target) {
             target.textContent = "";
             target.appendChild(box);
+            target.className = "auth-message show";
         } else {
             document.body.insertBefore(box, document.body.firstChild);
         }

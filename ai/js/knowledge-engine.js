@@ -88,7 +88,7 @@ const keywords = normalizedQuery
 
             console.error(
                 "Knowledge Search Error:",
-                error
+                emrSafeError(error)
             );
 
             return [];
@@ -1890,3 +1890,19 @@ buildFinalRecommendation(recommendationPayload) {
 },
 
 };
+
+/* -----------------------------------------
+   Log privacy: an error reduced to its category.
+   Supabase/PostgREST and Auth errors can carry row values,
+   user ids or memory text in message/details/hint, so only
+   name, code and HTTP status are logged — never the payload.
+----------------------------------------- */
+
+function emrSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}

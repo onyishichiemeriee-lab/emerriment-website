@@ -1,4 +1,4 @@
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.EmerrimentSupabase.createClient();
 
 document.addEventListener(
     "DOMContentLoaded",

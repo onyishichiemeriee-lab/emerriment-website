@@ -31,7 +31,8 @@ const PRODUCTION_MIGRATIONS = [
     "20261110090200_emerriment_user_data_rls.sql",
     "20261110090300_emerriment_content_admin_rls.sql",
     "20261110090400_emerriment_email_delivery.sql",
-    "20261113090000_emerriment_production_hardening.sql"
+    "20261113090000_emerriment_production_hardening.sql",
+    "20261117090000_emerriment_marketing_consent_and_purchases.sql"
 ];
 
 const ID = {

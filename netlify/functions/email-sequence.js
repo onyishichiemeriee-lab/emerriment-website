@@ -1,5 +1,4 @@
-const { createClient } = require("@supabase/supabase-js");
-const { Resend } = require("resend");
+const { createServiceClient, createMailer, emailDeliveryAllowed, marketingSwitch } = require("../lib/environment");
 
 // Import all email lessons
 const emails = require("../../emails");
@@ -48,6 +47,18 @@ const {
    - A failed send releases the claim and is
      retried on the next run; the day only
      advances after Resend accepts the email.
+   - Only leads with CONFIRMED consent receive
+     lessons (double opt-in: leads.marketing_consent
+     = true is set only when the person confirms
+     from the confirmation email, migration
+     20261117090000). Pending, expired and
+     withdrawn requests stay false. Consent (and no
+     withdrawal) is checked in the query AND again
+     in the claim, immediately before sending. If
+     the consent columns do not exist yet, nothing
+     is sent.
+   - Verified customers (public.purchases) receive
+     customer onboarding instead of these lessons.
    - Unsubscribed addresses are skipped.
    - Invalid addresses are skipped.
    - Each run is bounded in size and time.
@@ -55,6 +66,13 @@ const {
 
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Gap before the next lesson. The function runs once a day (07:00 UTC =
+// 08:00 Africa/Lagos, netlify.toml). With exactly 24 hours, the next run —
+// which starts a few seconds earlier in the day than the previous send —
+// found the lesson not yet due, so lessons went out every OTHER day.
+// 20 hours lets each daily run pick up the next lesson.
+const LESSON_GAP_MS = 20 * 60 * 60 * 1000;
 
 const FIRST_DAY = 1;
 const LAST_DAY = 14;
@@ -72,6 +90,31 @@ const TIME_BUDGET_MS = 20 * 1000;
 const CLAIM_LEASE_MS = 2 * 60 * 60 * 1000;
 
 const STATUS_UNSUBSCRIBED = "Unsubscribed";
+
+// Missing column (consent migration not applied yet): Postgres 42703,
+// PostgREST PGRST204 / "column … does not exist".
+function isMissingConsentColumn(error) {
+    if (!error) return false;
+    const message = String(error.message || "");
+    return (error.code === "42703" || error.code === "PGRST204" || /does not exist|schema cache/.test(message)) &&
+        message.includes("marketing_consent");
+}
+
+// Addresses of verified customers (public.purchases). Missing table =
+// no verified customers yet. null = lookup failed (abort the run).
+async function loadCustomerAddresses(supabase) {
+    const { data, error } = await supabase
+        .from("purchases")
+        .select("email")
+        .is("refunded_at", null);
+    if (error) {
+        if (error.code === "42P01" || error.code === "PGRST205" || /purchases/.test(String(error.message || ""))) {
+            return new Set();
+        }
+        return null;
+    }
+    return new Set((Array.isArray(data) ? data : []).map((row) => normalizeEmail(row.email)).filter(Boolean));
+}
 
 /* -----------------------------------------
    ACTIVATION AND ELIGIBILITY
@@ -99,9 +142,10 @@ const STATUS_UNSUBSCRIBED = "Unsubscribed";
    and logged as a warning (never silent).
 ----------------------------------------- */
 
+// Production only: outside production the switch is always off.
 function isSequenceEnabled() {
 
-    return process.env.EMAIL_SEQUENCE_ENABLED === "true";
+    return marketingSwitch("EMAIL_SEQUENCE_ENABLED");
 
 }
 
@@ -152,24 +196,26 @@ function maxOverdueMs() {
 const ABANDONED_REPORT_CLAIM_MS = 35 * 60 * 1000;
 
 
+// This deploy's own Supabase project only; Resend in production only
+// (netlify/lib/environment.js).
 function getClients() {
 
     const resendKey = process.env.RESEND_API_KEY;
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const emailAllowed = emailDeliveryAllowed();
 
-    if (!resendKey || !supabaseUrl || !serviceRoleKey) {
+    if (emailAllowed && !resendKey) {
+        return null;
+    }
+
+    const supabase = createServiceClient("email-sequence");
+
+    if (!supabase) {
         return null;
     }
 
     return {
-        resend: new Resend(resendKey),
-        supabase: createClient(supabaseUrl, serviceRoleKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false
-            }
-        })
+        resend: emailAllowed ? createMailer(resendKey) : null,
+        supabase
     };
 
 }
@@ -215,7 +261,7 @@ async function loadUnsubscribedAddresses(supabase) {
 }
 
 
-async function processLead(supabase, resend, lead, unsubscribed) {
+async function processLead(supabase, resend, lead, unsubscribed, customers = new Set()) {
 
     const day = Number(lead.email_sequence_day);
 
@@ -229,11 +275,19 @@ async function processLead(supabase, resend, lead, unsubscribed) {
         return "skipped_missing_lesson";
     }
 
+    if (lead.marketing_consent !== true || lead.marketing_consent_withdrawn_at) {
+        return "skipped_no_consent";
+    }
+
     if (
         lead.status === STATUS_UNSUBSCRIBED ||
         unsubscribed.has(normalizeEmail(lead.email))
     ) {
         return "skipped_unsubscribed";
+    }
+
+    if (customers.has(normalizeEmail(lead.email))) {
+        return "skipped_customer";
     }
 
     const recipient =
@@ -277,6 +331,10 @@ async function processLead(supabase, resend, lead, unsubscribed) {
         .eq("id", lead.id)
         .eq("email_sequence_day", lead.email_sequence_day)
         .eq("next_email_due", lead.next_email_due)
+        // Consent re-checked atomically, immediately before sending
+        // (unsubscribing also withdraws consent).
+        .eq("marketing_consent", true)
+        .is("marketing_consent_withdrawn_at", null)
         .select("id");
 
     if (claimError) {
@@ -393,7 +451,7 @@ async function advanceLead(supabase, lead, day, claimUntil) {
             .update({
                 email_sequence_day: day + 1,
                 last_sequence_email_sent: sentAt.toISOString(),
-                next_email_due: new Date(sentAt.getTime() + DAY_MS).toISOString()
+                next_email_due: new Date(sentAt.getTime() + LESSON_GAP_MS).toISOString()
             })
             .eq("id", lead.id)
             .eq("email_sequence_day", lead.email_sequence_day)
@@ -525,6 +583,8 @@ exports.handler = async () => {
         let query = supabase
             .from("leads")
             .select("*")
+            .eq("marketing_consent", true)
+            .is("marketing_consent_withdrawn_at", null)
             .gte("email_sequence_day", FIRST_DAY)
             .lte("email_sequence_day", LAST_DAY)
             .lte("next_email_due", now);
@@ -543,6 +603,12 @@ exports.handler = async () => {
             .limit(BATCH_SIZE);
 
         if (error) {
+            if (isMissingConsentColumn(error)) {
+                // Fail closed: without recorded consent nobody gets lessons.
+                summary.consent_column_missing = true;
+                console.warn("EMAIL SEQUENCE: marketing consent is not recorded yet (migration 20261117090000 not applied); no lessons sent.");
+                return respond(200, { message: "No consented leads: consent migration not applied.", summary });
+            }
             throw new Error("due_leads_lookup_failed");
         }
 
@@ -575,6 +641,13 @@ exports.handler = async () => {
             throw new Error("unsubscribe_lookup_failed");
         }
 
+        // Verified customers get onboarding, not nurture lessons.
+        const customers = await loadCustomerAddresses(supabase);
+
+        if (customers === null) {
+            throw new Error("customer_lookup_failed");
+        }
+
         for (const lead of leads || []) {
 
             if (Date.now() - startedAt > TIME_BUDGET_MS) {
@@ -583,7 +656,7 @@ exports.handler = async () => {
             }
 
             try {
-                count(await processLead(supabase, resend, lead, unsubscribed));
+                count(await processLead(supabase, resend, lead, unsubscribed, customers));
             } catch (leadError) {
                 count("failed_unexpected");
             }

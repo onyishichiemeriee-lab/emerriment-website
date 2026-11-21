@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (error) {
 
-        console.error("Dashboard authentication error:", error);
+        console.error("Dashboard authentication error:", dashboardSafeError(error));
 
         showError("We couldn't verify your sign-in. Please reload the page or log in again.");
 
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (error) {
 
-        console.error("Dashboard Error:", error);
+        console.error("Dashboard Error:", dashboardSafeError(error));
 
         showError(
             "Something went wrong while loading your dashboard."
@@ -86,7 +86,7 @@ async function initializeDashboard(user) {
 
         } catch (error) {
 
-            console.error("Dashboard section failed: " + label, error);
+            console.error("Dashboard section failed: " + label, dashboardSafeError(error));
 
             failed.push(label);
 

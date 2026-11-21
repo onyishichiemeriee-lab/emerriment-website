@@ -35,7 +35,7 @@ async function loadUserProfile(user) {
 
         if (error) {
 
-            console.error(error);
+            console.error("❌ dashboard-profile request failed:", dashboardSafeError(error));
 
             return null;
 
@@ -51,7 +51,7 @@ async function loadUserProfile(user) {
 
     catch (error) {
 
-        console.error(error);
+        console.error("❌ dashboard-profile request failed:", dashboardSafeError(error));
 
         return null;
 
@@ -121,7 +121,7 @@ async function updateProfile(updates) {
 
     catch (error) {
 
-        console.error(error);
+        console.error("❌ dashboard-profile request failed:", dashboardSafeError(error));
 
         showNotification(
 

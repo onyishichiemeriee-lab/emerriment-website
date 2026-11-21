@@ -7,25 +7,14 @@ const message = document.getElementById("message");
 
 async function checkAdmin() {
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    // Shared, fail-closed administrator check (admin/js/admin-guard.js):
+    // nothing below runs unless the signed-in user is an administrator.
+    const access = await window.EMAdminGuard.requireAdmin();
 
-    if (!user) {
-        window.location.href = "loginCMS.html";
-        return;
-    }
+    if (!access) return;
 
-    const { data: profile } = await supabaseClient
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .maybeSingle();
+        loadArticle();
 
-    if (!profile?.is_admin) {
-        window.location.href = "../dashboardCMS.html";
-        return;
-    }
-
-    loadArticle();
 }
 
 async function loadArticle() {
@@ -76,7 +65,8 @@ form.addEventListener("submit", async (e) => {
                 .split(",")
                 .map(item => item.trim())
                 .filter(Boolean),
-            content: content.value,
+            // Defence in depth: stored HTML is sanitized again when it is shown.
+            content: (window.EMArticleContent ? window.EMArticleContent.sanitizeArticleHTML(content.value) : content.value),
             updated_at: new Date().toISOString()
 
         })

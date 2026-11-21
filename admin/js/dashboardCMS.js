@@ -1,33 +1,15 @@
 const supabaseClient = window.supabaseClient;
 
 // Verify admin
-async function checkAdmin(){
+async function checkAdmin() {
 
-    const { data:{ user } } = await supabaseClient.auth.getUser();
+    // Shared, fail-closed administrator check (admin/js/admin-guard.js):
+    // nothing below runs unless the signed-in user is an administrator.
+    const access = await window.EMAdminGuard.requireAdmin();
 
-if (!user) {
-        window.location.href = "loginCMS.html"; // Redirect to login if no user
-        return;
-    }
+    if (!access) return;
 
-    const { data:profile } = await supabaseClient
-
-        .from("profiles")
-
-        .select("is_admin")
-
-        .eq("id",user.id)
-
-        .maybeSingle();
-
-    if(!profile?.is_admin){
-
-        window.location.href="admin/../dashboardCMS.html";
-        return;
-
-    }
-
-    loadDashboard();
+        loadDashboard();
 
 }
 

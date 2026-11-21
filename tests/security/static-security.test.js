@@ -188,8 +188,10 @@ test("every RLS change records the previous state first (rollback can restore it
     // table may enable RLS directly.
     // The helper builds its statement with format('... %s ...'), and the new
     // email_deliveries table has no previous state to restore.
-    assert.deepStrictEqual(direct.filter((d) => !d.endsWith(": %s") && !d.endsWith(": public.email_deliveries")), []);
-    assert.strictEqual(direct.length, 2, "unexpected direct RLS changes: " + direct.join(", "));
+    // public.purchases (migration 7) is likewise brand-new.
+    const brandNew = [": public.email_deliveries", ": public.purchases"];
+    assert.deepStrictEqual(direct.filter((d) => !d.endsWith(": %s") && !brandNew.some((b) => d.endsWith(b))), []);
+    assert.strictEqual(direct.length, 3, "unexpected direct RLS changes: " + direct.join(", "));
     const helper = migrations.find((m) => m.file.includes("security_helpers")).sql.split("create or replace function emerriment_private.enable_rls(target regclass)")[1].split("$$;")[0];
     assert(helper.indexOf("insert into emerriment_private.rls_baseline") < helper.indexOf("enable row level security"));
     assert(helper.includes("on conflict (table_name) do nothing"), "re-runs must keep the ORIGINAL state");
@@ -301,6 +303,22 @@ test("rollback only removes EMerriment objects and restores the recorded RLS sta
     assert(!/delete from|truncate/.test(rb.toLowerCase()), "rollback must not touch data rows");
 });
 
+test("full rollback needs an explicit all-seven confirmation; migration 7 rollback is narrow (no grants, no drops of tables, policies or RLS)", async () => {
+    const full = sqlCode(read("supabase/rollback/emerriment_security_rollback.sql"));
+    assert(full.indexOf("emerriment.full_rollback") >= 0 && full.indexOf("emerriment.full_rollback") < full.indexOf("drop policy"), "confirmation checked before anything is dropped");
+    const m7 = sqlCode(read("supabase/rollback/emerriment_migration7_rollback.sql")).toLowerCase();
+    for (const banned of ["grant ", "drop table", "drop policy", "drop schema", "drop column", "disable row level security", "delete from", "truncate", "update public."]) {
+        assert(!m7.includes(banned), "migration 7 rollback contains " + banned.trim());
+    }
+    const drops = [...m7.matchAll(/drop (trigger|function) if exists (?:public\.)?([a-z_]+)/g)].map((m) => m[2]);
+    assert.deepStrictEqual([...new Set(drops)].sort(), ["emerriment_guard_lead_consent", "emerriment_guard_lead_consent_change"]);
+    assert(/^\s*begin;/m.test(m7) && /commit;\s*$/.test(m7), "one transaction");
+    // Docs never point at the broad rollback for migration 7.
+    for (const doc of ["docs/PRODUCTION_ACTIVATION_CHECKLIST.md", "supabase/PRODUCTION_RUNBOOK.md", "supabase/README.md"]) {
+        assert(read(doc).includes("emerriment_migration7_rollback.sql"), doc + " names the migration 7 rollback");
+    }
+});
+
 test("read-only audit and verification files contain no data-changing statements", async () => {
     for (const file of ["supabase/audit/01_read_only_security_audit.sql", "supabase/audit/02_post_migration_verification.sql"]) {
         const audit = sqlCode(read(file)).toLowerCase();
@@ -340,14 +358,13 @@ test("no browser code writes is_admin; the CMS toggle uses emerriment_set_admin;
     for (const f of profileInserts) assert(!/is_admin/.test(read(f).split(".from(\"profiles\")")[1].slice(0, 300)), f);
 });
 
-test("public pages do not update articles except the view-counter fallback", async () => {
+test("public pages never update articles; views are counted only through the counting function", async () => {
+    // WP4F (2026-11-20): the reader's direct-UPDATE fallback was removed (it raced and
+    // bypassed the counting function); see tests/security/article-content.dom.test.js.
     const writers = calls("encyclopedia_articles", "update").filter((f) => !f.startsWith("admin/"));
-    assert.deepStrictEqual(writers, ["article/article/js/article.js"]);
+    assert.deepStrictEqual(writers, []);
     const src = read("article/article/js/article.js");
     assert(src.includes('"emerriment_increment_article_views"'), "RPC name must match the migration");
-    assert(src.indexOf('"emerriment_increment_article_views"') < src.indexOf('.from("encyclopedia_articles")\n        .update') ||
-           src.indexOf('"emerriment_increment_article_views"') < src.indexOf('.update({\n            views'),
-        "RPC must be tried before the fallback update");
 });
 
 test("quiz code uses the configured client, never the library object", async () => {
@@ -370,7 +387,7 @@ test("browser code contains no service-role key or secret names", async () => {
 
 test("internal folders and files are blocked from public download; functions are not", async () => {
     const toml = read("netlify.toml");
-    for (const p of ["/netlify/*", "/emails/*", "/tests/*", "/supabase/*", "/local-ai/*", "/node_modules/*",
+    for (const p of ["/netlify/*", "/emails/*", "/tests/*", "/supabase/*", "/docs/*", "/local-ai/*", "/node_modules/*",
         "/package.json", "/package-lock.json", "/deno.lock", "/netlify.toml", "/test-emails.js", "/test-special-emails.js"]) {
         const block = toml.split("[[redirects]]").find((b) => b.includes(`from = "${p}"`));
         assert(block, "not blocked: " + p);
@@ -393,11 +410,16 @@ test("email-sequence: schedule registered in netlify.toml, but sending requires 
     // for exports.handler functions). Activation of SENDING stays a separate,
     // deliberate decision via EMAIL_SEQUENCE_ENABLED=true.
     const toml = read("netlify.toml");
-    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "@daily"/.test(toml));
+    // Daily at 07:00 UTC = 08:00 Africa/Lagos.
+    assert(/\[functions\."email-sequence"\]\s*\r?\nschedule = "0 7 \* \* \*"/.test(toml));
     const fn = read("netlify/functions/email-sequence.js");
     const code = fn.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
     assert(!/exports\.config\s*=/.test(code), "ineffective exports.config left in place");
-    assert(fn.includes('return process.env.EMAIL_SEQUENCE_ENABLED === "true";'), "sending must require EMAIL_SEQUENCE_ENABLED=true");
+    // The switch is read through the environment guard, which additionally
+    // requires the PRODUCTION deploy context (never on from a preview).
+    assert(fn.includes('return marketingSwitch("EMAIL_SEQUENCE_ENABLED");'), "sending must require EMAIL_SEQUENCE_ENABLED=true");
+    const env = read("netlify/lib/environment.js");
+    assert(/return isProduction\(\) && process\.env\[name\] === "true";/.test(env), "marketing switches: production AND exactly \"true\"");
     const handler = fn.split("exports.handler")[1];
     assert(handler.indexOf("if (!isSequenceEnabled())") < handler.indexOf("processLead("), "gate must come before any send");
 });

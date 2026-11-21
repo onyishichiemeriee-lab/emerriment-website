@@ -9494,8 +9494,6 @@ skincareKnowledge.wartyDyskeratoma = {
 
 function searchKnowledge() {
 
-   console.log(skincareKnowledge);
-
   const query =
 document
 .getElementById("knowledgeSearch")
@@ -9504,13 +9502,11 @@ document
 .trim()
 .replace(/\s+/g, "");
 
-console.log("Query:", query);
 
 const foundKey = Object.keys(skincareKnowledge).find(key =>
     key.toLowerCase().replace(/\s+/g, "").includes(query)
 );
 
-console.log("Found Key:", foundKey);
 
 const result =
 document.getElementById("resultsContainer");
@@ -9693,20 +9689,75 @@ messages.scrollTop = messages.scrollHeight;
 }
 
 async function submitQuiz() {
+
+  // One submission at a time: double clicks created duplicate leads.
+  if (submitQuiz.busy) return;
+
+  const formError = document.getElementById("quizFormError");
+  const submitButton = document.getElementById("quizSubmit");
+
+  // Privacy-safe funnel events (js/analytics.js): never the address,
+  // name or quiz answers.
+  const track = (event, params) => {
+    try { if (typeof emTrack === "function") emTrack(event, params || {}); } catch (e) { /* ignore */ }
+  };
+
+  const showFormError = (message) => {
+    if (formError) {
+      formError.textContent = message;
+      formError.hidden = false;
+    } else {
+      alert(message);
+    }
+  };
+
+  if (formError) {
+    formError.textContent = "";
+    formError.hidden = true;
+  }
+
+  const enteredEmail = String((document.getElementById("email") || {}).value || "").trim();
+
+  if (!/^[^\s@<>]+@[^\s@<>]+\.[A-Za-z]{2,}$/.test(enteredEmail)) {
+    showFormError("Please enter a valid email address so we can send you your skin report.");
+    track("quiz_validation_error", { field: "email" });
+    return;
+  }
+
+  submitQuiz.busy = true;
+  if (submitButton) submitButton.disabled = true;
+
+  try {
+    return await runQuizSubmission();
+  } finally {
+    submitQuiz.busy = false;
+    if (submitButton) submitButton.disabled = false;
+  }
+
+  async function runQuizSubmission() {
   const loadingEl = document.getElementById("loading");
   const analysisEl = document.getElementById("analysisText");
 
   // Only attempt to update elements if they actually exist in the DOM
   if (loadingEl) loadingEl.style.display = "flex";
-  
+
   await new Promise(resolve => setTimeout(resolve, 3000));
 
   const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
+  const email = enteredEmail;
   const skinType = document.getElementById("skinType").value;
   const concern = document.getElementById("concern").value;
   const oilLevel = document.getElementById("oilLevel")?.value || "";
   const sensitivity = document.getElementById("sensitivity")?.value || "";
+
+  // Optional, separate marketing consent (unticked by default). The
+  // requested report is sent either way; lessons only with this opt-in.
+  const consentBox = document.getElementById("marketingConsent");
+  // Only an ENABLED box counts: js/consent-optin.js keeps it hidden and
+  // disabled while confirmation emails are switched off.
+  const marketingConsent = Boolean(consentBox && consentBox.checked && !consentBox.disabled);
+
+  track("quiz_complete", { form: "homepage" });
 
   let score = 60;
 
@@ -9777,9 +9828,7 @@ document.getElementById(
 
   console.log("About to insert into Supabase");
 
-  const { data, error } = await supabaseClient
-  .from("leads")
-  .insert([
+  const leadRow =
     {
       name,
       email,
@@ -9818,20 +9867,45 @@ next_email_due: new Date(
       tags: ["quiz"],
 
       notes: null
-    }
-  ]);
+    };
+
+  // Ticked box = a REQUEST for the 14-day lessons (double opt-in): only
+  // the source and wording version are sent; the database records the
+  // request time, and consent becomes active only after the person
+  // confirms from the separate confirmation email.
+  if (marketingConsent) {
+    leadRow.marketing_consent_source = "homepage_quiz";
+    leadRow.marketing_consent_version = "quiz-optin-2026-11-17";
+  }
+
+  let { data, error } = await supabaseClient
+  .from("leads")
+  .insert([leadRow]);
+
+  // Before the consent migration is applied the columns do not exist:
+  // save the quiz without them (no consent recorded = no lessons).
+  if (error && marketingConsent && (error.code === "PGRST204" || /marketing_consent/.test(String(error.message || "")))) {
+    delete leadRow.marketing_consent_source;
+    delete leadRow.marketing_consent_version;
+    ({ data, error } = await supabaseClient.from("leads").insert([leadRow]));
+  }
   // No .select() here: the lead row is not read back by the browser.
   // The email function verifies and updates the lead server-side.
 
   if (error) {
-    console.error("Supabase Error:", error);
+    console.error("Supabase Error:", { kind: String(error && error.name || "Error"), code: error && error.code });
 
     if (loadingEl) loadingEl.style.display = "none";
+
+    track("lead_submit", { success: false });
 
     alert("Unable to save your quiz. Please try again.");
 
     return;
   }
+
+  track("lead_submit", { success: true });
+  track("marketing_consent", { granted: marketingConsent });
 
   // ==========================================
   // Quiz saved. Send the report email.
@@ -9840,6 +9914,7 @@ next_email_due: new Date(
   // ==========================================
 
   let emailSent = false;
+  let emailUnavailable = false;
 
   try {
 
@@ -9861,6 +9936,11 @@ next_email_due: new Date(
     });
 
     emailSent = emailResponse.ok;
+
+    if (!emailSent && emailResponse.status === 503) {
+      const reply = await emailResponse.json().catch(() => null);
+      emailUnavailable = Boolean(reply && reply.code === "email_not_configured");
+    }
 
   } catch (emailError) {
 
@@ -9893,7 +9973,7 @@ next_email_due: new Date(
         .eq("id", user.id);
 
       if (profileError) {
-        console.error("Error updating profile:", profileError);
+        console.error("Error updating profile:", { kind: String(profileError && profileError.name || "Error"), code: profileError && profileError.code });
       }
 
       const { error: quizError } = await supabaseClient
@@ -9918,7 +9998,7 @@ next_email_due: new Date(
 
       if (quizError) {
 
-        console.error("Error saving quiz:", quizError);
+        console.error("Error saving quiz:", { kind: String(quizError && quizError.name || "Error"), code: quizError && quizError.code });
 
       } else {
 
@@ -9930,7 +10010,7 @@ next_email_due: new Date(
 
   } catch (accountError) {
 
-    console.error("Error saving account quiz data:", accountError);
+    console.error("Error saving account quiz data:", { kind: String(accountError && accountError.name || "Error"), code: accountError && accountError.code });
 
   }
 
@@ -9939,10 +10019,16 @@ next_email_due: new Date(
 
   if (loadingEl) loadingEl.style.display = "none";
 
+  const confirmNote = marketingConsent
+    ? " You also asked for the 14-day skin education emails: please confirm using the separate email we send you. Nothing is sent until you confirm."
+    : "";
+
   if (emailSent) {
-    alert("🎉 Your skin report has been generated and sent to your email.");
+    alert("🎉 Your skin report has been generated and sent to your email." + confirmNote);
+  } else if (emailUnavailable) {
+    alert("Your quiz results are saved and shown below. Email isn't available on this site right now, so no report email was sent." + confirmNote);
   } else {
-    alert("Your quiz results are saved and shown below, but we couldn't send your email right now.");
+    alert("Your quiz results are saved and shown below, but we couldn't send your email right now." + confirmNote);
   }
 
   document.getElementById("results").scrollIntoView({
@@ -9980,6 +10066,8 @@ next_email_due: new Date(
     }, 5000);
 
   }
+
+}
 
 }
 

@@ -34,133 +34,13 @@ if (!supabaseClient) {
 
 async function checkAdmin() {
 
-    try {
+    // Shared, fail-closed administrator check (admin/js/admin-guard.js):
+    // nothing below runs unless the signed-in user is an administrator.
+    const access = await window.EMAdminGuard.requireAdmin();
 
-        console.log("🔐 Checking admin session...");
-
-
-        const {
-            data: {
-                user
-            },
-            error: userError
-        } = await supabaseClient.auth.getUser();
-
-
-        if (userError) {
-
-            console.error(
-                "❌ Auth error:",
-                userError
-            );
-
-            location.href = "loginCMS.html";
-            return;
-
-        }
-
-
-        if (!user) {
-
-            console.warn(
-                "⚠️ No authenticated user."
-            );
-
-            location.href = "loginCMS.html";
-            return;
-
-        }
-
-
-        console.log(
-            "👤 Logged in user:",
-            user.email
-        );
-
-
-        // =====================================
-        // CHECK ADMIN PROFILE
-        // =====================================
-
-        const {
-            data: profile,
-            error: profileError
-        } = await supabaseClient
-
-            .from("profiles")
-
-            .select("is_admin")
-
-            .eq("id", user.id)
-
-            .maybeSingle();
-
-
-        if (profileError) {
-
-            console.error(
-                "❌ Profile check failed:",
-                profileError
-            );
-
-            showMessage(
-                "Unable to verify administrator access.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        if (!profile || profile.is_admin !== true) {
-
-            console.warn(
-                "⛔ User is not an administrator."
-            );
-
-            showMessage(
-                "You do not have administrator access.",
-                "error"
-            );
-
-            setTimeout(() => {
-
-                location.href = "loginCMS.html";
-
-            }, 1500);
-
-            return;
-
-        }
-
-
-        console.log(
-            "✅ Administrator verified."
-        );
-
-
-        // =====================================
-        // LOAD WEBSITE SETTINGS
-        // =====================================
+    if (!access) return;
 
         await loadSettings();
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "❌ Admin initialization failed:",
-            error
-        );
-
-        showMessage(
-            "Unable to initialize the settings page.",
-            "error"
-        );
-
-    }
 
 }
 
@@ -192,10 +72,7 @@ async function loadSettings() {
 
     if (error) {
 
-        console.error(
-            "❌ Failed to load settings:",
-            error
-        );
+        console.error("❌ Failed to load settings:", window.EMAdminGuard.safeError(error));
 
         showMessage(
             "Unable to load website settings.",
@@ -534,10 +411,7 @@ form.addEventListener(
 
         catch (error) {
 
-            console.error(
-                "❌ Save settings failed:",
-                error
-            );
+            console.error("❌ Save settings failed:", window.EMAdminGuard.safeError(error));
 
 
             showMessage(
@@ -601,10 +475,7 @@ if (logoutBtn) {
 
             catch (error) {
 
-                console.error(
-                    "❌ Logout failed:",
-                    error
-                );
+                console.error("❌ Logout failed:", window.EMAdminGuard.safeError(error));
 
 
                 showMessage(

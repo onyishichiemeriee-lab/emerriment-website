@@ -87,7 +87,7 @@ async function sendToAI(message) {
 
             console.warn(
                 "AI authentication warning:",
-                authError
+                emrSafeError(authError)
             );
 
         }
@@ -110,16 +110,17 @@ async function sendToAI(message) {
                         message.trim()
                     );
 
+                // Never the memory content: whether something was processed only.
                 console.log(
-                    "🧠 Conversation memory processing:",
-                    memoryResult
+                    "🧠 Conversation memory processed:",
+                    { processed: !!memoryResult }
                 );
 
             } catch (memoryError) {
 
                 console.warn(
                     "⚠️ Conversation memory processing failed:",
-                    memoryError
+                    emrSafeError(memoryError)
                 );
 
             }
@@ -155,13 +156,25 @@ async function sendToAI(message) {
             window.ContextEngine
         ) {
 
-            context =
+            try {
+
+                context =
                 await window.ContextEngine
-                    .buildContext(user.id);
+                    .buildContext(user.id) || context;
+
+            } catch (contextError) {
+
+                // Personal context is optional: answer without it.
+                console.warn("⚠️ AI context unavailable:", emrSafeError(contextError));
+
+            }
 
             console.log(
-                "🧠 AI API conversation history:",
-                context.conversationHistory
+                "🧠 AI context built:",
+                {
+                    conversationHistory: Array.isArray(context && context.conversationHistory) ? context.conversationHistory.length : 0,
+                    skinProfile: !!(context && context.skinProfile)
+                }
             );
 
         }
@@ -172,15 +185,19 @@ if (window.SafetyEngine) {
     try {
         safetyResult = window.SafetyEngine.analyze(message.trim());
 
+        // Risk level and flag count only — the analysis can quote the message.
         console.log(
-            "🛡️ EMerriment Safety Result:",
-            safetyResult
+            "🛡️ EMerriment safety check:",
+            {
+                level: (safetyResult && (safetyResult.riskLevel || safetyResult.level)) || null,
+                flags: safetyResult && Array.isArray(safetyResult.flags) ? safetyResult.flags.length : 0
+            }
         );
 
     } catch (safetyError) {
         console.warn(
             "⚠️ Safety Engine analysis failed:",
-            safetyError
+            emrSafeError(safetyError)
         );
     }
 }
@@ -261,12 +278,9 @@ if (window.SafetyEngine) {
 
         if (!response.ok) {
 
-            const errorText =
-                await response.text();
-
             console.error(
                 "AI server response:",
-                errorText
+                { status: response.status }
             );
 
             throw new Error(
@@ -284,9 +298,10 @@ if (window.SafetyEngine) {
             await response.json();
 
 
+        // Never the reply itself.
         console.log(
             "🤖 EMerriment AI response:",
-            data
+            { success: !!(data && data.success), mode: data && data.mode }
         );
 
 
@@ -295,8 +310,8 @@ if (window.SafetyEngine) {
         ----------------------------------------- */
 
         console.log(
-            "🧠 MEMORY ACTION RECEIVED:",
-            data.memoryAction
+            "🧠 Memory action received:",
+            { action: data && data.memoryAction ? data.memoryAction.action || null : null }
         );
 
         console.log(
@@ -341,10 +356,10 @@ const isQuestionForMemory =
 
                     if (saved) {
 
+                        // The memory category only — never its value.
                         console.log(
                             "🧠 AI memory saved:",
-                            key,
-                            value
+                            { key }
                         );
 
                     } else {
@@ -361,7 +376,7 @@ const isQuestionForMemory =
 
                 console.error(
                     "❌ AI memory save error:",
-                    memorySaveError
+                    emrSafeError(memorySaveError)
                 );
 
             }
@@ -388,7 +403,7 @@ const isQuestionForMemory =
 
         console.error(
             "EMerriment AI API Error:",
-            error
+            emrSafeError(error)
         );
 
 
@@ -411,8 +426,7 @@ async function streamAIResponse(
 ) {
 
     console.log(
-        "Streaming will be added later:",
-        message
+        "Streaming will be added later."
     );
 
 }
@@ -432,3 +446,19 @@ window.streamAIResponse =
 console.log(
     "✅ EMerriment AI API initialized."
 );
+
+/* -----------------------------------------
+   Log privacy: an error reduced to its category.
+   Supabase/PostgREST and Auth errors can carry row values,
+   user ids or memory text in message/details/hint, so only
+   name, code and HTTP status are logged — never the payload.
+----------------------------------------- */
+
+function emrSafeError(error) {
+    if (!error) return { kind: "unknown" };
+    return {
+        kind: String(error.name || "Error").slice(0, 60),
+        code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+        status: Number.isInteger(error.status) ? error.status : undefined
+    };
+}

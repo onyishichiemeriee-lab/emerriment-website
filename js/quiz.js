@@ -505,7 +505,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             goal,
 
-            routine
+            routine,
+
+            // Optional, separate opt-in to the 14-day lessons
+            // (wording version quiz-optin-2026-11-17). Only an ENABLED
+            // box counts: js/consent-optin.js keeps it hidden and disabled
+            // while confirmation emails are switched off.
+            marketing_consent: (() => {
+                const box = document.getElementById("marketingConsent");
+                return Boolean(box && box.checked && !box.disabled);
+            })()
 
         };
 
@@ -710,6 +719,18 @@ document.addEventListener("DOMContentLoaded", () => {
     recommendation
 ) {
 
+        // Errors as {kind, code, status}: PostgREST text can quote the row
+        // (name, email, answers), so error objects are never logged raw.
+        function quizSafeError(error) {
+            if (!error) return { kind: "unknown" };
+            return {
+                kind: String(error.name || "Error").slice(0, 60),
+                code: error.code !== undefined && error.code !== null ? String(error.code).slice(0, 40) : undefined,
+                status: Number.isInteger(error.status) ? error.status : undefined
+            };
+        }
+
+
     console.log(
         "💾 Saving quiz result..."
     );
@@ -744,7 +765,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // only need permission to insert it.
     const savedLead = null;
 
-    const {
+    // Ticked box = a REQUEST (double opt-in): consent becomes active only
+    // after the person confirms from the separate confirmation email.
+    if (data.marketing_consent === true) {
+        leadPayload.marketing_consent_source = "quiz_page";
+        leadPayload.marketing_consent_version = "quiz-optin-2026-11-17";
+    }
+
+    let {
         error: leadError
     } = await supabaseClient
 
@@ -752,12 +780,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         .insert(leadPayload);
 
+    // Before the consent migration the columns do not exist: save the
+    // quiz without them (no consent recorded = no lessons).
+    if (leadError && leadPayload.marketing_consent_source &&
+        (leadError.code === "PGRST204" || /marketing_consent/.test(String(leadError.message || "")))) {
+        delete leadPayload.marketing_consent_source;
+        delete leadPayload.marketing_consent_version;
+        ({ error: leadError } = await supabaseClient.from("leads").insert(leadPayload));
+    }
+
 
     if (leadError) {
 
         console.error(
             "❌ Failed to save lead:",
-            leadError
+            quizSafeError(leadError)
         );
 
         return {
@@ -769,9 +806,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     console.log(
-        "✅ Lead saved successfully:",
-        savedLead
+        "✅ Lead saved successfully."
     );
+
+    // The visitor asked for their report: one email through the same
+    // server function as the homepage (per-address limits, at most once).
+    let reportEmailSent = false;
+
+    let reportEmailStatus = "failed";
+
+    try {
+        const response = await fetch("/.netlify/functions/send-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: data.name,
+                email: data.email,
+                skinType: data.skin_type,
+                concern: data.concern,
+                oilLevel: data.oil_level,
+                sensitivity: data.sensitivity,
+                score: score,
+                recommendation: recommendation
+            })
+        });
+        reportEmailSent = Boolean(response && response.ok);
+
+        reportEmailStatus = reportEmailSent ? "sent" : "failed";
+
+        if (!reportEmailSent && response && response.status === 503) {
+            let reply = null;
+            try { reply = await response.json(); } catch (parseError) { reply = null; }
+            if (reply && reply.code === "email_not_configured") reportEmailStatus = "unavailable";
+        }
+    } catch (emailError) {
+        console.warn("⚠️ Report email request failed.");
+    }
 
 
     // ----------------------------------------
@@ -793,7 +863,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
             success: true,
             data: savedLead,
-            quizResultSaved: false
+            quizResultSaved: false,
+            reportEmailSent,
+            reportEmailStatus
         };
 
     }
@@ -839,22 +911,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.error(
             "❌ Failed to save quiz result:",
-            quizError
+            quizSafeError(quizError)
         );
 
         return {
             success: true,
             data: savedLead,
             quizResultSaved: false,
-            quizError
+            quizError,
+            reportEmailSent,
+            reportEmailStatus
         };
 
     }
 
 
     console.log(
-        "✅ Quiz result saved successfully:",
-        savedQuiz
+        "✅ Quiz result saved successfully."
     );
 
 
@@ -870,11 +943,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
         quizResultSaved: true,
 
-        quizResult: savedQuiz
+        quizResult: savedQuiz,
+
+        reportEmailSent,
+
+        reportEmailStatus
 
     };
 
 }
+
+
+    // --------------------------------------------
+    // REPORT EMAIL NOTICE (text only; never a false "sent")
+    // --------------------------------------------
+
+    function showReportEmailNotice(saveResult) {
+
+        if (!resultsScreen) return;
+
+        let notice = document.getElementById("reportEmailNotice");
+
+        if (!notice) {
+
+            notice = document.createElement("p");
+
+            notice.id = "reportEmailNotice";
+
+            notice.className = "report-email-notice";
+
+            notice.setAttribute("role", "status");
+
+            notice.setAttribute("aria-live", "polite");
+
+            const header = resultsScreen.querySelector(".results-header");
+
+            (header || resultsScreen).appendChild(notice);
+
+        }
+
+        const status = saveResult && saveResult.success ? saveResult.reportEmailStatus : "not-saved";
+
+        notice.dataset.state = status || "failed";
+
+        notice.textContent =
+            status === "sent"
+                ? "📩 We've sent a copy of your skin report to your email."
+                : status === "unavailable"
+                    ? "Email isn't available on this site right now, so no report email was sent. Your results are shown below."
+                    : status === "not-saved"
+                        ? "Your results are shown below. We couldn't save them or send a report email right now."
+                        : "Your results are shown below, but we couldn't send your report email right now. Please try again later.";
+
+    }
 
 
     // --------------------------------------------
@@ -1089,6 +1210,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                showReportEmailNotice(saveResult);
+
+
                 if (!saveResult.success) {
 
                     console.warn(
@@ -1101,7 +1225,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 console.error(
                     "❌ Quiz error:",
-                    error
+                    { kind: String(error && error.name || "Error") }
                 );
 
                 alert(

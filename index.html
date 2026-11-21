@@ -1042,7 +1042,31 @@ including future updates you add.
       <option>High</option>
     </select>
 
-    <button onclick="submitQuiz()">
+    <!-- What happens after submitting (requested report = one email) -->
+    <p class="quiz-privacy-note">
+      We'll email your personal skin report to this address — one email, because you asked for it.
+      See our <a href="privacy.html">privacy policy</a>.
+    </p>
+
+    <!-- Optional and separate: wording version quiz-optin-2026-11-17.
+         Hidden and disabled until confirmation emails are switched on
+         (js/consent-optin.js, EMAIL_CONFIRMATION_ENABLED). -->
+    <div class="quiz-consent-block" data-marketing-optin hidden>
+      <label class="quiz-consent">
+        <input type="checkbox" id="marketingConsent" name="marketingConsent" disabled>
+        <span>
+          Yes, also send me EMerriment's free 14-day skin education emails
+          (one short lesson a day for two weeks). Optional — unsubscribe anytime with one click.
+        </span>
+      </label>
+      <p class="quiz-privacy-note quiz-confirm-note">
+        If you tick the box, we'll send one short email asking you to confirm. No lessons are sent until you do.
+      </p>
+    </div>
+
+    <p id="quizFormError" class="quiz-form-error" role="alert" hidden></p>
+
+    <button id="quizSubmit" onclick="submitQuiz()">
       Get My Skin Plan
     </button>
 
@@ -1720,11 +1744,15 @@ class="contact-card">
 <!-- Reads email-link results before supabase-js clears the address -->
 <script src="js/auth-callback.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
+<script src="/js/runtime-config.js"></script>
+<script src="/js/supabase-config.js"></script>
 <script src="js/supabase.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/consent-optin.js"></script>
 <script src="js/script.js"></script>
 <script src="js/navigation.js"></script>
 
-<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script src="/js/vendor/aos-3.0.0-beta.6.js"></script>
 <script>
   AOS.init();
 </script>
