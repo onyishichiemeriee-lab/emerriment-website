@@ -11,6 +11,7 @@ const suites = [
     require("./auth-log-privacy.dom.test"),
     require("./encyclopedia.dom.test"),
     require("./ai-guest.dom.test"),
+    require("./admin-cms.dom.test"),
     require("./journey.dom.test"),
     require("./environment-isolation.test"),
     require("./staging-auth-config.test"),

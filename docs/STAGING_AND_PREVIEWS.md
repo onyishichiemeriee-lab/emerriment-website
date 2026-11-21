@@ -569,6 +569,85 @@ widened. Reviewers use the PR conversation instead of the drawer.
 4. `POST /.netlify/functions/send-email` → `503 {"code":"email_not_configured"}`; `email-features` → `{"consentConfirmation":false}`.
 5. No horizontal overflow at 320–1440 px on those pages.
 
+### 4.10 Admin CMS authorization, redirects and logging (WP4E, 2026-11-20)
+
+The second preview (commit `a1d1aa8`, WP4D) found two admin CMS defects. Fixed
+locally in WP4E; **not yet validated on a Netlify preview** (needs a new push).
+
+**Redirect loop — cause.** `admin/js/dashboardCMS.js` sent a signed-in
+non-administrator to `"admin/../dashboardCMS.html"`. Relative to
+`/admin/dashboardCMS.html` that resolves to the same page, which redirected
+again: an endless reload loop (4 loads in 5 s on the preview). The other CMS
+modules each had their own copy of the check, with different and partly wrong
+destinations (`edit-productCMS` → the admin dashboard, i.e. into the loop;
+`settingsCMS` / `user-detailsCMS` → the login page for a signed-in user), a
+blocking `alert()` before redirecting, `productsCMS` loaded products without
+looking at `is_admin`, and `new-articleCMS` / `new-productCMS` had no check.
+
+**Fix — one shared guard, `admin/js/admin-guard.js`,** loaded before the page
+script on all 11 CMS pages; every module now runs
+`await EMAdminGuard.requireAdmin()` and loads nothing unless it returns access:
+
+| Visitor | Result |
+|---|---|
+| not signed in | `location.replace("/admin/loginCMS.html")` |
+| signed in, `is_admin` is not `true` | `location.replace("/dashboard.html")` (normal dashboard) |
+| administrator | stays; the page then loads its data |
+| no Supabase client, or the check itself fails | stays, shows a notice, loads nothing (fail closed, no redirect) |
+
+Destinations are fixed root-relative paths, so the current host is kept (a
+staging preview stays on the preview; nothing points at `emerriment.com`) and
+nothing is taken from the URL. The guard resolves the destination first and
+refuses a redirect to the page that is already open or to another origin, so a
+loop cannot happen. The new-article / new-product forms stay disabled until the
+guard grants access and re-check before saving. The guard is a user-experience
+gate only: the security boundary is still RLS and table privileges, which were
+not changed.
+
+The CMS login page (`admin/loginCMS.html`) never worked: `admin/js/login.js`
+listened for a `#loginBtn` that does not exist. It now handles
+`#adminLoginForm`, shows text-only messages ("Incorrect email or password."),
+logs errors only as `{kind}` and goes to `/admin/dashboardCMS.html`, where the
+guard applies.
+
+**Admin console privacy.** `usersCMS.js` logged the signed-in user's id and
+email and the full admin profile; `user-detailsCMS.js` logged the viewed user's
+id (four places, plus an uncaught error containing it) and the full user record;
+several modules logged raw Supabase error objects. All 27 such calls now log a
+plain message, or errors as `{kind, code, status}` (`EMAdminGuard.safeError`);
+counts (e.g. "Loaded 3 users") and product ids remain.
+
+**Tests.** `tests/security/admin-cms.dom.test.js` (17): guard on every page;
+anonymous → CMS login; non-admin → `/dashboard.html` exactly once on every CMS
+page with only the own-profile query made; administrator stays and data loads
+only after the check; failed check fails closed; same-page / cross-host /
+URL-supplied destinations refused; forms disabled for non-admins; CMS login;
+synthetic user ids, emails, names, raw error text and tokens never reach the
+console. Mutation checks: the old `dashboardCMS.js`, the old `usersCMS.js`, the
+old destination inside the guard and a raw `console.error(error)` each make the
+suite fail.
+
+**Local validation against staging (read-only, headless Chrome, working tree
+served on `localhost:8888` with the preview's public staging configuration):**
+19/19 — anonymous → CMS login; user A on five CMS pages → `/dashboard.html`
+once; CMS login wrong/right password; administrator sees counts and the three
+users; no account email, token or password in the console; no writes; staging
+counters unchanged.
+
+**Testing note — clock skew.** The test machine's clock was about 13 hours
+ahead. Browsers there treat fresh Supabase tokens as expired, refresh them
+repeatedly, and occasionally lose the session (requests then go out as `anon`
+and fail with `42501`). The guard correctly failed closed in that case. Correct
+the test browser's clock (or the machine clock) before judging authenticated
+browser tests; real visitors with correct clocks are not affected.
+
+**Still open (separate packages; not changed in WP4E):**
+1. Dashboard article links (`Dashboard/dashboard-history.js`, `-reading.js`, `-topics.js`, `-ui.js`) point at the non-existent root `article.html` (the reader is `article/article.html`).
+2. The article reader (`article/article/js/article.js`) builds the page with `innerHTML` from database fields — stored-XSS risk if article content is ever unsafe.
+3. The article reader increments the view counter on every page load (a write on every visit, including tests; it changed one synthetic staging article from 0 to 1 views in WP4C).
+4. Raw Supabase errors are still logged by the `Dashboard/*.js` modules; admin CMS modules still `alert()` raw `error.message` text to the administrator on failed saves/deletes (shown, not logged); legacy, unreferenced admin scripts (`admin/dashboardD.js` logs a profile object) and the legacy non-CMS admin pages (`admin/dashboard.html`, `products.html`, …) were not reviewed in depth.
+5. The CSP `script-src` contains `'unsafe-inline'` (needed by inline page scripts today).
+
 ## 5. Local development
 
 `netlify dev` does not run the build, so the committed fail-closed

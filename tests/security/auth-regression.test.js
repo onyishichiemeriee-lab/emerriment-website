@@ -190,7 +190,10 @@ test("authentication files were not modified by the security work", async () => 
         // Changed on purpose and covered by tests/security/auth-pages.dom.test.js:
         // Dashboard/ + dashboard.html (2026-11-17 loader, error notice, parallel loading),
         // js/auth.js + login.html (resend confirmation), reset-password.html (link checks).
-        "admin/admin-authCMS.js", "admin/js/login.js"], { cwd: H.ROOT, encoding: "utf8" }).trim();
+        // admin/js/login.js (WP4E, 2026-11-20): the CMS login form never worked (it listened
+        // for a #loginBtn that does not exist); now wired to #adminLoginForm, text-only
+        // messages, safe logs, then the shared admin guard — tests/security/admin-cms.dom.test.js.
+        "admin/admin-authCMS.js"], { cwd: H.ROOT, encoding: "utf8" }).trim();
     assert.strictEqual(changed, "", "changed: " + changed);
 });
 
